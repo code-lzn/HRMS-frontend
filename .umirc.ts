@@ -29,6 +29,16 @@ export default defineConfig({
       path: '/table',
       component: './Table',
     },
+    {
+      name: '用户登录',
+      path: '/user/login',
+      component: '../app/user/login/page',
+    },
+    {
+      name: '用户注册',
+      path: '/user/register',
+      component: '../app/user/register/page',
+    },
   ],
   npmClient: 'pnpm',
   utoopack: {},

@@ -4,7 +4,7 @@ import request from '@/libs/request';
 
 /** health GET /api/health */
 export async function healthUsingGet(options?: { [key: string]: any }) {
-  return request<string>('/api/health', {
+  return request<API.BaseResponseString_>('/api/health', {
     method: 'GET',
     ...(options || {}),
   });
@@ -12,7 +12,7 @@ export async function healthUsingGet(options?: { [key: string]: any }) {
 
 /** health PUT /api/health */
 export async function healthUsingPut(options?: { [key: string]: any }) {
-  return request<string>('/api/health', {
+  return request<API.BaseResponseString_>('/api/health', {
     method: 'PUT',
     ...(options || {}),
   });
@@ -20,7 +20,7 @@ export async function healthUsingPut(options?: { [key: string]: any }) {
 
 /** health POST /api/health */
 export async function healthUsingPost(options?: { [key: string]: any }) {
-  return request<string>('/api/health', {
+  return request<API.BaseResponseString_>('/api/health', {
     method: 'POST',
     ...(options || {}),
   });
@@ -28,7 +28,7 @@ export async function healthUsingPost(options?: { [key: string]: any }) {
 
 /** health DELETE /api/health */
 export async function healthUsingDelete(options?: { [key: string]: any }) {
-  return request<string>('/api/health', {
+  return request<API.BaseResponseString_>('/api/health', {
     method: 'DELETE',
     ...(options || {}),
   });
@@ -36,7 +36,7 @@ export async function healthUsingDelete(options?: { [key: string]: any }) {
 
 /** health PATCH /api/health */
 export async function healthUsingPatch(options?: { [key: string]: any }) {
-  return request<string>('/api/health', {
+  return request<API.BaseResponseString_>('/api/health', {
     method: 'PATCH',
     ...(options || {}),
   });
