@@ -76,13 +76,13 @@ const MySalary: React.FC = () => {
       title: '应发',
       dataIndex: 'grossSalary',
       key: 'grossSalary',
-      render: (v: number) => (v != null ? `¥${v.toFixed(2)}` : '-'),
+      render: (v: number) => (v !== undefined? `¥${v.toFixed(2)}` : '-'),
     },
     {
       title: '应扣',
       dataIndex: 'totalDeduction',
       key: 'totalDeduction',
-      render: (v: number) => (v != null ? `¥${v.toFixed(2)}` : '-'),
+      render: (v: number) => (v !== undefined? `¥${v.toFixed(2)}` : '-'),
     },
     {
       title: '实发',
@@ -90,7 +90,7 @@ const MySalary: React.FC = () => {
       key: 'netSalary',
       render: (v: number) => (
         <span style={{ fontWeight: 600, color: '#1677ff' }}>
-          {v != null ? `¥${v.toFixed(2)}` : '-'}
+          {v !== undefined? `¥${v.toFixed(2)}` : '-'}
         </span>
       ),
     },
