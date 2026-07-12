@@ -1,0 +1,42 @@
+.attendance-page {
+  .punch-card {
+    .clock-section {
+      .clock-time {
+        display: flex;
+        align-items: center;
+        margin-top: 8px;
+      }
+    }
+    .punch-buttons {
+      display: flex;
+      align-items: center;
+      .punch-done {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+    }
+  }
+  .calendar-card {
+    .ant-picker-calendar {
+      .ant-picker-cell-in-view {
+        &.ant-picker-cell-selected .ant-picker-cell-inner {
+          background: #e6f4ff;
+        }
+      }
+    }
+  }
+  .calendar-legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+  }
+}

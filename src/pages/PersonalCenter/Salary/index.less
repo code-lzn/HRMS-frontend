@@ -1,0 +1,29 @@
+.salary-page {
+  .salary-slip-detail {
+    .slip-header {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      margin-bottom: 12px;
+      color: #666;
+      font-size: 14px;
+    }
+    .slip-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px dashed #f0f0f0;
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+    .slip-summary {
+      background: #f6f8fa;
+      padding: 16px;
+      border-radius: 8px;
+      .slip-row {
+        font-size: 15px;
+      }
+    }
+  }
+}
