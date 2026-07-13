@@ -10,6 +10,20 @@ export async function getMyProfileUsingGet(options?: { [key: string]: any }) {
   });
 }
 
+/** searchEmployees GET /api/employee/search */
+export async function searchEmployeesUsingGet(
+  params: { keyword?: string },
+  options?: { [key: string]: any },
+) {
+  return request<API.BaseResponseListEmployeeSimpleVO_>('/api/employee/search', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
 /** updateMyProfile POST /api/employee/profileUpdate */
 export async function updateMyProfileUsingPost(
   body: API.EmpProfileUpdateRequest,

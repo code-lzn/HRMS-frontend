@@ -321,6 +321,18 @@ declare namespace API {
     sortOrder?: number;
   };
 
+  type EmployeeSimpleVO = {
+    employeeName?: string;
+    employeeNo?: string;
+    id?: number;
+  };
+
+  type BaseResponseListEmployeeSimpleVO_ = {
+    code?: number;
+    data?: EmployeeSimpleVO[];
+    message?: string;
+  };
+
   type EmpProfileUpdateRequest = {
     currentAddress?: string;
     email?: string;
