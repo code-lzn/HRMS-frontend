@@ -32,6 +32,21 @@ export async function deleteDepartmentUsingPost(
   });
 }
 
+/** getDepartmentDetail GET /api/departments/detail */
+export async function getDepartmentDetailUsingGet(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getDepartmentDetailUsingGETParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.BaseResponseDepartmentTreeVO_>('/api/departments/detail', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
 /** mergeDepartments POST /api/departments/merge */
 export async function mergeDepartmentsUsingPost(
   body: API.DepartmentMergeRequest,

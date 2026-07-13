@@ -100,6 +100,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseDepartmentTreeVO_ = {
+    code?: number;
+    data?: DepartmentTreeVO;
+    message?: string;
+  };
+
   type BaseResponseEmpProfileVO_ = {
     code?: number;
     data?: EmpProfileVO;
@@ -358,6 +364,11 @@ declare namespace API {
   type getCalendarUsingGETParams = {
     /** month */
     month: string;
+  };
+
+  type getDepartmentDetailUsingGETParams = {
+    /** id */
+    id: number;
   };
 
   type getMonthRecordsUsingGETParams = {
