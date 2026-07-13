@@ -1,4 +1,5 @@
 import { getLoginUserUsingGet, userLogoutUsingPost } from '@/api/userController';
+import RightContent from '@/components/RightContent';
 import React from 'react';
 
 const originalError = console.error;
@@ -36,22 +37,12 @@ export const layout = () => {
     menu: {
       locale: false,
     },
-    rightRender: (initialState: any, _setInitialState: any, _runtimeConfig: any) => {
-      const currentUser = initialState?.currentUser;
-      if (!currentUser) {
-        return React.createElement(
-          'a',
-          { href: '/user/login', style: { color: 'rgba(255,255,255,0.85)', fontSize: 14, textDecoration: 'none', lineHeight: '56px' } },
-          '未登录',
-        );
-      }
-      return React.createElement('span', {
-        style: { color: 'rgba(255,255,255,0.85)', fontSize: 14, lineHeight: '56px', cursor: 'pointer' },
-        onClick: async () => {
-          await userLogoutUsingPost();
-          window.location.href = '/user/login';
-        },
-      }, currentUser.userName || '用户');
+    rightRender: (initialState: any, setInitialState: any, runtimeConfig: any) => {
+      return React.createElement(RightContent, {
+        initialState,
+        setInitialState,
+        runtimeConfig,
+      });
     },
     logout: async () => {
       await userLogoutUsingPost();
