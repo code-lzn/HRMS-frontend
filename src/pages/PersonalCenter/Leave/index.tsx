@@ -41,13 +41,13 @@ const MyLeave: React.FC = () => {
       ),
     },
     {
-      title: '开始日期',
+      title: '开始时间',
       dataIndex: 'startDate',
-      width: 120,
+      width: 160,
       render: (_, r) => r.startDate ?? '-',
     },
     {
-      title: '结束日期',
+      title: '结束时间',
       dataIndex: 'endDate',
       width: 120,
       render: (_, r) => r.endDate ?? '-',
@@ -110,8 +110,8 @@ const MyLeave: React.FC = () => {
       const values = await form.validateFields();
       const res = await applyUsingPost({
         leaveType: values.leaveType,
-        startDate: values.startDate.format('YYYY-MM-DD'),
-        endDate: values.endDate.format('YYYY-MM-DD'),
+        startDate: values.startDate.format('YYYY-MM-DD HH:mm'),
+        endDate: values.endDate.format('YYYY-MM-DD HH:mm'),
         reason: values.reason,
       });
       if (res?.code === 0) {
@@ -200,18 +200,19 @@ const MyLeave: React.FC = () => {
           </Form.Item>
           <Form.Item
             name="startDate"
-            label="开始日期"
-            rules={[{ required: true, message: '请选择开始日期' }]}
+            label="开始时间"
+            rules={[{ required: true, message: '请选择开始时间' }]}
           >
-            <DatePicker style={{ width: '100%' }} />
+            <DatePicker showTime={{ format: 'HH:mm' }} style={{ width: '100%' }} />
           </Form.Item>
           <Form.Item
             name="endDate"
-            label="结束日期"
-            rules={[{ required: true, message: '请选择结束日期' }]}
+            label="结束时间"
+            rules={[{ required: true, message: '请选择结束时间' }]}
             dependencies={['startDate']}
           >
             <DatePicker
+              showTime={{ format: 'HH:mm' }}
               style={{ width: '100%' }}
               disabledDate={(current) => {
                 const start = form.getFieldValue('startDate');

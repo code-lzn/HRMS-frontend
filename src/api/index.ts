@@ -10,7 +10,9 @@ import * as employeeController from './employeeController';
 import * as fileController from './fileController';
 import * as leaveController from './leaveController';
 import * as makeupPunchController from './makeupPunchController';
+import * as permissionController from './permissionController';
 import * as positionController from './positionController';
+import * as roleController from './roleController';
 import * as salaryController from './salaryController';
 import * as testHealth from './testHealth';
 import * as userController from './userController';
@@ -24,7 +26,9 @@ export default {
   employeeController,
   fileController,
   testHealth,
+  permissionController,
   positionController,
+  roleController,
   salaryController,
   userController,
 };

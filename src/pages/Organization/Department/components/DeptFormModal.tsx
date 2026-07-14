@@ -2,7 +2,7 @@ import {
   addDepartmentUsingPost,
   updateDepartmentUsingPut,
 } from '@/api/departmentController';
-import { searchEmployeesUsingGet } from '@/api/employeeController';
+import { listUserVoByPageUsingPost } from '@/api/userController';
 import type { DataNode } from 'antd/es/tree';
 import {
   Form,
@@ -86,13 +86,20 @@ const DeptFormModal: React.FC<DeptFormModalProps> = ({
     const fetchId = fetchRef.current;
     setEmployeeLoading(true);
     try {
-      const res = await searchEmployeesUsingGet({ keyword });
+      const res = await listUserVoByPageUsingPost({
+        current: 1,
+        pageSize: 20,
+        userName: keyword,
+      });
       if (fetchId === fetchRef.current) {
-        const newOptions = (res as any)?.data ?? [];
-        // 保留当前选中的负责人
+        const records = res?.data?.records ?? [];
+        const newOptions = records.map((u) => ({
+          id: u.id as number,
+          employeeName: u.userName ?? '',
+        }));
         setEmployeeOptions((prev) => {
-          const currentIds = new Set(newOptions.map((o: API.EmployeeSimpleVO) => o.id));
-          const existing = prev.filter((o: API.EmployeeSimpleVO) => !currentIds.has(o.id));
+          const currentIds = new Set(newOptions.map((o) => o.id));
+          const existing = prev.filter((o) => !currentIds.has(o.id));
           return [...existing, ...newOptions];
         });
       }
