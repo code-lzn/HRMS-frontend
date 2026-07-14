@@ -7,12 +7,10 @@ import { getDepartmentTreeUsingGet } from '@/api/departmentController';
 import { DeleteOutlined, EditOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, message, Modal, Space, Tabs, Tag, Tooltip, TreeSelect } from 'antd';
+import { Button, App, Space, Tabs, Tag, Tooltip, TreeSelect } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import PositionFormModal from './components/PositionFormModal';
 import SequenceDrawer from './components/SequenceDrawer';
-
-const { confirm } = Modal;
 
 const SEQUENCE_TABS = [
   { label: '全部', value: undefined },
@@ -37,6 +35,7 @@ const buildTreeSelectData = (nodes: API.DepartmentTreeVO[]): any[] =>
   }));
 
 const PositionPage: React.FC = () => {
+  const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType>();
   const [activeSequence, setActiveSequence] = useState<number | undefined>(undefined);
   const [filterDeptId, setFilterDeptId] = useState<number | undefined>(undefined);
@@ -68,7 +67,7 @@ const PositionPage: React.FC = () => {
   }, []);
 
   const handleDelete = (record: API.PositionVO) => {
-    confirm({
+    modal.confirm({
       title: '确定删除该职位吗？',
       icon: <ExclamationCircleOutlined />,
       content: `将删除职位「${record.name}」，此操作不可恢复。`,
@@ -166,10 +165,11 @@ const PositionPage: React.FC = () => {
         search={false}
         request={async () => {
           try {
-            const res = await listPositionsUsingGet({
-              sequence: activeSequence,
-              departmentId: filterDeptId,
-            });
+            // 只传递有值的参数，避免空参数干扰后端
+            const apiParams: API.listPositionsUsingGETParams = {};
+            if (activeSequence !== undefined) apiParams.sequence = activeSequence;
+            if (filterDeptId !== undefined) apiParams.departmentId = filterDeptId;
+            const res = await listPositionsUsingGet(apiParams);
             return {
               data: (res as any)?.data ?? [],
               success: true,

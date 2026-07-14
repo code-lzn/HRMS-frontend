@@ -39,6 +39,29 @@ const buildTreeData = (nodes: API.DepartmentTreeVO[]): DataNode[] =>
     children: node.children?.length ? buildTreeData(node.children) : [],
   }));
 
+/**
+ * 根据搜索关键词过滤树节点，只保留名称匹配的节点以及其父节点路径
+ */
+const filterTreeBySearch = (nodes: API.DepartmentTreeVO[], keyword: string): API.DepartmentTreeVO[] => {
+  if (!keyword.trim()) return nodes;
+  const lowerKeyword = keyword.toLowerCase();
+  const filter = (list: API.DepartmentTreeVO[]): API.DepartmentTreeVO[] => {
+    const result: API.DepartmentTreeVO[] = [];
+    for (const node of list) {
+      const nameMatch = node.name?.toLowerCase().includes(lowerKeyword) ?? false;
+      const filteredChildren = node.children?.length ? filter(node.children) : [];
+      if (nameMatch || filteredChildren.length > 0) {
+        result.push({
+          ...node,
+          children: filteredChildren.length > 0 ? filteredChildren : node.children,
+        });
+      }
+    }
+    return result;
+  };
+  return filter(nodes);
+};
+
 /** 获取所有节点 key（用于展开） */
 const getAllKeys = (nodes: API.DepartmentTreeVO[]): React.Key[] => {
   const keys: React.Key[] = [];
@@ -90,7 +113,12 @@ const DepartmentTree: React.FC<DepartmentTreeProps> = ({
     }
   }, [searchValue, treeData]);
 
-  const treeDataNodes = useMemo(() => buildTreeData(treeData), [treeData]);
+  // 根据搜索词过滤树
+  const filteredTreeData = useMemo(
+    () => filterTreeBySearch(treeData, searchValue),
+    [treeData, searchValue],
+  );
+  const treeDataNodes = useMemo(() => buildTreeData(filteredTreeData), [filteredTreeData]);
 
   const handleSelect = useCallback(
     (selectedKeys: React.Key[]) => {

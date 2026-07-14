@@ -61,6 +61,17 @@ export default defineConfig({
       ],
     },
     {
+      name: '员工管理',
+      path: '/employee',
+      routes: [
+        { path: '/employee', redirect: '/employee/list' },
+        { name: '员工列表', path: '/employee/list', component: './Employee/List' },
+        { name: '员工详情', path: '/employee/detail/:id', component: './Employee/Detail', hideInMenu: true },
+        { name: '新增员工', path: '/employee/add', component: './Employee/Add', hideInMenu: true },
+        { name: '编辑员工', path: '/employee/edit/:id', component: './Employee/Edit', hideInMenu: true },
+      ],
+    },
+    {
       name: '用户登录',
       path: '/user/login',
       component: '../app/user/login/page',

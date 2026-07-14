@@ -2,7 +2,7 @@ import {
   getDepartmentDetailUsingGet,
   getDepartmentTreeUsingGet,
 } from '@/api/departmentController';
-import { Card, message } from 'antd';
+import { Card, App } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from '@umijs/max';
 import DepartmentDetail from './components/DepartmentDetail';
@@ -11,6 +11,7 @@ import DeptFormModal from './components/DeptFormModal';
 import MergeDeptModal from './components/MergeDeptModal';
 
 const DepartmentPage: React.FC = () => {
+  const { message } = App.useApp();
   const [searchParams] = useSearchParams();
   const deptIdParam = searchParams.get('deptId');
 
@@ -31,33 +32,40 @@ const DepartmentPage: React.FC = () => {
       const res = await getDepartmentTreeUsingGet();
       const data = (res as any)?.data ?? [];
       setTreeData(data);
-      // 如果当前选中了部门，从新树中更新选中部门数据
-      if (selectedDept?.id) {
-        const findNode = (nodes: API.DepartmentTreeVO[]): API.DepartmentTreeVO | undefined => {
-          for (const node of nodes) {
-            if (node.id === selectedDept.id) return node;
-            if (node.children?.length) {
-              const found = findNode(node.children);
-              if (found) return found;
-            }
-          }
-          return undefined;
-        };
-        const updated = findNode(data);
-        if (updated) setSelectedDept(updated);
-      }
     } catch {
       // ignore
     } finally {
       setTreeLoading(false);
     }
-  }, [selectedDept?.id]);
+  }, []);
 
   /** 初始加载 */
   useEffect(() => {
     loadTree();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadTree]);
+
+  /** 树数据变化后，从新树中更新当前选中节点 */
+  useEffect(() => {
+    if (!selectedDept?.id || treeData.length === 0) return;
+    const findNode = (nodes: API.DepartmentTreeVO[]): API.DepartmentTreeVO | undefined => {
+      for (const node of nodes) {
+        if (node.id === selectedDept.id) return node;
+        if (node.children?.length) {
+          const found = findNode(node.children);
+          if (found) return found;
+        }
+      }
+      return undefined;
+    };
+    const updated = findNode(treeData);
+    if (updated) {
+      setSelectedDept((prev) => {
+        // 仅当数据实际变化时才更新，避免不必要的重渲染
+        if (JSON.stringify(prev) === JSON.stringify(updated)) return prev;
+        return updated;
+      });
+    }
+  }, [treeData]);
 
   /** URL 参数直达 */
   useEffect(() => {
@@ -109,7 +117,7 @@ const DepartmentPage: React.FC = () => {
       {/* 左侧部门树 */}
       <Card
         style={{ width: 320, flexShrink: 0, overflow: 'auto' }}
-        bodyStyle={{ padding: 16, height: '100%', display: 'flex', flexDirection: 'column' }}
+        styles={{ body: { padding: 16, height: '100%', display: 'flex', flexDirection: 'column' } }}
       >
         <DepartmentTree
           selectedDeptId={selectedDept?.id}
@@ -122,7 +130,7 @@ const DepartmentPage: React.FC = () => {
       </Card>
 
       {/* 右侧部门详情 */}
-      <Card style={{ flex: 1, overflow: 'auto' }} bodyStyle={{ padding: 16 }}>
+      <Card style={{ flex: 1, overflow: 'auto' }} styles={{ body: { padding: 16 } }}>
         <DepartmentDetail
           department={selectedDept}
           onEdit={handleEditDept}

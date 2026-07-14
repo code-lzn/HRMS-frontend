@@ -388,6 +388,7 @@ declare namespace API {
     id?: number;
     managerId?: number;
     name?: string;
+    parentId?: number | null;
     sortOrder?: number;
   };
 
@@ -410,11 +411,11 @@ declare namespace API {
     hireDate?: string;
     hireType?: number;
     idCard?: string;
-    jobLevel?: string;
     phone?: string;
     positionId?: number;
     probationRatio?: number;
     registeredAddress?: string;
+    salaryProfileId?: number;
     workLocation?: string;
   };
 
@@ -432,6 +433,16 @@ declare namespace API {
     remark?: string;
   };
 
+  /** @deprecated 后端 v1.4 改用扁平 VO，此类型不再使用 */
+  type EmployeeDetailPersonalInfoVO = Record<string, any>;
+  /** @deprecated 后端 v1.4 改用扁平 VO，此类型不再使用 */
+  type EmployeeDetailWorkInfoVO = Record<string, any>;
+  /** @deprecated 后端 v1.4 改用扁平 VO，此类型不再使用 */
+  type EmployeeDetailSalaryInfoVO = Record<string, any>;
+  /** @deprecated 后端 v1.4 改用扁平 VO，此类型不再使用 */
+  type EmployeeDetailEmergencyContactVO = Record<string, any>;
+
+  /** 员工详情 VO（后端 v1.4 扁平结构） */
   type EmployeeDetailVO = {
     account?: string;
     bankAccount?: string;
@@ -457,10 +468,8 @@ declare namespace API {
     gender?: number;
     genderDesc?: string;
     hireDate?: string;
-    hireType?: number;
     id?: number;
     idCard?: string;
-    jobLevel?: string;
     phone?: string;
     positionId?: number;
     positionName?: string;
@@ -491,11 +500,11 @@ declare namespace API {
     hireType?: number;
     id?: number;
     idCard?: string;
-    jobLevel?: string;
     phone?: string;
     positionId?: number;
     probationRatio?: number;
     registeredAddress?: string;
+    salaryProfileId?: number;
     workLocation?: string;
   };
 
@@ -511,7 +520,6 @@ declare namespace API {
     gender?: number;
     hireDate?: string;
     id?: number;
-    jobLevel?: string;
     phone?: string;
     positionId?: number;
     positionName?: string;
@@ -638,6 +646,18 @@ declare namespace API {
     totalDays?: number;
   };
 
+  type EmployeeSimpleVO = {
+    id?: number;
+    employeeName?: string;
+    employeeNo?: string;
+  };
+
+  type BaseResponseListEmployeeSimpleVO_ = {
+    code?: number;
+    data?: EmployeeSimpleVO[];
+    message?: string;
+  };
+
   type listEmployeesUsingGETParams = {
     /** departmentIds */
     departmentIds?: number[];
@@ -645,8 +665,6 @@ declare namespace API {
     hireDateEnd?: string;
     /** hireDateStart */
     hireDateStart?: string;
-    /** jobLevels */
-    jobLevels?: string[];
     /** keyword */
     keyword?: string;
     /** page */
