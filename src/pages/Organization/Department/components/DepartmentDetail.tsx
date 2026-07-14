@@ -2,10 +2,8 @@ import { deleteDepartmentUsingPost } from '@/api/departmentController';
 import { DeleteOutlined, EditOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, Card, Descriptions, Empty, message, Modal, Space, Tag } from 'antd';
+import { Button, Card, Descriptions, Empty, App, Space, Tag } from 'antd';
 import React, { useRef } from 'react';
-
-const { confirm } = Modal;
 
 interface DepartmentDetailProps {
   department: API.DepartmentTreeVO | null;
@@ -37,6 +35,7 @@ const DepartmentDetail: React.FC<DepartmentDetailProps> = ({
   onRefreshTree,
   treeData,
 }) => {
+  const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType>();
 
   if (!department) {
@@ -48,7 +47,7 @@ const DepartmentDetail: React.FC<DepartmentDetailProps> = ({
   }
 
   const handleDelete = () => {
-    confirm({
+    modal.confirm({
       title: '确定删除该部门吗？',
       icon: <ExclamationCircleOutlined />,
       content: `将删除部门「${department.name}」，此操作不可恢复。`,
@@ -94,7 +93,7 @@ const DepartmentDetail: React.FC<DepartmentDetailProps> = ({
             编辑
           </Button>
           <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => {
-            confirm({
+            modal.confirm({
               title: '确定删除该部门吗？',
               icon: <ExclamationCircleOutlined />,
               content: `将删除部门「${record.name}」，此操作不可恢复。`,

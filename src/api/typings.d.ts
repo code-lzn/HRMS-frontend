@@ -106,9 +106,21 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseEmployeeDetailVO_ = {
+    code?: number;
+    data?: EmployeeDetailVO;
+    message?: string;
+  };
+
   type BaseResponseEmpProfileVO_ = {
     code?: number;
     data?: EmpProfileVO;
+    message?: string;
+  };
+
+  type BaseResponseInt_ = {
+    code?: number;
+    data?: number;
     message?: string;
   };
 
@@ -172,6 +184,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseListRoleVO_ = {
+    code?: number;
+    data?: RoleVO[];
+    message?: string;
+  };
+
   type BaseResponseListSalarySlipVO_ = {
     code?: number;
     data?: SalarySlipVO[];
@@ -187,6 +205,12 @@ declare namespace API {
   type BaseResponseListSequenceLevelVO_ = {
     code?: number;
     data?: SequenceLevelVO[];
+    message?: string;
+  };
+
+  type BaseResponseListString_ = {
+    code?: number;
+    data?: string[];
     message?: string;
   };
 
@@ -214,6 +238,30 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseMapStringObject_ = {
+    code?: number;
+    data?: Record<string, any>;
+    message?: string;
+  };
+
+  type BaseResponsePageEmployeeChangeLogVO_ = {
+    code?: number;
+    data?: PageEmployeeChangeLogVO_;
+    message?: string;
+  };
+
+  type BaseResponsePageEmployeeVO_ = {
+    code?: number;
+    data?: PageEmployeeVO_;
+    message?: string;
+  };
+
+  type BaseResponsePageRoleVO_ = {
+    code?: number;
+    data?: PageRoleVO_;
+    message?: string;
+  };
+
   type BaseResponsePageUser_ = {
     code?: number;
     data?: PageUser_;
@@ -223,6 +271,12 @@ declare namespace API {
   type BaseResponsePageUserVO_ = {
     code?: number;
     data?: PageUserVO_;
+    message?: string;
+  };
+
+  type BaseResponseRoleVO_ = {
+    code?: number;
+    data?: RoleVO;
     message?: string;
   };
 
@@ -241,6 +295,12 @@ declare namespace API {
   type BaseResponseUser_ = {
     code?: number;
     data?: User;
+    message?: string;
+  };
+
+  type BaseResponseUserPermissionVO_ = {
+    code?: number;
+    data?: UserPermissionVO;
     message?: string;
   };
 
@@ -270,6 +330,11 @@ declare namespace API {
     oldPassword?: string;
   };
 
+  type checkPermissionUsingGETParams = {
+    /** code */
+    code: string;
+  };
+
   type DelegationRequest = {
     businessTypes?: string;
     delegateId?: number;
@@ -279,6 +344,11 @@ declare namespace API {
 
   type DeleteRequest = {
     id?: number;
+  };
+
+  type deleteRoleUsingPOSTParams = {
+    /** id */
+    id: number;
   };
 
   type DepartmentAddRequest = {
@@ -318,19 +388,143 @@ declare namespace API {
     id?: number;
     managerId?: number;
     name?: string;
+    parentId?: number | null;
     sortOrder?: number;
   };
 
-  type EmployeeSimpleVO = {
+  type EmployeeAddRequest = {
+    bankAccount?: string;
+    bankName?: string;
+    baseSalary?: number;
+    birthday?: string;
+    contractExpireDate?: string;
+    contractType?: number;
+    currentAddress?: string;
+    departmentId?: number;
+    directReportId?: number;
+    email?: string;
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
     employeeName?: string;
-    employeeNo?: string;
-    id?: number;
+    employmentType?: string;
+    gender?: number;
+    hireDate?: string;
+    hireType?: number;
+    idCard?: string;
+    phone?: string;
+    positionId?: number;
+    probationRatio?: number;
+    registeredAddress?: string;
+    salaryProfileId?: number;
+    workLocation?: string;
   };
 
-  type BaseResponseListEmployeeSimpleVO_ = {
-    code?: number;
-    data?: EmployeeSimpleVO[];
-    message?: string;
+  type EmployeeChangeLogVO = {
+    changeType?: string;
+    changeTypeDesc?: string;
+    createTime?: string;
+    employeeId?: number;
+    fieldDesc?: string;
+    fieldName?: string;
+    id?: number;
+    newValue?: string;
+    oldValue?: string;
+    operatorName?: string;
+    remark?: string;
+  };
+
+  /** @deprecated 后端 v1.4 改用扁平 VO，此类型不再使用 */
+  type EmployeeDetailPersonalInfoVO = Record<string, any>;
+  /** @deprecated 后端 v1.4 改用扁平 VO，此类型不再使用 */
+  type EmployeeDetailWorkInfoVO = Record<string, any>;
+  /** @deprecated 后端 v1.4 改用扁平 VO，此类型不再使用 */
+  type EmployeeDetailSalaryInfoVO = Record<string, any>;
+  /** @deprecated 后端 v1.4 改用扁平 VO，此类型不再使用 */
+  type EmployeeDetailEmergencyContactVO = Record<string, any>;
+
+  /** 员工详情 VO（后端 v1.4 扁平结构） */
+  type EmployeeDetailVO = {
+    account?: string;
+    bankAccount?: string;
+    bankName?: string;
+    baseSalary?: number;
+    birthday?: string;
+    contractExpireDate?: string;
+    contractType?: number;
+    contractTypeDesc?: string;
+    createTime?: string;
+    currentAddress?: string;
+    departmentId?: number;
+    departmentName?: string;
+    directReportId?: number;
+    directReportName?: string;
+    email?: string;
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
+    employeeName?: string;
+    employeeNo?: string;
+    employmentType?: string;
+    employmentTypeDesc?: string;
+    gender?: number;
+    genderDesc?: string;
+    hireDate?: string;
+    id?: number;
+    idCard?: string;
+    phone?: string;
+    positionId?: number;
+    positionName?: string;
+    probationRatio?: number;
+    registeredAddress?: string;
+    status?: number;
+    statusDesc?: string;
+    workLocation?: string;
+  };
+
+  type EmployeeUpdateRequest = {
+    bankAccount?: string;
+    bankName?: string;
+    baseSalary?: number;
+    birthday?: string;
+    contractExpireDate?: string;
+    contractType?: number;
+    currentAddress?: string;
+    departmentId?: number;
+    directReportId?: number;
+    email?: string;
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
+    employeeName?: string;
+    employmentType?: string;
+    gender?: number;
+    hireDate?: string;
+    hireType?: number;
+    id?: number;
+    idCard?: string;
+    phone?: string;
+    positionId?: number;
+    probationRatio?: number;
+    registeredAddress?: string;
+    salaryProfileId?: number;
+    workLocation?: string;
+  };
+
+  type EmployeeVO = {
+    createTime?: string;
+    departmentId?: number;
+    departmentName?: string;
+    email?: string;
+    employeeName?: string;
+    employeeNo?: string;
+    employmentType?: string;
+    employmentTypeDesc?: string;
+    gender?: number;
+    hireDate?: string;
+    id?: number;
+    phone?: string;
+    positionId?: number;
+    positionName?: string;
+    status?: number;
+    statusDesc?: string;
   };
 
   type EmpProfileUpdateRequest = {
@@ -378,14 +572,33 @@ declare namespace API {
     month: string;
   };
 
+  type getChangeLogsUsingGETParams = {
+    /** employeeId */
+    employeeId?: number;
+    /** page */
+    page?: number;
+    /** size */
+    size?: number;
+  };
+
   type getDepartmentDetailUsingGETParams = {
     /** id */
     id: number;
   };
 
+  type getDetailUsingGETParams = {
+    /** id */
+    id?: number;
+  };
+
   type getMonthRecordsUsingGETParams = {
     /** month */
     month: string;
+  };
+
+  type getRoleByIdUsingGETParams = {
+    /** id */
+    id: number;
   };
 
   type getSalarySlipDetailUsingPOSTParams = {
@@ -431,6 +644,37 @@ declare namespace API {
     status?: number;
     statusText?: string;
     totalDays?: number;
+  };
+
+  type EmployeeSimpleVO = {
+    id?: number;
+    employeeName?: string;
+    employeeNo?: string;
+  };
+
+  type BaseResponseListEmployeeSimpleVO_ = {
+    code?: number;
+    data?: EmployeeSimpleVO[];
+    message?: string;
+  };
+
+  type listEmployeesUsingGETParams = {
+    /** departmentIds */
+    departmentIds?: number[];
+    /** hireDateEnd */
+    hireDateEnd?: string;
+    /** hireDateStart */
+    hireDateStart?: string;
+    /** keyword */
+    keyword?: string;
+    /** page */
+    page?: number;
+    /** positionIds */
+    positionIds?: number[];
+    /** size */
+    size?: number;
+    /** statuses */
+    statuses?: number[];
   };
 
   type listPositionsUsingGETParams = {
@@ -502,6 +746,45 @@ declare namespace API {
   type OrderItem = {
     asc?: boolean;
     column?: string;
+  };
+
+  type PageEmployeeChangeLogVO_ = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: EmployeeChangeLogVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
+  type PageEmployeeVO_ = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: EmployeeVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
+  type PageRoleVO_ = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: RoleVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
   };
 
   type PageUser_ = {
@@ -579,6 +862,56 @@ declare namespace API {
     punchType?: number;
   };
 
+  type RoleAddRequest = {
+    dataScope?: number;
+    description?: string;
+    fieldPermissions?: string;
+    permissions?: string;
+    roleCode?: string;
+    roleName?: string;
+  };
+
+  type RoleAssignRequest = {
+    roleId?: number;
+    userId?: number;
+  };
+
+  type RoleQueryRequest = {
+    current?: number;
+    dataScope?: number;
+    id?: number;
+    pageSize?: number;
+    roleCode?: string;
+    roleName?: string;
+    sortField?: string;
+    sortOrder?: string;
+    status?: number;
+  };
+
+  type RoleUpdateRequest = {
+    dataScope?: number;
+    description?: string;
+    fieldPermissions?: string;
+    id?: number;
+    permissions?: string;
+    roleCode?: string;
+    roleName?: string;
+    status?: number;
+  };
+
+  type RoleVO = {
+    dataScope?: number;
+    dataScopeDesc?: string;
+    description?: string;
+    fieldPermissions?: string;
+    id?: number;
+    permissionCodes?: string[];
+    permissions?: string;
+    roleCode?: string;
+    roleName?: string;
+    status?: number;
+  };
+
   type SalarySlipDetailVO = {
     adjustReason?: string;
     allowance?: number;
@@ -654,6 +987,20 @@ declare namespace API {
   type UserLoginRequest = {
     userAccount?: string;
     userPassword?: string;
+  };
+
+  type UserPermissionVO = {
+    dataScope?: number;
+    dataScopeDesc?: string;
+    fieldPermissions?: string;
+    permissionCodes?: string[];
+    permissions?: string;
+    roleCode?: string;
+    roleId?: number;
+    roleName?: string;
+    userAccount?: string;
+    userId?: number;
+    userName?: string;
   };
 
   type UserQueryRequest = {

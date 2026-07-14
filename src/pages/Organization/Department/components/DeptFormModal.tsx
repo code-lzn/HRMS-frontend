@@ -2,13 +2,13 @@ import {
   addDepartmentUsingPost,
   updateDepartmentUsingPut,
 } from '@/api/departmentController';
-import { searchEmployeesUsingGet } from '@/api/employeeController';
+import { listEmployeesUsingGet } from '@/api/employeeController';
 import type { DataNode } from 'antd/es/tree';
 import {
   Form,
   Input,
   InputNumber,
-  message,
+  App,
   Modal,
   Select,
   TreeSelect,
@@ -24,7 +24,34 @@ const buildTreeSelectData = (nodes: API.DepartmentTreeVO[]): DataNode[] =>
     children: node.children?.length ? buildTreeSelectData(node.children) : [],
   }));
 
-/** 计算节点层级深度 */
+/** 检查 targetId 是否是 sourceId 的子孙节点 */
+const isDescendant = (
+  nodes: API.DepartmentTreeVO[],
+  sourceId: number,
+  targetId: number,
+): boolean => {
+  const findSource = (list: API.DepartmentTreeVO[]): API.DepartmentTreeVO | undefined => {
+    for (const node of list) {
+      if (node.id === sourceId) return node;
+      if (node.children?.length) {
+        const found = findSource(node.children);
+        if (found) return found;
+      }
+    }
+    return undefined;
+  };
+  const sourceNode = findSource(nodes);
+  if (!sourceNode) return false;
+  if (!sourceNode.children?.length) return false;
+  const containsTarget = (list: API.DepartmentTreeVO[]): boolean => {
+    for (const node of list) {
+      if (node.id === targetId) return true;
+      if (node.children?.length && containsTarget(node.children)) return true;
+    }
+    return false;
+  };
+  return containsTarget(sourceNode.children);
+};
 const getDeptDepth = (nodes: API.DepartmentTreeVO[], targetId: number, depth = 1): number => {
   for (const node of nodes) {
     if (node.id === targetId) return depth;
@@ -72,6 +99,7 @@ const DeptFormModal: React.FC<DeptFormModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { message } = App.useApp();
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
   const [employeeOptions, setEmployeeOptions] = useState<API.EmployeeSimpleVO[]>([]);
@@ -86,14 +114,18 @@ const DeptFormModal: React.FC<DeptFormModalProps> = ({
     const fetchId = fetchRef.current;
     setEmployeeLoading(true);
     try {
-      const res = await searchEmployeesUsingGet({ keyword });
+      const res = await listEmployeesUsingGet({ keyword, page: 1, size: 20 });
       if (fetchId === fetchRef.current) {
-        const newOptions = (res as any)?.data ?? [];
+        const records = (res as any)?.data?.records ?? [];
         // 保留当前选中的负责人
         setEmployeeOptions((prev) => {
-          const currentIds = new Set(newOptions.map((o: API.EmployeeSimpleVO) => o.id));
+          const currentIds = new Set(records.map((o: API.EmployeeVO) => o.id));
           const existing = prev.filter((o: API.EmployeeSimpleVO) => !currentIds.has(o.id));
-          return [...existing, ...newOptions];
+          return [...existing, ...records.map((o: API.EmployeeVO) => ({
+            id: o.id,
+            employeeName: o.employeeName,
+            employeeNo: o.employeeNo,
+          }))];
         });
       }
     } catch {
@@ -130,6 +162,8 @@ const DeptFormModal: React.FC<DeptFormModalProps> = ({
       form.setFieldsValue({ parentId: defaultParentId, sortOrder: 0 });
       setEmployeeOptions([]);
     }
+    // 打开弹窗时加载初始员工选项，让下拉框有数据可展示
+    fetchEmployees('');
   }, [open, mode, editDept, defaultParentId, form]);
 
   const handleOk = async () => {
@@ -137,8 +171,10 @@ const DeptFormModal: React.FC<DeptFormModalProps> = ({
       const values = await form.validateFields();
 
       // 前端校验：同级名称不重复
-      const parentId = mode === 'add' ? (values.parentId ?? null) : (editDept?.parentId ?? null);
-      if (checkSiblingNameDuplicate(treeData, parentId, values.name, mode === 'edit' ? editDept?.id : undefined)) {
+      const parentId = values.parentId ?? null;
+      // 对于编辑模式，同级指的是新parentId下的子节点
+      const effectiveParentForCheck = mode === 'edit' ? (values.parentId ?? editDept?.parentId ?? null) : parentId;
+      if (checkSiblingNameDuplicate(treeData, effectiveParentForCheck, values.name, mode === 'edit' ? editDept?.id : undefined)) {
         message.error('同级下已存在相同名称的部门');
         return;
       }
@@ -148,6 +184,26 @@ const DeptFormModal: React.FC<DeptFormModalProps> = ({
         const parentDepth = getDeptDepth(treeData, values.parentId);
         if (parentDepth >= 5) {
           message.error('部门层级不能超过5级');
+          return;
+        }
+      }
+
+      // 编辑模式下修改上级部门时的校验
+      if (mode === 'edit' && editDept && values.parentId && values.parentId !== editDept.parentId) {
+        // 不能将自己作为自己的上级
+        if (values.parentId === editDept.id) {
+          message.error('不能将自身设为上级部门');
+          return;
+        }
+        // 新上级不能是当前部门的子孙
+        if (isDescendant(treeData, editDept.id!, values.parentId)) {
+          message.error('目标部门不能是当前部门的子部门');
+          return;
+        }
+        // 检查新上级部门层级深度
+        const parentDepth = getDeptDepth(treeData, values.parentId);
+        if (parentDepth >= 5) {
+          message.error('目标上级部门层级已达上限（5级），无法移动');
           return;
         }
       }
@@ -170,6 +226,7 @@ const DeptFormModal: React.FC<DeptFormModalProps> = ({
           managerId: values.managerId ?? null,
           sortOrder: values.sortOrder ?? 0,
           description: values.description,
+          ...(values.parentId !== undefined ? { parentId: values.parentId ?? null } : {}),
         });
         message.success('编辑部门成功');
       }
@@ -221,13 +278,20 @@ const DeptFormModal: React.FC<DeptFormModalProps> = ({
           />
         </Form.Item>
 
-        <Form.Item name="parentId" label="上级部门">
+        <Form.Item
+          name="parentId"
+          label="上级部门"
+          extra={
+            isEdit
+              ? '修改上级部门将移动该部门及其所有子部门和员工到新上级部门下'
+              : undefined
+          }
+        >
           <TreeSelect
             treeData={treeSelectData}
-            placeholder="请选择上级部门"
+            placeholder={isEdit ? '留空则保持不变：请选择新上级部门' : '请选择上级部门'}
             allowClear
             treeDefaultExpandAll={false}
-            disabled={isEdit}
           />
         </Form.Item>
 
