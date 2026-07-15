@@ -7,8 +7,10 @@ import { getDepartmentTreeUsingGet } from '@/api/departmentController';
 import { DeleteOutlined, EditOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, App, Space, Tabs, Tag, Tooltip, TreeSelect } from 'antd';
+import { Button, message, Modal, Space, Tabs, Tag, Tooltip, TreeSelect } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useModel } from '@umijs/max';
+import { hasPermission } from '@/utils/permission';
 import PositionFormModal from './components/PositionFormModal';
 import SequenceDrawer from './components/SequenceDrawer';
 
@@ -35,7 +37,10 @@ const buildTreeSelectData = (nodes: API.DepartmentTreeVO[]): any[] =>
   }));
 
 const PositionPage: React.FC = () => {
-  const { message, modal } = App.useApp();
+  const { initialState } = useModel('@@initialState');
+  const currentUser = initialState?.currentUser;
+  const canManage = hasPermission(currentUser, 'org:manage');
+
   const actionRef = useRef<ActionType>();
   const [activeSequence, setActiveSequence] = useState<number | undefined>(undefined);
   const [filterDeptId, setFilterDeptId] = useState<number | undefined>(undefined);
@@ -67,7 +72,7 @@ const PositionPage: React.FC = () => {
   }, []);
 
   const handleDelete = (record: API.PositionVO) => {
-    modal.confirm({
+    Modal.confirm({
       title: '确定删除该职位吗？',
       icon: <ExclamationCircleOutlined />,
       content: `将删除职位「${record.name}」，此操作不可恢复。`,
@@ -131,9 +136,9 @@ const PositionPage: React.FC = () => {
         ),
     },
     {
-      title: '操作',
+      title: canManage ? '操作' : '',
       width: 140,
-      render: (_, record) => (
+      render: (_, record) => canManage ? (
         <Space>
           <Button
             type="link"
@@ -151,7 +156,7 @@ const PositionPage: React.FC = () => {
             删除
           </Button>
         </Space>
-      ),
+      ) : null,
     },
   ];
 
@@ -213,17 +218,19 @@ const PositionPage: React.FC = () => {
             >
               序列职级对照
             </Button>,
-            <Button
-              key="add"
-              type="primary"
-              onClick={() => {
-                setFormMode('add');
-                setEditRecord(null);
-                setFormOpen(true);
-              }}
-            >
-              新增职位
-            </Button>,
+            canManage && (
+              <Button
+                key="add"
+                type="primary"
+                onClick={() => {
+                  setFormMode('add');
+                  setEditRecord(null);
+                  setFormOpen(true);
+                }}
+              >
+                新增职位
+              </Button>
+            ),
           ],
         }}
       />

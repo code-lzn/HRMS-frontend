@@ -127,17 +127,7 @@ UED：选填
 | 工作地点 | `workLocation` | 所有人 |
 | 录用类型 | `employmentType` | HR + 本人 |
 
-##### 薪资与合同信息卡片
-
-| 字段 | 字段名 | 可见性 |
-| --- | --- | --- |
-| 合同类型 | `contractType` | HR |
-| 合同到期日 | `contractExpireDate` | HR |
-| 试用期待遇比例 | `probationRatio` | HR |
-| 基本工资 | `baseSalary` | HR + 财务 |
-| 银行账号 | `bankAccount` | HR（脱敏） |
-| 开户行 | `bankName` | HR |
-
+  
 ##### 紧急联系人卡片
 
 | 字段 | 可见性 |

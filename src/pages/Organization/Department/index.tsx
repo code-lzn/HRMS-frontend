@@ -2,16 +2,20 @@ import {
   getDepartmentDetailUsingGet,
   getDepartmentTreeUsingGet,
 } from '@/api/departmentController';
-import { Card, App } from 'antd';
+import { Card, message } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
-import { useSearchParams } from '@umijs/max';
+import { history, useModel, useSearchParams } from '@umijs/max';
+import { hasPermission } from '@/utils/permission';
 import DepartmentDetail from './components/DepartmentDetail';
 import DepartmentTree from './components/DepartmentTree';
 import DeptFormModal from './components/DeptFormModal';
 import MergeDeptModal from './components/MergeDeptModal';
 
 const DepartmentPage: React.FC = () => {
-  const { message } = App.useApp();
+  const { initialState } = useModel('@@initialState');
+  const currentUser = initialState?.currentUser;
+  const canManage = hasPermission(currentUser, 'org:manage');
+
   const [searchParams] = useSearchParams();
   const deptIdParam = searchParams.get('deptId');
 
@@ -126,6 +130,7 @@ const DepartmentPage: React.FC = () => {
           onMergeDept={() => setMergeOpen(true)}
           treeData={treeData}
           loading={treeLoading}
+          canManage={canManage}
         />
       </Card>
 
@@ -136,6 +141,7 @@ const DepartmentPage: React.FC = () => {
           onEdit={handleEditDept}
           onRefreshTree={loadTree}
           treeData={treeData}
+          canManage={canManage}
         />
       </Card>
 

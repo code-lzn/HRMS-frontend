@@ -6,13 +6,12 @@ import {
   listPositionsUsingGet,
 } from '@/api/positionController';
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import { Button, Card, Form, App, Space, Spin } from 'antd';
+import { Button, Card, Form, message, Modal, Space, Spin } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 import { history } from '@umijs/max';
 import EmployeeForm from '../components/EmployeeForm';
 
 const EmployeeAddPage: React.FC = () => {
-  const { message, modal } = App.useApp();
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -87,7 +86,7 @@ const EmployeeAddPage: React.FC = () => {
 
   const handleCancel = () => {
     if (dirty) {
-      modal.confirm({
+      Modal.confirm({
         title: '未保存的更改将丢失',
         content: '确定要离开吗？已填写的信息将不会保存。',
         okText: '确定离开',

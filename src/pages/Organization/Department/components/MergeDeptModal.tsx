@@ -1,6 +1,6 @@
 import { mergeDepartmentsUsingPost } from '@/api/departmentController';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
-import { Form, App, Modal, Select, TreeSelect } from 'antd';
+import { Form, message, Modal, Select, TreeSelect } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
 
 /** 将部门树转为扁平列表（用于 Select） */
@@ -74,7 +74,6 @@ const MergeDeptModal: React.FC<MergeDeptModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { message, modal } = App.useApp();
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
 
@@ -108,7 +107,7 @@ const MergeDeptModal: React.FC<MergeDeptModalProps> = ({
       setSubmitting(true);
       const res = await mergeDepartmentsUsingPost({ sourceDeptId, targetDeptId });
       const mergeResult = (res as any)?.data as API.DepartmentMergeResultVO | undefined;
-      modal.success({
+      Modal.success({
         title: '合并成功',
         icon: <ExclamationCircleOutlined />,
         content: `已将 ${mergeResult?.transferredEmployees ?? 0} 名员工和 ${mergeResult?.transferredChildDepts ?? 0} 个子部门转移至目标部门。`,

@@ -2,7 +2,7 @@ import {
   addPositionUsingPost,
   updatePositionUsingPut,
 } from '@/api/positionController';
-import { Form, Input, InputNumber, App, Modal, Radio, Select, TreeSelect } from 'antd';
+import { Form, Input, InputNumber, message, Modal, Radio, Select, TreeSelect } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
 
 const SEQUENCE_OPTIONS = [
@@ -39,7 +39,6 @@ const PositionFormModal: React.FC<PositionFormModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { message } = App.useApp();
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
   const [selectedSequence, setSelectedSequence] = useState<number>(2);
