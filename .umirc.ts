@@ -95,6 +95,15 @@ export default defineConfig({
       ],
     },
     {
+      name: 'HR中控台',
+      path: '/hr',
+      access: 'canAdmin',
+      routes: [
+        { path: '/hr', redirect: '/hr/onboarding' },
+        { name: '入职办理', path: '/hr/onboarding', component: './HR/Onboarding' },
+      ],
+    },
+    {
       name: '用户登录',
       path: '/user/login',
       component: '../app/user/login/page',
