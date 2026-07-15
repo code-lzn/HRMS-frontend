@@ -1,8 +1,8 @@
 import { getCalendarUsingGet, getMonthRecordsUsingGet, getTodayStatusUsingGet, punchUsingPost } from '@/api/attendanceController';
-import { applyUsingPost } from '@/api/leaveController';
+import { applyUsingPost1 as applyMakeupPunch } from '@/api/makeupPunchController';
 import { CalendarOutlined, ClockCircleOutlined, SendOutlined } from '@ant-design/icons';
 import { useNavigate } from '@umijs/max';
-import { Badge, Button, Calendar, Card, Col, message, Modal, Popover, Row, Statistic, Tag, Typography } from 'antd';
+import { Badge, Button, Calendar, Card, Col, DatePicker, Form, Input, message, Modal, Popover, Radio, Row, Statistic, Tag, TimePicker, Typography } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import React, { useCallback, useEffect, useState } from 'react';
 import './index.less';
@@ -26,7 +26,9 @@ const MyAttendance: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState(dayjs().format('YYYY-MM'));
   const [clockTime, setClockTime] = useState(dayjs().format('HH:mm:ss'));
   const [punchLoading, setPunchLoading] = useState(false);
-  const [leaveModalOpen, setLeaveModalOpen] = useState(false);
+  const [makeupModalOpen, setMakeupModalOpen] = useState(false);
+  const [makeupForm] = Form.useForm();
+  const [makeupLoading, setMakeupLoading] = useState(false);
   const [selectedDateRecords, setSelectedDateRecords] = useState<API.AttendanceVO[]>([]);
 
   // 实时时钟
@@ -305,11 +307,90 @@ const MyAttendance: React.FC = () => {
         <Button
           icon={<CalendarOutlined />}
           style={{ marginLeft: 12 }}
-          onClick={() => navigate('/approval/workbench')}
+          onClick={() => {
+            if (calendarData?.makeupAvailableDates?.length) {
+              makeupForm.setFieldsValue({
+                punchDate: dayjs(calendarData.makeupAvailableDates[0]),
+              });
+            }
+            setMakeupModalOpen(true);
+          }}
         >
           申请补卡
         </Button>
       </Card>
+
+      {/* 申请补卡 Modal */}
+      <Modal
+        title="申请补卡"
+        open={makeupModalOpen}
+        onOk={async () => {
+          try {
+            const values = await makeupForm.validateFields();
+            setMakeupLoading(true);
+            await applyMakeupPunch({
+              punchDate: values.punchDate.format('YYYY-MM-DD'),
+              punchTime: values.punchTime?.format('HH:mm'),
+              punchType: values.punchType,
+              reason: values.reason,
+            });
+            message.success('补卡申请已提交');
+            setMakeupModalOpen(false);
+            makeupForm.resetFields();
+            loadCalendar(currentMonth);
+          } catch (e: any) {
+            if (e.message) message.error(e.message);
+          } finally {
+            setMakeupLoading(false);
+          }
+        }}
+        onCancel={() => {
+          setMakeupModalOpen(false);
+          makeupForm.resetFields();
+        }}
+        confirmLoading={makeupLoading}
+        destroyOnClose
+      >
+        <Form form={makeupForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item
+            name="punchDate"
+            label="补卡日期"
+            rules={[{ required: true, message: '请选择补卡日期' }]}
+          >
+            <DatePicker
+              style={{ width: '100%' }}
+              disabledDate={(current) => {
+                const available = calendarData?.makeupAvailableDates ?? [];
+                return !available.includes(current.format('YYYY-MM-DD'));
+              }}
+            />
+          </Form.Item>
+          <Form.Item
+            name="punchType"
+            label="打卡类型"
+            rules={[{ required: true, message: '请选择打卡类型' }]}
+          >
+            <Radio.Group>
+              <Radio value={0}>上班打卡</Radio>
+              <Radio value={1}>下班打卡</Radio>
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item
+            name="punchTime"
+            label="打卡时间"
+            rules={[{ required: true, message: '请选择打卡时间' }]}
+          >
+            <TimePicker style={{ width: '100%' }} format="HH:mm" />
+          </Form.Item>
+          <Form.Item
+            name="reason"
+            label="补卡原因"
+            rules={[{ required: true, message: '请输入补卡原因' }]}
+          >
+            <Input.TextArea rows={3} placeholder="请输入补卡原因" />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

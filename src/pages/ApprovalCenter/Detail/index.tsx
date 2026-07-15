@@ -6,7 +6,7 @@ import {
 } from '@/api/approvalController';
 import { listUserVoByPageUsingPost } from '@/api/userController';
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import { useModel, useNavigate, useParams, useSearchParams } from '@umijs/max';
+import { useNavigate, useParams, useSearchParams } from '@umijs/max';
 import {
   Button,
   Card,
@@ -23,7 +23,6 @@ import {
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useState } from 'react';
 
-/** 审批类型 → Tag 颜色 */
 const TYPE_COLOR: Record<string, string> = {
   ONBOARDING: 'blue',
   REGULARIZATION: 'green',
@@ -34,7 +33,6 @@ const TYPE_COLOR: Record<string, string> = {
   SALARY_BATCH: 'gold',
 };
 
-/** 操作颜色 */
 const ACTION_COLOR: Record<string, string> = {
   APPROVE: 'green',
   REJECT: 'red',
@@ -47,15 +45,10 @@ const ApprovalDetail: React.FC = () => {
   const { recordId } = useParams<{ recordId: string }>();
   const [searchParams] = useSearchParams();
   const detailIdFromQuery = searchParams.get('detailId');
-  const { initialState } = useModel('@@initialState');
-  const currentUserName =
-    (initialState as any)?.currentUser?.userName ?? '';
-
   const [detail, setDetail] = useState<API.ApprovalDetailVO | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // 审批操作 Modal 状态
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [transferModalOpen, setTransferModalOpen] = useState(false);
@@ -85,14 +78,12 @@ const ApprovalDetail: React.FC = () => {
     loadDetail();
   }, [loadDetail]);
 
-  // 判断当前用户是否是当前节点审批人
   const pendingNode = detail?.nodeHistory?.find(
     (n) => n.stepOrder === detail.currentStep && n.action === 'PENDING',
   );
-  const isCurrentApprover =
-    pendingNode?.approverName === currentUserName;
+  // 审批中即显示操作按钮，权限由后端校验
+  const canOperate = detail?.status === 'APPROVING';
 
-  // 搜索用户（用于转交）
   const handleUserSearch = async (keyword: string) => {
     if (!keyword) {
       setUserOptions([]);
@@ -116,67 +107,86 @@ const ApprovalDetail: React.FC = () => {
     }
   };
 
-  // 通过
-  const handleApprove = async () => {
-    setActionLoading(true);
-    try {
-      await approveUsingPost({
-        detailId: Number(detailIdFromQuery),
-        comment,
-      });
-      message.success('审批通过');
-      setApproveModalOpen(false);
-      setComment('');
-      loadDetail();
-    } catch (e: any) {
-      message.error(e.message || '操作失败');
-    } finally {
-      setActionLoading(false);
-    }
+  const handleApprove = () => {
+    setApproveModalOpen(false);
+    Modal.confirm({
+      title: '确认审批通过',
+      content: '确定要通过此审批吗？',
+      onOk: async () => {
+        setActionLoading(true);
+        try {
+          await approveUsingPost({
+            detailId: Number(detailIdFromQuery),
+            comment,
+          });
+          message.success('审批通过');
+          setComment('');
+          loadDetail();
+        } catch (e: any) {
+          message.error(e.message || '操作失败');
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
-  // 拒绝
-  const handleReject = async () => {
-    setActionLoading(true);
-    try {
-      await rejectUsingPost({
-        detailId: Number(detailIdFromQuery),
-        comment,
-      });
-      message.success('已拒绝');
-      setRejectModalOpen(false);
-      setComment('');
-      loadDetail();
-    } catch (e: any) {
-      message.error(e.message || '操作失败');
-    } finally {
-      setActionLoading(false);
+  const handleReject = () => {
+    if (!comment.trim()) {
+      message.warning('请输入拒绝原因');
+      return;
     }
+    Modal.confirm({
+      title: '确认拒绝',
+      content: '确定要拒绝此审批吗？',
+      onOk: async () => {
+        setActionLoading(true);
+        try {
+          await rejectUsingPost({
+            detailId: Number(detailIdFromQuery),
+            comment,
+          });
+          message.success('已拒绝');
+          setRejectModalOpen(false);
+          setComment('');
+          loadDetail();
+        } catch (e: any) {
+          message.error(e.message || '操作失败');
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
-  // 转交
-  const handleTransfer = async () => {
+  const handleTransfer = () => {
     if (!transferUserId) {
       message.warning('请选择转交人');
       return;
     }
-    setActionLoading(true);
-    try {
-      await transferUsingPost({
-        detailId: Number(detailIdFromQuery),
-        targetUserId: transferUserId,
-        comment,
-      });
-      message.success('已转交');
-      setTransferModalOpen(false);
-      setComment('');
-      setTransferUserId(undefined);
-      loadDetail();
-    } catch (e: any) {
-      message.error(e.message || '操作失败');
-    } finally {
-      setActionLoading(false);
-    }
+    Modal.confirm({
+      title: '确认转交',
+      content: '确定要将此审批转交给他人吗？',
+      onOk: async () => {
+        setActionLoading(true);
+        try {
+          await transferUsingPost({
+            detailId: Number(detailIdFromQuery),
+            targetUserId: transferUserId,
+            comment,
+          });
+          message.success('已转交');
+          setTransferModalOpen(false);
+          setComment('');
+          setTransferUserId(undefined);
+          loadDetail();
+        } catch (e: any) {
+          message.error(e.message || '操作失败');
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
   if (loading) {
@@ -193,7 +203,6 @@ const ApprovalDetail: React.FC = () => {
 
   return (
     <div>
-      {/* 顶部导航 */}
       <Button
         type="link"
         icon={<ArrowLeftOutlined />}
@@ -203,7 +212,6 @@ const ApprovalDetail: React.FC = () => {
         返回工作台
       </Button>
 
-      {/* 标题区 */}
       <Card style={{ marginBottom: 16 }}>
         <Space align="center">
           <Tag color={TYPE_COLOR[detail.businessType ?? ''] ?? 'default'}>
@@ -216,22 +224,16 @@ const ApprovalDetail: React.FC = () => {
         </Space>
       </Card>
 
-      {/* 申请信息 */}
+      {/* 申请信息 — 按类型动态渲染 */}
       <Card title="申请信息" style={{ marginBottom: 16 }}>
         <BusinessInfoCard detail={detail} />
       </Card>
 
-      {/* 审批历史 */}
       <Card title="审批历史" style={{ marginBottom: 16 }}>
         <Timeline
           items={(detail.nodeHistory ?? []).map((node) => {
             const isCurrent = node.action === 'PENDING';
-            const isCompleted = node.action !== 'PENDING';
-            const color = isCurrent
-              ? 'blue'
-              : isCompleted
-                ? 'green'
-                : 'gray';
+            const color = isCurrent ? 'blue' : node.action !== 'PENDING' ? 'green' : 'gray';
 
             return {
               color,
@@ -280,22 +282,13 @@ const ApprovalDetail: React.FC = () => {
         />
       </Card>
 
-      {/* 审批操作（仅当前审批人可见） */}
-      {isCurrentApprover &&
-        detail.status !== 'APPROVED' &&
-        detail.status !== 'REJECTED' && (
+      {canOperate && (
           <Card title="审批操作">
             <Space size={16}>
-              <Button
-                type="primary"
-                onClick={() => setApproveModalOpen(true)}
-              >
+              <Button type="primary" onClick={() => setApproveModalOpen(true)}>
                 通过
               </Button>
-              <Button
-                danger
-                onClick={() => setRejectModalOpen(true)}
-              >
+              <Button danger onClick={() => setRejectModalOpen(true)}>
                 拒绝
               </Button>
               <Button onClick={() => setTransferModalOpen(true)}>
@@ -347,7 +340,7 @@ const ApprovalDetail: React.FC = () => {
         </div>
         <Input.TextArea
           rows={3}
-          placeholder="请输入拒绝原因"
+          placeholder="请输入拒绝原因（必填）"
           value={comment}
           onChange={(e) => setComment(e.target.value)}
         />
@@ -402,26 +395,94 @@ const BusinessInfoCard: React.FC<{ detail: API.ApprovalDetailVO }> = ({
 }) => {
   const { businessType, applicantName, applyTime, businessId } = detail;
 
-  // 通用字段
-  const commonItems = [
-    { label: '申请人', children: applicantName ?? '-' },
-    {
-      label: '申请时间',
-      children: applyTime
-        ? dayjs(applyTime).format('YYYY-MM-DD HH:mm:ss')
-        : '-',
-    },
-    { label: '业务编号', children: businessId ?? '-' },
-    { label: '审批类型', children: <Tag color={TYPE_COLOR[businessType ?? '']}>{detail.businessTypeText}</Tag> },
-  ];
-
-  return (
-    <Descriptions
-      column={{ xs: 1, sm: 2, md: 2 }}
-      items={commonItems}
-      size="small"
-    />
+  const commonFields = (
+    <>
+      <Descriptions.Item label="申请人">{applicantName ?? '-'}</Descriptions.Item>
+      <Descriptions.Item label="申请时间">
+        {applyTime ? dayjs(applyTime).format('YYYY-MM-DD HH:mm:ss') : '-'}
+      </Descriptions.Item>
+      <Descriptions.Item label="业务编号">{businessId ?? '-'}</Descriptions.Item>
+    </>
   );
+
+  switch (businessType) {
+    case 'ONBOARDING':
+      return (
+        <Descriptions bordered column={{ xs: 1, sm: 2, md: 3 }} size="small">
+          {commonFields}
+          <Descriptions.Item label="审批类型">
+            <Tag color={TYPE_COLOR.ONBOARDING}>入职审批</Tag>
+          </Descriptions.Item>
+        </Descriptions>
+      );
+
+    case 'REGULARIZATION':
+      return (
+        <Descriptions bordered column={{ xs: 1, sm: 2, md: 3 }} size="small">
+          {commonFields}
+          <Descriptions.Item label="审批类型">
+            <Tag color={TYPE_COLOR.REGULARIZATION}>转正审批</Tag>
+          </Descriptions.Item>
+        </Descriptions>
+      );
+
+    case 'TRANSFER':
+      return (
+        <Descriptions bordered column={{ xs: 1, sm: 2, md: 3 }} size="small">
+          {commonFields}
+          <Descriptions.Item label="审批类型">
+            <Tag color={TYPE_COLOR.TRANSFER}>调岗审批</Tag>
+          </Descriptions.Item>
+        </Descriptions>
+      );
+
+    case 'RESIGNATION':
+      return (
+        <Descriptions bordered column={{ xs: 1, sm: 2, md: 3 }} size="small">
+          {commonFields}
+          <Descriptions.Item label="审批类型">
+            <Tag color={TYPE_COLOR.RESIGNATION}>离职审批</Tag>
+          </Descriptions.Item>
+        </Descriptions>
+      );
+
+    case 'LEAVE':
+      return (
+        <Descriptions bordered column={{ xs: 1, sm: 2, md: 3 }} size="small">
+          {commonFields}
+          <Descriptions.Item label="审批类型">
+            <Tag color={TYPE_COLOR.LEAVE}>请假审批</Tag>
+          </Descriptions.Item>
+        </Descriptions>
+      );
+
+    case 'PATCH_CLOCK':
+      return (
+        <Descriptions bordered column={{ xs: 1, sm: 2, md: 3 }} size="small">
+          {commonFields}
+          <Descriptions.Item label="审批类型">
+            <Tag color={TYPE_COLOR.PATCH_CLOCK}>补卡审批</Tag>
+          </Descriptions.Item>
+        </Descriptions>
+      );
+
+    case 'SALARY_BATCH':
+      return (
+        <Descriptions bordered column={{ xs: 1, sm: 2, md: 3 }} size="small">
+          {commonFields}
+          <Descriptions.Item label="审批类型">
+            <Tag color={TYPE_COLOR.SALARY_BATCH}>薪资审批</Tag>
+          </Descriptions.Item>
+        </Descriptions>
+      );
+
+    default:
+      return (
+        <Descriptions bordered column={{ xs: 1, sm: 2, md: 3 }} size="small">
+          {commonFields}
+        </Descriptions>
+      );
+  }
 };
 
 export default ApprovalDetail;

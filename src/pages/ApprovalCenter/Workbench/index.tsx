@@ -2,11 +2,10 @@ import { getPendingListUsingGet } from '@/api/approvalController';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useNavigate } from '@umijs/max';
-import { Button, Tag } from 'antd';
+import { Button, Segmented, Tag } from 'antd';
 import dayjs from 'dayjs';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 
-/** 审批类型 → Tag 颜色 */
 const TYPE_COLOR: Record<string, string> = {
   ONBOARDING: 'blue',
   REGULARIZATION: 'green',
@@ -17,9 +16,23 @@ const TYPE_COLOR: Record<string, string> = {
   SALARY_BATCH: 'gold',
 };
 
+const FILTER_OPTIONS = ['全部', '入职', '转正', '调岗', '离职', '请假', '补卡', '薪资'];
+
+/** Segmented 值 → businessType */
+const FILTER_TYPE_MAP: Record<string, string | undefined> = {
+  '入职': 'ONBOARDING',
+  '转正': 'REGULARIZATION',
+  '调岗': 'TRANSFER',
+  '离职': 'RESIGNATION',
+  '请假': 'LEAVE',
+  '补卡': 'PATCH_CLOCK',
+  '薪资': 'SALARY_BATCH',
+};
+
 const ApprovalWorkbench: React.FC = () => {
   const navigate = useNavigate();
   const actionRef = useRef<ActionType>();
+  const [typeFilter, setTypeFilter] = useState<string>('全部');
 
   const columns: ProColumns<API.ApprovalPendingVO>[] = [
     {
@@ -47,6 +60,9 @@ const ApprovalWorkbench: React.FC = () => {
       title: '发起时间',
       dataIndex: 'applyTime',
       width: 180,
+      defaultSortOrder: 'descend',
+      sorter: (a, b) =>
+        dayjs(a.applyTime).valueOf() - dayjs(b.applyTime).valueOf(),
       render: (_, r) =>
         r.applyTime ? dayjs(r.applyTime).format('YYYY-MM-DD HH:mm') : '-',
     },
@@ -76,17 +92,38 @@ const ApprovalWorkbench: React.FC = () => {
       request={async () => {
         try {
           const res = await getPendingListUsingGet();
-          return {
-            data: res?.data ?? [],
-            success: true,
-            total: res?.data?.length ?? 0,
-          };
+          let data = res?.data ?? [];
+          // 按类型筛选
+          if (typeFilter !== '全部') {
+            const targetType = FILTER_TYPE_MAP[typeFilter];
+            data = data.filter((item) => item.businessType === targetType);
+          }
+          // 按申请时间倒序
+          data.sort(
+            (a, b) =>
+              dayjs(b.applyTime).valueOf() - dayjs(a.applyTime).valueOf(),
+          );
+          return { data, success: true, total: data.length };
         } catch {
           return { data: [], success: false };
         }
       }}
+      params={{ typeFilter }}
       rowKey="recordId"
       search={false}
+      toolbar={{
+        actions: [
+          <Segmented
+            key="filter"
+            options={FILTER_OPTIONS}
+            value={typeFilter}
+            onChange={(val) => {
+              setTypeFilter(val as string);
+              actionRef.current?.reload();
+            }}
+          />,
+        ],
+      }}
     />
   );
 };

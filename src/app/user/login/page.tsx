@@ -1,35 +1,27 @@
 import { userLoginUsingPost } from '@/api/userController';
 import logo from '@/assets/logo.jpg';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { LoginForm, ProForm, ProFormText } from '@ant-design/pro-components';
 import { Link, useLocation, useModel, useNavigate } from '@umijs/max';
-import { Image, message } from 'antd';
-import React from 'react';
+import { Button, Form, Image, Input, message } from 'antd';
+import React, { useState } from 'react';
 import './index.css';
 
-/**
- * 用户登录页面
- * @constructor
- */
 const UserLoginPage: React.FC = () => {
-  const [form] = ProForm.useForm();
+  const [form] = Form.useForm();
   const navigate = useNavigate();
   const location = useLocation();
   const { setInitialState } = useModel('@@initialState');
+  const [submitting, setSubmitting] = useState(false);
 
-  // 获取登录后回跳地址
   const searchParams = new URLSearchParams(location.search);
   const redirect = searchParams.get('redirect') || '/';
 
-  /**
-   * 提交
-   */
   const doSubmit = async (values: API.UserLoginRequest) => {
+    setSubmitting(true);
     try {
       const res = await userLoginUsingPost(values);
       if (res.data) {
         message.success('登录成功');
-        // 更新全局登录用户状态
         setInitialState((pre: any) => ({
           ...pre,
           currentUser: res.data,
@@ -39,53 +31,99 @@ const UserLoginPage: React.FC = () => {
       }
     } catch (e: any) {
       message.error('登录失败，' + (e?.message ?? '请稍后重试'));
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div id="userLoginPage" className="user-auth-page">
-      <LoginForm
-        form={form}
-        logo={
-          <Image src={logo} alt="HRMS" height={44} width={44} preview={false} />
-        }
-        title="HRMS 人力资源管理系统"
-        subTitle="欢迎登录"
-        onFinish={doSubmit}
-      >
-        <ProFormText
-          name="userAccount"
-          fieldProps={{
-            size: 'large',
-            prefix: <UserOutlined />,
-          }}
-          placeholder={'请输入用户账号'}
-          rules={[
-            {
-              required: true,
-              message: '请输入用户账号!',
-            },
-          ]}
-        />
-        <ProFormText.Password
-          name="userPassword"
-          fieldProps={{
-            size: 'large',
-            prefix: <LockOutlined />,
-          }}
-          placeholder={'请输入密码'}
-          rules={[
-            {
-              required: true,
-              message: '请输入密码！',
-            },
-          ]}
-        />
-        <div className="user-auth-footer">
-          还没有账号？
-          <Link to="/user/register">去注册</Link>
+    <div className="login-page">
+      <div className="login-left">
+        <div className="login-left-bg" />
+        <div className="login-left-content">
+          <Image
+            src={logo}
+            alt="HRMS Logo"
+            height={72}
+            width={72}
+            preview={false}
+            className="login-brand-logo"
+          />
+          <h1 className="login-brand-title">HRMS</h1>
+          <h2 className="login-brand-subtitle">人力资源管理系统</h2>
+          <p className="login-brand-desc">
+            高效 · 智能 · 安全的企业人事管理平台
+          </p>
+          <div className="login-left-features">
+            <div className="login-feature-item">
+              <span className="login-feature-icon">&#10003;</span>
+              <span>组织架构管理</span>
+            </div>
+            <div className="login-feature-item">
+              <span className="login-feature-icon">&#10003;</span>
+              <span>考勤打卡追踪</span>
+            </div>
+            <div className="login-feature-item">
+              <span className="login-feature-icon">&#10003;</span>
+              <span>薪酬核算发放</span>
+            </div>
+            <div className="login-feature-item">
+              <span className="login-feature-icon">&#10003;</span>
+              <span>审批流程自动化</span>
+            </div>
+          </div>
         </div>
-      </LoginForm>
+      </div>
+
+      <div className="login-right">
+        <div className="login-form-wrapper">
+          <div className="login-form-header">
+            <h3>欢迎登录</h3>
+            <p>请输入您的账号和密码</p>
+          </div>
+
+          <Form form={form} layout="vertical" size="large" onFinish={doSubmit}>
+            <Form.Item
+              name="userAccount"
+              rules={[{ required: true, message: '请输入用户账号' }]}
+            >
+              <Input
+                prefix={<UserOutlined />}
+                placeholder="用户账号"
+                autoComplete="username"
+                autoFocus
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="userPassword"
+              rules={[{ required: true, message: '请输入密码' }]}
+            >
+              <Input.Password
+                prefix={<LockOutlined />}
+                placeholder="密码"
+                autoComplete="current-password"
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={submitting}
+                block
+              >
+                登 录
+              </Button>
+            </Form.Item>
+          </Form>
+
+          <div className="login-form-footer">
+            <span>还没有账号？</span>
+            <Link to="/user/register">去注册</Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

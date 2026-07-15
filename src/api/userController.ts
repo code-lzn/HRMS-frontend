@@ -75,7 +75,7 @@ export async function listUserByPageUsingPost(
   body: API.UserQueryRequest,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponsePageUser_>('/api/user/list/page', {
+  return request<API.BaseResponsePageUserVO_>('/api/user/list/page', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -164,6 +164,21 @@ export async function updateMyUserUsingPost(
       'Content-Type': 'application/json',
     },
     data: body,
+    ...(options || {}),
+  });
+}
+
+/** updateUserStatus POST /api/user/update/status */
+export async function updateUserStatusUsingPost(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.updateUserStatusUsingPOSTParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.BaseResponseBoolean_>('/api/user/update/status', {
+    method: 'POST',
+    params: {
+      ...params,
+    },
     ...(options || {}),
   });
 }

@@ -61,6 +61,30 @@ export default defineConfig({
       ],
     },
     {
+      name: '员工管理',
+      path: '/employee',
+      routes: [
+        { path: '/employee', redirect: '/employee/list' },
+        { name: '员工列表', path: '/employee/list', component: './Employee/List' },
+        { name: '员工详情', path: '/employee/detail/:id', component: './Employee/Detail', hideInMenu: true },
+        { name: '新增员工', path: '/employee/add', component: './Employee/Add', hideInMenu: true },
+        { name: '编辑员工', path: '/employee/edit/:id', component: './Employee/Edit', hideInMenu: true },
+      ],
+    },
+    {
+      name: '中台管理系统',
+      path: '/admin',
+      routes: [
+        { path: '/admin', redirect: '/admin/dashboard' },
+        { name: '仪表盘', path: '/admin/dashboard', component: './Dashboard' },
+        { name: '用户管理', path: '/admin/users', component: './Admin/UserManage' },
+        { name: '角色权限', path: '/admin/roles', component: './Admin/RolePermission' },
+        { name: '系统配置', path: '/admin/config', component: './Admin/SystemConfig' },
+        { name: '操作日志', path: '/admin/logs', component: './Admin/OperationLog' },
+      ],
+    },
+
+    {
       name: '薪资管理',
       path: '/salary-manage',
       routes: [
