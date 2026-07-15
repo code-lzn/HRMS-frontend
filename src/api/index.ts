@@ -12,6 +12,7 @@ import * as leaveController from './leaveController';
 import * as makeupPunchController from './makeupPunchController';
 import * as positionController from './positionController';
 import * as salaryController from './salaryController';
+import * as salaryManageController from './salaryManageController';
 import * as testHealth from './testHealth';
 import * as userController from './userController';
 export default {
@@ -26,5 +27,6 @@ export default {
   testHealth,
   positionController,
   salaryController,
+  salaryManageController,
   userController,
 };

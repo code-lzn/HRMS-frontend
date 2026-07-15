@@ -61,6 +61,16 @@ export default defineConfig({
       ],
     },
     {
+      name: '薪资管理',
+      path: '/salary-manage',
+      routes: [
+        { path: '/salary-manage', redirect: '/salary-manage/account' },
+        { name: '账套管理', path: '/salary-manage/account', component: './SalaryManage/Account' },
+        { name: '薪资档案', path: '/salary-manage/employee', component: './SalaryManage/Employee' },
+        { name: '月度核算', path: '/salary-manage/batch', component: './SalaryManage/Batch' },
+      ],
+    },
+    {
       name: '用户登录',
       path: '/user/login',
       component: '../app/user/login/page',

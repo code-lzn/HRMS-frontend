@@ -701,4 +701,331 @@ declare namespace API {
   type VerifyPasswordRequest = {
     password?: string;
   };
+
+  // ==================== 薪资管理 (SalaryManage) 请求类型 ====================
+
+  type SalaryAccountRequest = {
+    /** 生效日期 */
+    effectiveDate?: string;
+    /** 工资项目列表 */
+    items?: SalaryItemRequest[];
+    /** 账套名称 */
+    name?: string;
+    /** 适用范围ID集合(JSON数组) */
+    scopeIds?: string;
+    /** 适用范围类型：1=部门 2=职位 3=职级 */
+    scopeType?: number;
+  };
+
+  type SalaryItemRequest = {
+    /** 计算公式/规则描述 */
+    formula?: string;
+    /** 是否计入个税：0=否 1=是 */
+    isTaxable?: number;
+    /** 项目类型：1=固定收入 2=变动收入 3=考勤扣款 4=社保扣除 5=公积金扣除 6=个税 */
+    itemType?: number;
+    /** 项目名称 */
+    name?: string;
+    /** 排序序号 */
+    sortOrder?: number;
+  };
+
+  type SalaryItemSortRequest = {
+    /** 排序后的项目ID列表 */
+    itemIds?: number[];
+  };
+
+  type SalaryBatchCreateRequest = {
+    /** 核算月份，格式 yyyy-MM */
+    salaryMonth?: string;
+  };
+
+  type SalaryBatchAdjustRequest = {
+    /** 调整原因 */
+    adjustReason?: string;
+    /** 员工ID */
+    employeeId?: number;
+    /** 调整金额（正数=补发，负数=扣减） */
+    manualAdjust?: number;
+  };
+
+  type SalaryBatchRejectRequest = {
+    /** 驳回原因 */
+    reason?: string;
+  };
+
+  type EmployeeSalaryUpdateRequest = {
+    /** 适用账套ID */
+    accountSetId?: number;
+    /** 岗位津贴基数 */
+    allowanceBase?: number;
+    /** 基本工资 */
+    baseSalary?: number;
+    /** 生效日期 */
+    effectiveDate?: string;
+    /** 公积金缴纳基数 */
+    housingFundBase?: number;
+    /** 绩效奖金基数 */
+    performanceBase?: number;
+    /** 试用期薪资比例 */
+    probationSalaryRatio?: number;
+    /** 备注 */
+    remark?: string;
+    /** 社保缴纳基数 */
+    socialInsuranceBase?: number;
+  };
+
+  type getBatchPreviewUsingGETParams = {
+    /** current */
+    current?: number;
+    /** size */
+    size?: number;
+  };
+
+  // ==================== 薪资管理 (SalaryManage) VO类型 ====================
+
+  type SalaryAccountVO = {
+    /** 创建时间 */
+    createTime?: string;
+    /** 生效日期 */
+    effectiveDate?: string;
+    /** 账套ID */
+    id?: number;
+    /** 工资项目列表 */
+    items?: SalaryItemVO[];
+    /** 账套名称 */
+    name?: string;
+    /** 适用范围ID集合(JSON数组) */
+    scopeIds?: string;
+    /** 适用范围类型：1=部门 2=职位 3=职级 */
+    scopeType?: number;
+    /** 适用范围类型文本 */
+    scopeTypeText?: string;
+    /** 更新时间 */
+    updateTime?: string;
+  };
+
+  type SalaryItemVO = {
+    /** 所属账套ID */
+    accountId?: number;
+    /** 计算公式/规则描述 */
+    formula?: string;
+    /** 项目ID */
+    id?: number;
+    /** 是否计入个税：0=否 1=是 */
+    isTaxable?: number;
+    /** 项目类型：1=固定收入 2=变动收入 3=考勤扣款 4=社保扣除 5=公积金扣除 6=个税 */
+    itemType?: number;
+    /** 项目类型文本 */
+    itemTypeText?: string;
+    /** 项目名称 */
+    name?: string;
+    /** 排序序号 */
+    sortOrder?: number;
+  };
+
+  type SalaryBatchVO = {
+    /** 批次编号 */
+    batchNo?: string;
+    /** 创建时间 */
+    createdAt?: string;
+    /** 批次ID */
+    id?: number;
+    /** 发放时间 */
+    paidAt?: string;
+    /** 核算月份 */
+    salaryMonth?: string;
+    /** 状态 */
+    status?: string;
+    /** 状态文本 */
+    statusText?: string;
+    /** 总扣除 */
+    totalDeduction?: number;
+    /** 总员工数 */
+    totalEmployeeCount?: number;
+    /** 总应发 */
+    totalGross?: number;
+    /** 总实发 */
+    totalNet?: number;
+  };
+
+  type SalaryDetailVO = {
+    /** 调整原因 */
+    adjustReason?: string;
+    /** 岗位津贴 */
+    allowance?: number;
+    /** 异常原因 */
+    anomalyReason?: string;
+    /** 基本工资 */
+    baseSalary?: number;
+    /** 批次ID */
+    batchId?: number;
+    /** 创建时间 */
+    createdAt?: string;
+    /** 部门名称 */
+    departmentName?: string;
+    /** 员工ID */
+    employeeId?: number;
+    /** 员工姓名 */
+    employeeName?: string;
+    /** 员工工号 */
+    employeeNo?: string;
+    /** 应发合计 */
+    grossSalary?: number;
+    /** 是否有异常 */
+    hasAnomaly?: number;
+    /** 公积金 */
+    housingFund?: number;
+    /** 明细ID */
+    id?: number;
+    /** 个人所得税 */
+    incomeTax?: number;
+    /** 迟到扣款 */
+    lateDeduction?: number;
+    /** 请假扣款 */
+    leaveDeduction?: number;
+    /** 手动调整 */
+    manualAdjust?: number;
+    /** 实发合计 */
+    netSalary?: number;
+    /** 加班费 */
+    overtimePay?: number;
+    /** 绩效奖金 */
+    performanceBonus?: number;
+    /** 医疗保险 */
+    socialMedical?: number;
+    /** 养老保险 */
+    socialPension?: number;
+    /** 失业保险 */
+    socialUnemployment?: number;
+    /** 扣除合计 */
+    totalDeduction?: number;
+  };
+
+  type SalaryBatchPreviewVO = {
+    /** 批次汇总信息 */
+    batch?: SalaryBatchVO;
+    /** 当前页码 */
+    current?: number;
+    /** 分页明细 */
+    records?: SalaryDetailVO[];
+    /** 每页大小 */
+    size?: number;
+    /** 总记录数 */
+    total?: number;
+  };
+
+  type EmployeeSalaryVO = {
+    /** 适用账套ID */
+    accountSetId?: number;
+    /** 账套名称 */
+    accountName?: string;
+    /** 岗位津贴基数 */
+    allowanceBase?: number;
+    /** 基本工资 */
+    baseSalary?: number;
+    /** 银行账号 */
+    bankAccount?: string;
+    /** 开户行 */
+    bankName?: string;
+    /** 创建时间 */
+    createdTIme?: string;
+    /** 部门名称 */
+    departmentName?: string;
+    /** 生效日期 */
+    effectiveDate?: string;
+    /** 员工ID */
+    employeeId?: number;
+    /** 员工姓名 */
+    employeeName?: string;
+    /** 员工工号 */
+    employeeNo?: string;
+    /** 公积金缴纳基数 */
+    housingFundBase?: number;
+    /** 档案ID */
+    id?: number;
+    /** 绩效奖金基数 */
+    performanceBase?: number;
+    /** 试用期薪资比例 */
+    probationSalaryRatio?: number;
+    /** 社保缴纳基数 */
+    socialInsuranceBase?: number;
+    /** 更新时间 */
+    updatedTime?: string;
+  };
+
+  type SalaryChangeLogVO = {
+    /** 变更类型 */
+    changeType?: number;
+    /** 变更类型文本 */
+    changeTypeText?: string;
+    /** 创建时间 */
+    createTime?: string;
+    /** 生效日期 */
+    effectiveDate?: string;
+    /** 员工ID */
+    employeeId?: number;
+    /** 日志ID */
+    id?: number;
+    /** 新值 */
+    newValue?: string;
+    /** 旧值 */
+    oldValue?: string;
+    /** 操作人ID */
+    operatorId?: number;
+    /** 操作人姓名 */
+    operatorName?: string;
+    /** 备注 */
+    remark?: string;
+  };
+
+  // ==================== 薪资管理 (SalaryManage) BaseResponse类型 ====================
+
+  type BaseResponseListSalaryAccountVO_ = {
+    code?: number;
+    data?: SalaryAccountVO[];
+    message?: string;
+  };
+
+  type BaseResponseSalaryAccountVO_ = {
+    code?: number;
+    data?: SalaryAccountVO;
+    message?: string;
+  };
+
+  type BaseResponseListSalaryBatchVO_ = {
+    code?: number;
+    data?: SalaryBatchVO[];
+    message?: string;
+  };
+
+  type BaseResponseSalaryBatchVO_ = {
+    code?: number;
+    data?: SalaryBatchVO;
+    message?: string;
+  };
+
+  type BaseResponseSalaryBatchPreviewVO_ = {
+    code?: number;
+    data?: SalaryBatchPreviewVO;
+    message?: string;
+  };
+
+  type BaseResponseListSalaryDetailVO_ = {
+    code?: number;
+    data?: SalaryDetailVO[];
+    message?: string;
+  };
+
+  type BaseResponseEmployeeSalaryVO_ = {
+    code?: number;
+    data?: EmployeeSalaryVO;
+    message?: string;
+  };
+
+  type BaseResponseListSalaryChangeLogVO_ = {
+    code?: number;
+    data?: SalaryChangeLogVO[];
+    message?: string;
+  };
 }
