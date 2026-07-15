@@ -30,6 +30,33 @@ export default defineConfig({
       component: './Table',
     },
     {
+      name: '审批中心',
+      path: '/approval',
+      routes: [
+        { path: '/approval', redirect: '/approval/workbench' },
+        { name: '审批工作台', path: '/approval/workbench', component: './ApprovalCenter/Workbench' },
+        { name: '审批详情', path: '/approval/detail/:recordId', component: './ApprovalCenter/Detail', hideInMenu: true },
+        { name: '委托审批', path: '/approval/delegation', component: './ApprovalCenter/Delegation' },
+      ],
+    },
+    {
+      name: '我的人事异动',
+      path: '/my-changes',
+      component: './MyChanges',
+    },
+    {
+      name: 'HR中控台',
+      path: '/hr',
+      access: 'canAdmin',
+      routes: [
+        { path: '/hr', redirect: '/hr/onboarding' },
+        { name: '入职办理', path: '/hr/onboarding', component: './HR/Onboarding' },
+        { name: '转正管理', path: '/hr/probation', component: './HR/Probation' },
+        { name: '调岗管理', path: '/hr/transfer', component: './HR/Transfer' },
+        { name: '离职管理', path: '/hr/resignation', component: './HR/Resignation' },
+      ],
+    },
+    {
       name: '个人中心',
       path: '/personal',
       routes: [
@@ -39,16 +66,6 @@ export default defineConfig({
         { name: '我的请假', path: '/personal/leave', component: './PersonalCenter/Leave' },
         { name: '我的薪资', path: '/personal/salary', component: './PersonalCenter/Salary' },
         { name: '账号安全', path: '/personal/security', component: './PersonalCenter/Security' },
-      ],
-    },
-    {
-      name: '审批中心',
-      path: '/approval',
-      routes: [
-        { path: '/approval', redirect: '/approval/workbench' },
-        { name: '审批工作台', path: '/approval/workbench', component: './ApprovalCenter/Workbench' },
-        { name: '审批详情', path: '/approval/detail/:recordId', component: './ApprovalCenter/Detail', hideInMenu: true },
-        { name: '委托审批', path: '/approval/delegation', component: './ApprovalCenter/Delegation' },
       ],
     },
     {
@@ -83,7 +100,6 @@ export default defineConfig({
         { name: '操作日志', path: '/admin/logs', component: './Admin/OperationLog' },
       ],
     },
-
     {
       name: '薪资管理',
       path: '/salary-manage',
@@ -92,15 +108,6 @@ export default defineConfig({
         { name: '账套管理', path: '/salary-manage/account', component: './SalaryManage/Account' },
         { name: '薪资档案', path: '/salary-manage/employee', component: './SalaryManage/Employee' },
         { name: '月度核算', path: '/salary-manage/batch', component: './SalaryManage/Batch' },
-      ],
-    },
-    {
-      name: 'HR中控台',
-      path: '/hr',
-      access: 'canAdmin',
-      routes: [
-        { path: '/hr', redirect: '/hr/onboarding' },
-        { name: '入职办理', path: '/hr/onboarding', component: './HR/Onboarding' },
       ],
     },
     {
