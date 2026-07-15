@@ -8,7 +8,7 @@ import {
   Form,
   Input,
   InputNumber,
-  App,
+  message,
   Modal,
   Select,
   TreeSelect,
@@ -99,7 +99,6 @@ const DeptFormModal: React.FC<DeptFormModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { message } = App.useApp();
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
   const [employeeOptions, setEmployeeOptions] = useState<API.EmployeeSimpleVO[]>([]);

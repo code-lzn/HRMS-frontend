@@ -1,5 +1,5 @@
 import { getChangeLogsUsingGet } from '@/api/employeeController';
-import { Drawer, Empty, App, Spin, Tag, Timeline, Typography } from 'antd';
+import { Drawer, Empty, message, Spin, Tag, Timeline, Typography } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 
 const { Text } = Typography;
@@ -21,7 +21,6 @@ const ChangeHistoryDrawer: React.FC<ChangeHistoryDrawerProps> = ({
   employeeId,
   onClose,
 }) => {
-  const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
   const [records, setRecords] = useState<API.EmployeeChangeLogVO[]>([]);
 

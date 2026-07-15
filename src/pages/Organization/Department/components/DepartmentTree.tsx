@@ -82,6 +82,7 @@ interface DepartmentTreeProps {
   onMergeDept: () => void;
   treeData: API.DepartmentTreeVO[];
   loading: boolean;
+  canManage?: boolean;
 }
 
 const DepartmentTree: React.FC<DepartmentTreeProps> = ({
@@ -91,6 +92,7 @@ const DepartmentTree: React.FC<DepartmentTreeProps> = ({
   onMergeDept,
   treeData,
   loading,
+  canManage = false,
 }) => {
   const [searchValue, setSearchValue] = useState('');
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
@@ -148,14 +150,16 @@ const DepartmentTree: React.FC<DepartmentTreeProps> = ({
       {/* 工具栏 */}
       <div style={{ padding: '0 0 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontWeight: 600, fontSize: 15 }}>部门列表</span>
-        <Space>
-          <Button size="small" type="primary" onClick={onAddDept}>
-            新增部门
-          </Button>
-          <Button size="small" onClick={onMergeDept} disabled={!hasMultipleDepts}>
-            合并部门
-          </Button>
-        </Space>
+        {canManage && (
+          <Space>
+            <Button size="small" type="primary" onClick={onAddDept}>
+              新增部门
+            </Button>
+            <Button size="small" onClick={onMergeDept} disabled={!hasMultipleDepts}>
+              合并部门
+            </Button>
+          </Space>
+        )}
       </div>
 
       {/* 搜索框 */}

@@ -11,14 +11,16 @@ import {
   Card,
   Collapse,
   Descriptions,
-  App,
+  message,
+  Result,
   Space,
   Spin,
   Tag,
   Typography,
 } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
-import { history, useParams } from '@umijs/max';
+import { history, useModel, useParams } from '@umijs/max';
+import { hasPermission } from '@/utils/permission';
 import ChangeHistoryDrawer from '../components/ChangeHistoryDrawer';
 import useEmployeeFieldPermission from '@/hooks/useEmployeeFieldPermission';
 
@@ -50,9 +52,21 @@ const maskText = (text: string | undefined | null, prefixLen: number, suffixLen:
 };
 
 const EmployeeDetailPage: React.FC = () => {
-  const { message } = App.useApp();
+  const { initialState } = useModel('@@initialState');
   const params = useParams<{ id: string }>();
   const employeeId = Number(params.id);
+
+  // 无权限查看详情
+  if (!hasPermission(initialState?.currentUser, 'employee:list')) {
+    return (
+      <Result
+        status="403"
+        title="无权限"
+        subTitle="您没有权限查看员工档案"
+        extra={<Button type="primary" onClick={() => history.push('/home')}>返回首页</Button>}
+      />
+    );
+  }
 
   const [loading, setLoading] = useState(true);
   const [detail, setDetail] = useState<API.EmployeeDetailVO | null>(null);

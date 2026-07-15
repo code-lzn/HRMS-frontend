@@ -2,7 +2,7 @@ import { deleteDepartmentUsingPost } from '@/api/departmentController';
 import { DeleteOutlined, EditOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, Card, Descriptions, Empty, App, Space, Tag } from 'antd';
+import { Button, Card, Descriptions, Empty, message, Modal, Space, Tag } from 'antd';
 import React, { useRef } from 'react';
 
 interface DepartmentDetailProps {
@@ -11,6 +11,7 @@ interface DepartmentDetailProps {
   onRefreshTree: () => void;
   /** 用于查找上级部门名称 */
   treeData: API.DepartmentTreeVO[];
+  canManage?: boolean;
 }
 
 /** 在树中查找部门名称 */
@@ -34,8 +35,8 @@ const DepartmentDetail: React.FC<DepartmentDetailProps> = ({
   onEdit,
   onRefreshTree,
   treeData,
+  canManage = false,
 }) => {
-  const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType>();
 
   if (!department) {
@@ -47,7 +48,7 @@ const DepartmentDetail: React.FC<DepartmentDetailProps> = ({
   }
 
   const handleDelete = () => {
-    modal.confirm({
+    Modal.confirm({
       title: '确定删除该部门吗？',
       icon: <ExclamationCircleOutlined />,
       content: `将删除部门「${department.name}」，此操作不可恢复。`,
@@ -85,15 +86,15 @@ const DepartmentDetail: React.FC<DepartmentDetailProps> = ({
     },
     { title: '排序', dataIndex: 'sortOrder', width: 80 },
     {
-      title: '操作',
+      title: canManage ? '操作' : '',
       width: 140,
-      render: (_, record) => (
+      render: (_, record) => canManage ? (
         <Space>
           <Button type="link" size="small" icon={<EditOutlined />} onClick={() => onEdit(record)}>
             编辑
           </Button>
           <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => {
-            modal.confirm({
+            Modal.confirm({
               title: '确定删除该部门吗？',
               icon: <ExclamationCircleOutlined />,
               content: `将删除部门「${record.name}」，此操作不可恢复。`,
@@ -114,7 +115,7 @@ const DepartmentDetail: React.FC<DepartmentDetailProps> = ({
             删除
           </Button>
         </Space>
-      ),
+      ) : null,
     },
   ];
 
@@ -131,14 +132,16 @@ const DepartmentDetail: React.FC<DepartmentDetailProps> = ({
           </Space>
         }
         extra={
-          <Space>
-            <Button type="primary" icon={<EditOutlined />} onClick={() => onEdit(department)}>
-              编辑
-            </Button>
-            <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
-              删除
-            </Button>
-          </Space>
+          canManage ? (
+            <Space>
+              <Button type="primary" icon={<EditOutlined />} onClick={() => onEdit(department)}>
+                编辑
+              </Button>
+              <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
+                删除
+              </Button>
+            </Space>
+          ) : undefined
         }
       >
         <Descriptions bordered column={{ xs: 1, sm: 2, md: 3 }}>

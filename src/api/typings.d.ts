@@ -910,6 +910,7 @@ declare namespace API {
   type LoginUserVO = {
     createTime?: string;
     id?: number;
+    roleId?: number;
     updateTime?: string;
     userAvatar?: string;
     userName?: string;

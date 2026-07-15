@@ -6,7 +6,7 @@ import {
   listPositionsUsingGet,
 } from '@/api/positionController';
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import { Button, Card, Form, App, Space, Spin } from 'antd';
+import { Button, Card, Form, message, Modal, Space, Spin } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 import { history, useParams } from '@umijs/max';
 import EmployeeForm from '../components/EmployeeForm';
@@ -29,7 +29,6 @@ const DEFAULT_LOCKED_FIELDS = [
 ];
 
 const EmployeeEditPage: React.FC = () => {
-  const { message, modal } = App.useApp();
   const params = useParams<{ id: string }>();
   const employeeId = Number(params.id);
 
@@ -167,7 +166,7 @@ const EmployeeEditPage: React.FC = () => {
 
   const handleCancel = () => {
     if (hasChanges) {
-      modal.confirm({
+      Modal.confirm({
         title: '未保存的更改将丢失',
         content: '确定要离开吗？未保存的更改将丢失。',
         okText: '确定离开',

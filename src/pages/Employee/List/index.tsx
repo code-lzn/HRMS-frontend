@@ -19,7 +19,7 @@ import {
   Dropdown,
   Form,
   Input,
-  App,
+  message,
   Row,
   Select,
   Space,
@@ -31,6 +31,7 @@ import type { ColumnsType } from 'antd/es/table';
 import type { DataNode } from 'antd/es/tree';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { history, useModel } from '@umijs/max';
+import { hasPermission } from '@/utils/permission';
 
 const { RangePicker } = DatePicker;
 
@@ -59,14 +60,11 @@ const buildTreeSelectData = (nodes: API.DepartmentTreeVO[]): DataNode[] =>
   }));
 
 const EmployeeListPage: React.FC = () => {
-  const { message } = App.useApp();
   const { initialState } = useModel('@@initialState');
   const currentUser = initialState?.currentUser;
-  const userRole: string = currentUser?.userRole ?? '';
+  const can = (code: string) => hasPermission(currentUser, code);
 
-  const isHR = userRole === 'hr' || userRole === 'system_admin';
-  const isDeptManager = userRole === 'dept_manager';
-
+  const [errorMsg, setErrorMsg] = useState<string>('');
   const [form] = Form.useForm();
   const [searchOpen, setSearchOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -122,6 +120,7 @@ const EmployeeListPage: React.FC = () => {
           total: data?.total ?? 0,
         });
       } catch (e: any) {
+        setErrorMsg(e.message ?? '加载员工列表失败');
         message.error(e.message ?? '加载员工列表失败');
       } finally {
         setLoading(false);
@@ -206,10 +205,10 @@ const EmployeeListPage: React.FC = () => {
         return (
           <Space size="small">
             <a onClick={() => history.push(`/employee/detail/${record.id}`)}>查看</a>
-            {(isHR || isDeptManager) && (
+            {can('employee:edit') && (
               <a onClick={() => history.push(`/employee/edit/${record.id}`)}>编辑</a>
             )}
-            {isHR && (
+            {can('employee:delete') && (
               <Dropdown
                 menu={{
                   items: [
@@ -319,12 +318,19 @@ const EmployeeListPage: React.FC = () => {
         </Form>
       </Card>
 
+      {/* 错误提示 */}
+      {errorMsg && (
+        <Card size="small" styles={{ body: { padding: '12px 16px', color: '#ff4d4f', background: '#fff2f0' } }}>
+          <strong>数据加载失败：</strong>{errorMsg}
+        </Card>
+      )}
+
       {/* 员工列表 */}
       <Card
         size="small"
         title="员工列表"
         extra={
-          isHR && (
+          can('employee:add') && (
             <Button
               type="primary"
               icon={<PlusOutlined />}

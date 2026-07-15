@@ -279,28 +279,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
           </Col>
           <Col span={8}>
             <Form.Item
-              name="hireType"
-              label="入职类型"
-              rules={[{ required: true, message: '请选择入职类型' }]}
-            >
-              {renderLockedTooltip(
-                'hireType',
-                '入职类型不可修改',
-                <Select
-                  placeholder="请选择入职类型"
-                  disabled={isLocked('hireType')}
-                  options={[
-                    { value: 1, label: '校招' },
-                    { value: 2, label: '社招' },
-                    { value: 3, label: '内部推荐' },
-                    { value: 4, label: '猎头' },
-                  ]}
-                />,
-              )}
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            <Form.Item
               name="employmentType"
               label="录用类型"
               rules={[{ required: true, message: '请选择录用类型' }]}
@@ -386,24 +364,6 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
                   placeholder="0.80 ~ 1.00"
                   style={{ width: '100%' }}
                   disabled={isLocked('probationRatio')}
-                />,
-              )}
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            <Form.Item
-              name="salaryProfileId"
-              label="薪资账套"
-              rules={[{ required: true, message: '请选择薪资账套' }]}
-            >
-              {renderLockedTooltip(
-                'salaryProfileId',
-                '仅HR可编辑',
-                <Select
-                  placeholder="请选择薪资账套"
-                  disabled={isLocked('salaryProfileId')}
-                  // TODO: 接入薪资账套列表 API 后填充 options
-                  options={[]}
                 />,
               )}
             </Form.Item>
