@@ -1,4 +1,27 @@
 declare namespace API {
+  type addItemUsingPOSTParams = {
+    /** id */
+    id: number;
+  };
+
+  type adjustDetailUsingPUTParams = {
+    /** id */
+    id: number;
+  };
+
+  type AnalyticsSummaryVO = {
+    activeUsers?: number;
+    activeUsersChange?: number;
+    avgConversionRate?: number;
+    avgConversionRateChange?: number;
+    retentionRate?: number;
+    retentionRateChange?: number;
+    totalRevenue?: number;
+    totalRevenueChange?: number;
+    totalUsers?: number;
+    totalUsersChange?: number;
+  };
+
   type ApprovalActionRequest = {
     comment?: string;
     detailId?: number;
@@ -48,6 +71,11 @@ declare namespace API {
     result?: number;
   };
 
+  type approveBatchUsingPOSTParams = {
+    /** id */
+    id: number;
+  };
+
   type AttendanceCalendarVO = {
     dailyStatus?: Record<string, any>;
     lateDays?: number;
@@ -68,6 +96,12 @@ declare namespace API {
     remark?: string;
     status?: number;
     statusText?: string;
+  };
+
+  type BaseResponseAnalyticsSummaryVO_ = {
+    code?: number;
+    data?: AnalyticsSummaryVO;
+    message?: string;
   };
 
   type BaseResponseApprovalDetailVO_ = {
@@ -94,6 +128,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseDashboardMetricsVO_ = {
+    code?: number;
+    data?: DashboardMetricsVO;
+    message?: string;
+  };
+
   type BaseResponseDepartmentMergeResultVO_ = {
     code?: number;
     data?: DepartmentMergeResultVO;
@@ -109,6 +149,12 @@ declare namespace API {
   type BaseResponseEmployeeDetailVO_ = {
     code?: number;
     data?: EmployeeDetailVO;
+    message?: string;
+  };
+
+  type BaseResponseEmployeeSalaryVO_ = {
+    code?: number;
+    data?: EmployeeSalaryVO;
     message?: string;
   };
 
@@ -154,9 +200,21 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseListConversionRateVO_ = {
+    code?: number;
+    data?: ConversionRateVO[];
+    message?: string;
+  };
+
   type BaseResponseListDepartmentTreeVO_ = {
     code?: number;
     data?: DepartmentTreeVO[];
+    message?: string;
+  };
+
+  type BaseResponseListGrowthTrendVO_ = {
+    code?: number;
+    data?: GrowthTrendVO[];
     message?: string;
   };
 
@@ -178,15 +236,51 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseListModuleUsageVO_ = {
+    code?: number;
+    data?: ModuleUsageVO[];
+    message?: string;
+  };
+
   type BaseResponseListPositionVO_ = {
     code?: number;
     data?: PositionVO[];
     message?: string;
   };
 
+  type BaseResponseListRecentLogVO_ = {
+    code?: number;
+    data?: RecentLogVO[];
+    message?: string;
+  };
+
   type BaseResponseListRoleVO_ = {
     code?: number;
     data?: RoleVO[];
+    message?: string;
+  };
+
+  type BaseResponseListSalaryAccountVO_ = {
+    code?: number;
+    data?: SalaryAccountVO[];
+    message?: string;
+  };
+
+  type BaseResponseListSalaryBatchVO_ = {
+    code?: number;
+    data?: SalaryBatchVO[];
+    message?: string;
+  };
+
+  type BaseResponseListSalaryChangeLogVO_ = {
+    code?: number;
+    data?: SalaryChangeLogVO[];
+    message?: string;
+  };
+
+  type BaseResponseListSalaryDetailVO_ = {
+    code?: number;
+    data?: SalaryDetailVO[];
     message?: string;
   };
 
@@ -208,9 +302,21 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseListSourceDistributionVO_ = {
+    code?: number;
+    data?: SourceDistributionVO[];
+    message?: string;
+  };
+
   type BaseResponseListString_ = {
     code?: number;
     data?: string[];
+    message?: string;
+  };
+
+  type BaseResponseListVisitTrendVO_ = {
+    code?: number;
+    data?: VisitTrendVO[];
     message?: string;
   };
 
@@ -262,12 +368,6 @@ declare namespace API {
     message?: string;
   };
 
-  type BaseResponsePageUser_ = {
-    code?: number;
-    data?: PageUser_;
-    message?: string;
-  };
-
   type BaseResponsePageUserVO_ = {
     code?: number;
     data?: PageUserVO_;
@@ -277,6 +377,24 @@ declare namespace API {
   type BaseResponseRoleVO_ = {
     code?: number;
     data?: RoleVO;
+    message?: string;
+  };
+
+  type BaseResponseSalaryAccountVO_ = {
+    code?: number;
+    data?: SalaryAccountVO;
+    message?: string;
+  };
+
+  type BaseResponseSalaryBatchPreviewVO_ = {
+    code?: number;
+    data?: SalaryBatchPreviewVO;
+    message?: string;
+  };
+
+  type BaseResponseSalaryBatchVO_ = {
+    code?: number;
+    data?: SalaryBatchVO;
     message?: string;
   };
 
@@ -314,6 +432,11 @@ declare namespace API {
     phone?: string;
   };
 
+  type calculateBatchUsingPOSTParams = {
+    /** id */
+    id: number;
+  };
+
   type cancelDelegationUsingPOSTParams = {
     /** id */
     id: number;
@@ -335,11 +458,44 @@ declare namespace API {
     code: string;
   };
 
+  type ConversionRateVO = {
+    channelName?: string;
+    conversion?: number;
+    exposure?: number;
+    rate?: number;
+  };
+
+  type copyAccountUsingPOSTParams = {
+    /** id */
+    id: number;
+  };
+
+  type DashboardMetricsVO = {
+    activeUsers?: number;
+    activeUsersGrowth?: number;
+    systemHealth?: number;
+    systemHealthChange?: number;
+    todayOrders?: number;
+    todayOrdersGrowth?: number;
+    totalUsers?: number;
+    totalUsersGrowth?: number;
+  };
+
   type DelegationRequest = {
     businessTypes?: string;
     delegateId?: number;
     endDate?: string;
     startDate?: string;
+  };
+
+  type deleteAccountUsingDELETEParams = {
+    /** id */
+    id: number;
+  };
+
+  type deleteItemUsingDELETEParams = {
+    /** itemId */
+    itemId: number;
   };
 
   type DeleteRequest = {
@@ -388,7 +544,6 @@ declare namespace API {
     id?: number;
     managerId?: number;
     name?: string;
-    parentId?: number | null;
     sortOrder?: number;
   };
 
@@ -411,11 +566,11 @@ declare namespace API {
     hireDate?: string;
     hireType?: number;
     idCard?: string;
+    jobLevel?: string;
     phone?: string;
     positionId?: number;
     probationRatio?: number;
     registeredAddress?: string;
-    salaryProfileId?: number;
     workLocation?: string;
   };
 
@@ -433,16 +588,6 @@ declare namespace API {
     remark?: string;
   };
 
-  /** @deprecated 后端 v1.4 改用扁平 VO，此类型不再使用 */
-  type EmployeeDetailPersonalInfoVO = Record<string, any>;
-  /** @deprecated 后端 v1.4 改用扁平 VO，此类型不再使用 */
-  type EmployeeDetailWorkInfoVO = Record<string, any>;
-  /** @deprecated 后端 v1.4 改用扁平 VO，此类型不再使用 */
-  type EmployeeDetailSalaryInfoVO = Record<string, any>;
-  /** @deprecated 后端 v1.4 改用扁平 VO，此类型不再使用 */
-  type EmployeeDetailEmergencyContactVO = Record<string, any>;
-
-  /** 员工详情 VO（后端 v1.4 扁平结构） */
   type EmployeeDetailVO = {
     account?: string;
     bankAccount?: string;
@@ -468,8 +613,10 @@ declare namespace API {
     gender?: number;
     genderDesc?: string;
     hireDate?: string;
+    hireType?: number;
     id?: number;
     idCard?: string;
+    jobLevel?: string;
     phone?: string;
     positionId?: number;
     positionName?: string;
@@ -478,6 +625,39 @@ declare namespace API {
     status?: number;
     statusDesc?: string;
     workLocation?: string;
+  };
+
+  type EmployeeSalaryUpdateRequest = {
+    accountSetId?: number;
+    allowanceBase?: number;
+    baseSalary?: number;
+    effectiveDate?: string;
+    housingFundBase?: number;
+    performanceBase?: number;
+    probationSalaryRatio?: number;
+    remark?: string;
+    socialInsuranceBase?: number;
+  };
+
+  type EmployeeSalaryVO = {
+    accountName?: string;
+    accountSetId?: number;
+    allowanceBase?: number;
+    bankAccount?: string;
+    bankName?: string;
+    baseSalary?: number;
+    createdTIme?: string;
+    departmentName?: string;
+    effectiveDate?: string;
+    employeeId?: number;
+    employeeName?: string;
+    employeeNo?: string;
+    housingFundBase?: number;
+    id?: number;
+    performanceBase?: number;
+    probationSalaryRatio?: number;
+    socialInsuranceBase?: number;
+    updatedTime?: string;
   };
 
   type EmployeeUpdateRequest = {
@@ -497,14 +677,13 @@ declare namespace API {
     employmentType?: string;
     gender?: number;
     hireDate?: string;
-    hireType?: number;
     id?: number;
     idCard?: string;
+    jobLevel?: string;
     phone?: string;
     positionId?: number;
     probationRatio?: number;
     registeredAddress?: string;
-    salaryProfileId?: number;
     workLocation?: string;
   };
 
@@ -520,6 +699,7 @@ declare namespace API {
     gender?: number;
     hireDate?: string;
     id?: number;
+    jobLevel?: string;
     phone?: string;
     positionId?: number;
     positionName?: string;
@@ -557,12 +737,27 @@ declare namespace API {
     updateTime?: string;
   };
 
+  type getAccountDetailUsingGETParams = {
+    /** id */
+    id: number;
+  };
+
+  type getAnomaliesUsingGETParams = {
+    /** id */
+    id: number;
+  };
+
   type getApprovalDetailUsingGETParams = {
     /** recordId */
     recordId: number;
   };
 
   type getApprovalProgressUsingGETParams = {
+    /** id */
+    id: number;
+  };
+
+  type getBatchDetailUsingGETParams = {
     /** id */
     id: number;
   };
@@ -581,6 +776,11 @@ declare namespace API {
     size?: number;
   };
 
+  type getConversionRateUsingGETParams = {
+    /** range */
+    range?: string;
+  };
+
   type getDepartmentDetailUsingGETParams = {
     /** id */
     id: number;
@@ -589,6 +789,21 @@ declare namespace API {
   type getDetailUsingGETParams = {
     /** id */
     id?: number;
+  };
+
+  type getEmployeeSalaryHistoryUsingGETParams = {
+    /** employeeId */
+    employeeId: number;
+  };
+
+  type getEmployeeSalaryUsingGETParams = {
+    /** employeeId */
+    employeeId: number;
+  };
+
+  type getGrowthTrendUsingGETParams = {
+    /** range */
+    range?: string;
   };
 
   type getMonthRecordsUsingGETParams = {
@@ -606,6 +821,16 @@ declare namespace API {
     id: number;
   };
 
+  type getSourceDistributionUsingGETParams = {
+    /** range */
+    range?: string;
+  };
+
+  type getSummaryUsingGETParams = {
+    /** range */
+    range?: string;
+  };
+
   type getUserByIdUsingGETParams = {
     /** id */
     id?: number;
@@ -614,6 +839,12 @@ declare namespace API {
   type getUserVOByIdUsingGETParams = {
     /** id */
     id?: number;
+  };
+
+  type GrowthTrendVO = {
+    date?: string;
+    revenue?: number;
+    userCount?: number;
   };
 
   type LeaveApplyRequest = {
@@ -646,34 +877,15 @@ declare namespace API {
     totalDays?: number;
   };
 
-  type EmployeeSimpleVO = {
-    id?: number;
-    employeeName?: string;
-    employeeNo?: string;
-  };
-
-  type BaseResponseListEmployeeSimpleVO_ = {
-    code?: number;
-    data?: EmployeeSimpleVO[];
-    message?: string;
-  };
-
   type listEmployeesUsingGETParams = {
-    /** departmentIds */
     departmentIds?: number[];
-    /** hireDateEnd */
     hireDateEnd?: string;
-    /** hireDateStart */
     hireDateStart?: string;
-    /** keyword */
+    jobLevels?: string[];
     keyword?: string;
-    /** page */
     page?: number;
-    /** positionIds */
     positionIds?: number[];
-    /** size */
     size?: number;
-    /** statuses */
     statuses?: number[];
   };
 
@@ -731,6 +943,16 @@ declare namespace API {
 
   type MapStringLong_ = true;
 
+  type markPaidUsingPOSTParams = {
+    /** id */
+    id: number;
+  };
+
+  type ModuleUsageVO = {
+    moduleName?: string;
+    usageCount?: number;
+  };
+
   type NodeDetail = {
     action?: string;
     actionText?: string;
@@ -787,19 +1009,6 @@ declare namespace API {
     total?: number;
   };
 
-  type PageUser_ = {
-    countId?: string;
-    current?: number;
-    maxLimit?: number;
-    optimizeCountSql?: boolean;
-    orders?: OrderItem[];
-    pages?: number;
-    records?: User[];
-    searchCount?: boolean;
-    size?: number;
-    total?: number;
-  };
-
   type PageUserVO_ = {
     countId?: string;
     current?: number;
@@ -849,6 +1058,15 @@ declare namespace API {
     sequenceName?: string;
   };
 
+  type previewBatchUsingGETParams = {
+    /** current */
+    current?: number;
+    /** id */
+    id: number;
+    /** size */
+    size?: number;
+  };
+
   type ProgressNode = {
     comment?: string;
     nodeName?: string;
@@ -860,6 +1078,18 @@ declare namespace API {
   type PunchRequest = {
     location?: string;
     punchType?: number;
+  };
+
+  type RecentLogVO = {
+    actionType?: string;
+    description?: string;
+    operateTime?: string;
+    operatorName?: string;
+  };
+
+  type rejectBatchUsingPOSTParams = {
+    /** id */
+    id: number;
   };
 
   type RoleAddRequest = {
@@ -912,6 +1142,127 @@ declare namespace API {
     status?: number;
   };
 
+  type SalaryAccountRequest = {
+    effectiveDate?: string;
+    items?: SalaryItemRequest[];
+    name?: string;
+    scopeIds?: string;
+    scopeType?: number;
+  };
+
+  type SalaryAccountVO = {
+    createTime?: string;
+    effectiveDate?: string;
+    id?: number;
+    items?: SalaryItemVO[];
+    name?: string;
+    scopeIds?: string;
+    scopeType?: number;
+    scopeTypeText?: string;
+    updateTime?: string;
+  };
+
+  type SalaryBatchAdjustRequest = {
+    adjustReason?: string;
+    employeeId?: number;
+    manualAdjust?: number;
+  };
+
+  type SalaryBatchCreateRequest = {
+    salaryMonth?: string;
+  };
+
+  type SalaryBatchPreviewVO = {
+    batch?: SalaryBatchVO;
+    current?: number;
+    records?: SalaryDetailVO[];
+    size?: number;
+    total?: number;
+  };
+
+  type SalaryBatchRejectRequest = {
+    reason?: string;
+  };
+
+  type SalaryBatchVO = {
+    batchNo?: string;
+    createdAt?: string;
+    id?: number;
+    paidAt?: string;
+    salaryMonth?: string;
+    status?: string;
+    statusText?: string;
+    totalDeduction?: number;
+    totalEmployeeCount?: number;
+    totalGross?: number;
+    totalNet?: number;
+  };
+
+  type SalaryChangeLogVO = {
+    changeType?: number;
+    changeTypeText?: string;
+    createTime?: string;
+    effectiveDate?: string;
+    employeeId?: number;
+    id?: number;
+    newValue?: string;
+    oldValue?: string;
+    operatorId?: number;
+    operatorName?: string;
+    remark?: string;
+  };
+
+  type SalaryDetailVO = {
+    adjustReason?: string;
+    allowance?: number;
+    anomalyReason?: string;
+    baseSalary?: number;
+    batchId?: number;
+    createdAt?: string;
+    departmentName?: string;
+    employeeId?: number;
+    employeeName?: string;
+    employeeNo?: string;
+    grossSalary?: number;
+    hasAnomaly?: number;
+    housingFund?: number;
+    id?: number;
+    incomeTax?: number;
+    lateDeduction?: number;
+    leaveDeduction?: number;
+    manualAdjust?: number;
+    netSalary?: number;
+    overtimePay?: number;
+    performanceBonus?: number;
+    socialMedical?: number;
+    socialPension?: number;
+    socialUnemployment?: number;
+    totalDeduction?: number;
+  };
+
+  type SalaryItemRequest = {
+    formula?: string;
+    isTaxable?: number;
+    itemType?: number;
+    name?: string;
+    sortOrder?: number;
+  };
+
+  type SalaryItemSortRequest = {
+    itemIds?: number[];
+  };
+
+  type SalaryItemVO = {
+    accountId?: number;
+    formula?: string;
+    id?: number;
+    isTaxable?: number;
+    itemType?: number;
+    itemTypeText?: string;
+    name?: string;
+    sortOrder?: number;
+  };
+
   type SalarySlipDetailVO = {
     adjustReason?: string;
     allowance?: number;
@@ -956,6 +1307,44 @@ declare namespace API {
     sequence?: number;
     sequenceCode?: string;
     sequenceName?: string;
+  };
+
+  type sortItemsUsingPUTParams = {
+    /** id */
+    id: number;
+  };
+
+  type SourceDistributionVO = {
+    count?: number;
+    percentage?: number;
+    sourceName?: string;
+  };
+
+  type submitForApprovalUsingPOSTParams = {
+    /** id */
+    id: number;
+  };
+
+  type updateAccountUsingPUTParams = {
+    /** id */
+    id: number;
+  };
+
+  type updateEmployeeSalaryUsingPUTParams = {
+    /** employeeId */
+    employeeId: number;
+  };
+
+  type updateItemUsingPUTParams = {
+    /** itemId */
+    itemId: number;
+  };
+
+  type updateUserStatusUsingPOSTParams = {
+    /** id */
+    id?: number;
+    /** status */
+    status?: number;
   };
 
   type uploadFileUsingPOSTParams = {
@@ -1042,10 +1431,15 @@ declare namespace API {
     userAvatar?: string;
     userName?: string;
     userProfile?: string;
-    userRole?: string;
+    userRoleName?: string;
   };
 
   type VerifyPasswordRequest = {
     password?: string;
+  };
+
+  type VisitTrendVO = {
+    date?: string;
+    pageViews?: number;
   };
 }

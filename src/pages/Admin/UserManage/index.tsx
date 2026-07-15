@@ -1,0 +1,182 @@
+import { addUserUsingPost, deleteUserUsingPost, listUserByPageUsingPost, updateUserUsingPost } from '@/api/userController';
+import { assignRoleUsingPost, listAllRolesUsingGet } from '@/api/roleController';
+import { PlusOutlined } from '@ant-design/icons';
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
+import { ProTable } from '@ant-design/pro-components';
+import { Button, Form, Input, message, Modal, Select, Space, Tag } from 'antd';
+import dayjs from 'dayjs';
+import React, { useRef, useState } from 'react';
+
+const ROLE_TAG_COLOR: Record<string, string> = { admin: 'red', user: 'blue' };
+
+const UserManage: React.FC = () => {
+  const actionRef = useRef<ActionType>();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [roleModalOpen, setRoleModalOpen] = useState(false);
+  const [editing, setEditing] = useState<API.User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<API.User | null>(null);
+  const [form] = Form.useForm();
+  const [roleForm] = Form.useForm();
+  const [submitting, setSubmitting] = useState(false);
+  const [roles, setRoles] = useState<API.RoleVO[]>([]);
+
+  const columns: ProColumns<API.User>[] = [
+    { title: '用户名', dataIndex: 'userName', width: 120 },
+    {
+      title: '角色',
+      dataIndex: 'userRole',
+      width: 100,
+      render: (_, r) => {
+        const name = r.userRoleName ?? r.userRole ?? 'user';
+        return <Tag color={ROLE_TAG_COLOR[name.toLowerCase()] ?? 'default'}>{name}</Tag>;
+      },
+    },
+    {
+      title: '状态',
+      dataIndex: 'isDelete',
+      width: 80,
+      render: (_, r) =>
+        r.isDelete === 1 ? (
+          <Tag color="error">禁用</Tag>
+        ) : (
+          <Tag color="success">正常</Tag>
+        ),
+    },
+    {
+      title: '简介',
+      dataIndex: 'userProfile',
+      width: 180,
+      ellipsis: true,
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createTime',
+      width: 180,
+      render: (_, r) => (r.createTime ? dayjs(r.createTime).format('YYYY-MM-DD HH:mm') : '-'),
+    },
+    {
+      title: '操作',
+      width: 240,
+      render: (_, record) => (
+        <Space>
+          <Button type="link" size="small" onClick={() => openEdit(record)}>编辑</Button>
+          <Button type="link" size="small" onClick={() => openAssignRole(record)}>分配角色</Button>
+          <Button type="link" size="small" danger onClick={() => handleDelete(record)}>删除</Button>
+        </Space>
+      ),
+    },
+  ];
+
+  const loadRoles = async () => {
+    try { const r = await listAllRolesUsingGet(); setRoles(r?.data ?? []); } catch { setRoles([]); }
+  };
+
+  const openCreate = async () => {
+    setEditing(null);
+    form.resetFields();
+    await loadRoles();
+    setModalOpen(true);
+  };
+
+  const openEdit = async (record: API.User) => {
+    setEditing(record);
+    form.setFieldsValue({ userName: record.userName, userProfile: record.userProfile, userRole: record.userRole });
+    await loadRoles();
+    setModalOpen(true);
+  };
+
+  const openAssignRole = async (record: API.User) => {
+    setSelectedUser(record);
+    roleForm.setFieldsValue({ roleId: record.roleId });
+    await loadRoles();
+    setRoleModalOpen(true);
+  };
+
+  const handleDelete = (record: API.User) => {
+    Modal.confirm({
+      title: '确认删除',
+      content: `确定要删除用户「${record.userName}」吗？`,
+      onOk: async () => {
+        try { await deleteUserUsingPost({ id: record.id! }); message.success('已删除'); actionRef.current?.reload(); }
+        catch (e: any) { message.error(e.message || '删除失败'); }
+      },
+    });
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const values = await form.validateFields();
+      setSubmitting(true);
+      if (editing) {
+        await updateUserUsingPost({ id: editing.id!, userName: values.userName, userProfile: values.userProfile, userRole: values.userRole });
+        message.success('已更新');
+      } else {
+        await addUserUsingPost(values);
+        message.success('已创建');
+      }
+      setModalOpen(false);
+      form.resetFields();
+      actionRef.current?.reload();
+    } catch (e: any) { if (e.message) message.error(e.message); }
+    finally { setSubmitting(false); }
+  };
+
+  const handleAssignRole = async () => {
+    try {
+      const values = await roleForm.validateFields();
+      await assignRoleUsingPost({ userId: selectedUser!.id!, roleId: values.roleId });
+      message.success('角色分配成功');
+      setRoleModalOpen(false);
+      actionRef.current?.reload();
+    } catch (e: any) { if (e.message) message.error(e.message); }
+  };
+
+  return (
+    <>
+      <ProTable<API.User>
+        headerTitle="用户管理"
+        actionRef={actionRef}
+        columns={columns}
+        request={async (params) => {
+          try {
+            const res = await listUserByPageUsingPost({
+              current: params.current ?? 1,
+              pageSize: params.pageSize ?? 10,
+              userName: params.userName,
+            });
+            return { data: res?.data?.records ?? [], success: true, total: res?.data?.total ?? 0 };
+          } catch { return { data: [], success: false }; }
+        }}
+        rowKey="id"
+        toolBarRender={() => [<Button key="create" type="primary" icon={<PlusOutlined />} onClick={openCreate}>新建用户</Button>]}
+      />
+
+      <Modal title={editing ? '编辑用户' : '新建用户'} open={modalOpen} onOk={handleSubmit} onCancel={() => setModalOpen(false)} confirmLoading={submitting} destroyOnClose>
+        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item name="userName" label="用户名" rules={[{ required: true }]}>
+            <Input placeholder="请输入用户名" />
+          </Form.Item>
+          <Form.Item name="userAvatar" label="头像URL">
+            <Input placeholder="请输入头像URL" />
+          </Form.Item>
+          <Form.Item name="userProfile" label="简介">
+            <Input.TextArea rows={2} placeholder="请输入用户简介" />
+          </Form.Item>
+          <Form.Item name="userRole" label="角色">
+            <Select options={roles.map((r) => ({ label: r.roleName, value: r.roleCode }))} placeholder="请选择角色" loading={roles.length === 0} />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      <Modal title={`分配角色 — ${selectedUser?.userName}`} open={roleModalOpen} onOk={handleAssignRole} onCancel={() => setRoleModalOpen(false)} destroyOnClose>
+        <Form form={roleForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item name="roleId" label="角色" rules={[{ required: true }]}>
+            <Select options={roles.map((r) => ({ label: r.roleName, value: r.id }))} placeholder="请选择角色" />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </>
+  );
+};
+
+export default UserManage;

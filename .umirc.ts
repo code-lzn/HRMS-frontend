@@ -72,6 +72,23 @@ export default defineConfig({
       ],
     },
     {
+      name: '中台管理系统',
+      path: '/admin',
+      routes: [
+        { path: '/admin', redirect: '/admin/dashboard' },
+        { name: '仪表盘', path: '/admin/dashboard', component: './Dashboard' },
+        { name: '用户管理', path: '/admin/users', component: './Admin/UserManage' },
+        { name: '角色权限', path: '/admin/roles', component: './Admin/RolePermission' },
+        { name: '系统配置', path: '/admin/config', component: './Admin/SystemConfig' },
+        { name: '操作日志', path: '/admin/logs', component: './Admin/OperationLog' },
+      ],
+    },
+    {
+      name: '薪资管理',
+      path: '/salary-manage',
+      component: './SalaryManage',
+    },
+    {
       name: '用户登录',
       path: '/user/login',
       component: '../app/user/login/page',
