@@ -36,6 +36,5 @@ export default {
   roleController,
   salaryManageController,
   salaryController,
-  salaryManageController,
   userController,
 };

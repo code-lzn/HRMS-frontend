@@ -2,9 +2,7 @@
 /* eslint-disable */
 import request from '@/libs/request';
 
-// ==================== 1. 薪资账套管理 ====================
-
-/** listAccounts GET /salary-manage/accounts */
+/** listAccounts GET /api/salary-manage/accounts */
 export async function listAccountsUsingGet(options?: { [key: string]: any }) {
   return request<API.BaseResponseListSalaryAccountVO_>(
     '/api/salary-manage/accounts',
@@ -15,22 +13,7 @@ export async function listAccountsUsingGet(options?: { [key: string]: any }) {
   );
 }
 
-/** getAccountDetail GET /salary-manage/accounts/${param0} */
-export async function getAccountDetailUsingGet(
-  params: { id: number },
-  options?: { [key: string]: any },
-) {
-  const { id: param0 } = params;
-  return request<API.BaseResponseSalaryAccountVO_>(
-    `/api/salary-manage/accounts/${param0}`,
-    {
-      method: 'GET',
-      ...(options || {}),
-    },
-  );
-}
-
-/** createAccount POST /salary-manage/accounts */
+/** createAccount POST /api/salary-manage/accounts */
 export async function createAccountUsingPost(
   body: API.SalaryAccountRequest,
   options?: { [key: string]: any },
@@ -45,13 +28,31 @@ export async function createAccountUsingPost(
   });
 }
 
-/** updateAccount PUT /salary-manage/accounts/${param0} */
+/** getAccountDetail GET /api/salary-manage/accounts/${param0} */
+export async function getAccountDetailUsingGet(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getAccountDetailUsingGETParams,
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseSalaryAccountVO_>(
+    `/api/salary-manage/accounts/${param0}`,
+    {
+      method: 'GET',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}
+
+/** updateAccount PUT /api/salary-manage/accounts/${param0} */
 export async function updateAccountUsingPut(
-  params: { id: number },
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.updateAccountUsingPUTParams,
   body: API.SalaryAccountRequest,
   options?: { [key: string]: any },
 ) {
-  const { id: param0 } = params;
+  const { id: param0, ...queryParams } = params;
   return request<API.BaseResponseString_>(
     `/api/salary-manage/accounts/${param0}`,
     {
@@ -59,51 +60,55 @@ export async function updateAccountUsingPut(
       headers: {
         'Content-Type': 'application/json',
       },
+      params: { ...queryParams },
       data: body,
       ...(options || {}),
     },
   );
 }
 
-/** deleteAccount DELETE /salary-manage/accounts/${param0} */
+/** deleteAccount DELETE /api/salary-manage/accounts/${param0} */
 export async function deleteAccountUsingDelete(
-  params: { id: number },
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.deleteAccountUsingDELETEParams,
   options?: { [key: string]: any },
 ) {
-  const { id: param0 } = params;
+  const { id: param0, ...queryParams } = params;
   return request<API.BaseResponseString_>(
     `/api/salary-manage/accounts/${param0}`,
     {
       method: 'DELETE',
+      params: { ...queryParams },
       ...(options || {}),
     },
   );
 }
 
-/** copyAccount POST /salary-manage/accounts/${param0}/copy */
+/** copyAccount POST /api/salary-manage/accounts/${param0}/copy */
 export async function copyAccountUsingPost(
-  params: { id: number },
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.copyAccountUsingPOSTParams,
   options?: { [key: string]: any },
 ) {
-  const { id: param0 } = params;
+  const { id: param0, ...queryParams } = params;
   return request<API.BaseResponseLong_>(
     `/api/salary-manage/accounts/${param0}/copy`,
     {
       method: 'POST',
+      params: { ...queryParams },
       ...(options || {}),
     },
   );
 }
 
-// ==================== 2. 工资项目管理 ====================
-
-/** addItem POST /salary-manage/accounts/${param0}/items */
+/** addItem POST /api/salary-manage/accounts/${param0}/items */
 export async function addItemUsingPost(
-  params: { id: number },
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.addItemUsingPOSTParams,
   body: API.SalaryItemRequest,
   options?: { [key: string]: any },
 ) {
-  const { id: param0 } = params;
+  const { id: param0, ...queryParams } = params;
   return request<API.BaseResponseString_>(
     `/api/salary-manage/accounts/${param0}/items`,
     {
@@ -111,54 +116,21 @@ export async function addItemUsingPost(
       headers: {
         'Content-Type': 'application/json',
       },
+      params: { ...queryParams },
       data: body,
       ...(options || {}),
     },
   );
 }
 
-/** updateItem PUT /salary-manage/items/${param0} */
-export async function updateItemUsingPut(
-  params: { itemId: number },
-  body: API.SalaryItemRequest,
-  options?: { [key: string]: any },
-) {
-  const { itemId: param0 } = params;
-  return request<API.BaseResponseString_>(
-    `/api/salary-manage/items/${param0}`,
-    {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      data: body,
-      ...(options || {}),
-    },
-  );
-}
-
-/** deleteItem DELETE /salary-manage/items/${param0} */
-export async function deleteItemUsingDelete(
-  params: { itemId: number },
-  options?: { [key: string]: any },
-) {
-  const { itemId: param0 } = params;
-  return request<API.BaseResponseString_>(
-    `/api/salary-manage/items/${param0}`,
-    {
-      method: 'DELETE',
-      ...(options || {}),
-    },
-  );
-}
-
-/** sortItems PUT /salary-manage/accounts/${param0}/items/sort */
+/** sortItems PUT /api/salary-manage/accounts/${param0}/items/sort */
 export async function sortItemsUsingPut(
-  params: { id: number },
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.sortItemsUsingPUTParams,
   body: API.SalaryItemSortRequest,
   options?: { [key: string]: any },
 ) {
-  const { id: param0 } = params;
+  const { id: param0, ...queryParams } = params;
   return request<API.BaseResponseString_>(
     `/api/salary-manage/accounts/${param0}/items/sort`,
     {
@@ -166,22 +138,17 @@ export async function sortItemsUsingPut(
       headers: {
         'Content-Type': 'application/json',
       },
+      params: { ...queryParams },
       data: body,
       ...(options || {}),
     },
   );
 }
 
-// ==================== 3. 员工薪资档案管理 ====================
-
-/** getEmployeeSalary GET /salary-manage/employee-salaries/${param0} */
-export async function getEmployeeSalaryUsingGet(
-  params: { employeeId: number },
-  options?: { [key: string]: any },
-) {
-  const { employeeId: param0 } = params;
-  return request<API.BaseResponseEmployeeSalaryVO_>(
-    `/api/salary-manage/employee-salaries/${param0}`,
+/** listBatches GET /api/salary-manage/batches */
+export async function listBatchesUsingGet(options?: { [key: string]: any }) {
+  return request<API.BaseResponseListSalaryBatchVO_>(
+    '/api/salary-manage/batches',
     {
       method: 'GET',
       ...(options || {}),
@@ -189,44 +156,7 @@ export async function getEmployeeSalaryUsingGet(
   );
 }
 
-/** updateEmployeeSalary PUT /salary-manage/employee-salaries/${param0} */
-export async function updateEmployeeSalaryUsingPut(
-  params: { employeeId: number },
-  body: API.EmployeeSalaryUpdateRequest,
-  options?: { [key: string]: any },
-) {
-  const { employeeId: param0 } = params;
-  return request<API.BaseResponseString_>(
-    `/api/salary-manage/employee-salaries/${param0}`,
-    {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      data: body,
-      ...(options || {}),
-    },
-  );
-}
-
-/** getEmployeeSalaryHistory GET /salary-manage/employee-salaries/${param0}/history */
-export async function getEmployeeSalaryHistoryUsingGet(
-  params: { employeeId: number },
-  options?: { [key: string]: any },
-) {
-  const { employeeId: param0 } = params;
-  return request<API.BaseResponseListSalaryChangeLogVO_>(
-    `/api/salary-manage/employee-salaries/${param0}/history`,
-    {
-      method: 'GET',
-      ...(options || {}),
-    },
-  );
-}
-
-// ==================== 4. 月度薪资核算 ====================
-
-/** createBatch POST /salary-manage/batches */
+/** createBatch POST /api/salary-manage/batches */
 export async function createBatchUsingPost(
   body: API.SalaryBatchCreateRequest,
   options?: { [key: string]: any },
@@ -241,55 +171,15 @@ export async function createBatchUsingPost(
   });
 }
 
-/** listBatches GET /salary-manage/batches */
-export async function listBatchesUsingGet(options?: { [key: string]: any }) {
-  return request<API.BaseResponseListSalaryBatchVO_>(
-    '/api/salary-manage/batches',
-    {
-      method: 'GET',
-      ...(options || {}),
-    },
-  );
-}
-
-/** getBatchDetail GET /salary-manage/batches/${param0} */
+/** getBatchDetail GET /api/salary-manage/batches/${param0} */
 export async function getBatchDetailUsingGet(
-  params: { id: number },
-  options?: { [key: string]: any },
-) {
-  const { id: param0 } = params;
-  return request<API.BaseResponseSalaryBatchVO_>(
-    `/api/salary-manage/batches/${param0}`,
-    {
-      method: 'GET',
-      ...(options || {}),
-    },
-  );
-}
-
-/** calculateBatch POST /salary-manage/batches/${param0}/calculate */
-export async function calculateBatchUsingPost(
-  params: { id: number },
-  options?: { [key: string]: any },
-) {
-  const { id: param0 } = params;
-  return request<API.BaseResponseString_>(
-    `/api/salary-manage/batches/${param0}/calculate`,
-    {
-      method: 'POST',
-      ...(options || {}),
-    },
-  );
-}
-
-/** previewBatch GET /salary-manage/batches/${param0}/preview */
-export async function previewBatchUsingGet(
-  params: { id: number } & API.getBatchPreviewUsingGETParams,
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getBatchDetailUsingGETParams,
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseSalaryBatchPreviewVO_>(
-    `/api/salary-manage/batches/${param0}/preview`,
+  return request<API.BaseResponseSalaryBatchVO_>(
+    `/api/salary-manage/batches/${param0}`,
     {
       method: 'GET',
       params: { ...queryParams },
@@ -298,28 +188,14 @@ export async function previewBatchUsingGet(
   );
 }
 
-/** getAnomalies GET /salary-manage/batches/${param0}/anomalies */
-export async function getAnomaliesUsingGet(
-  params: { id: number },
-  options?: { [key: string]: any },
-) {
-  const { id: param0 } = params;
-  return request<API.BaseResponseListSalaryDetailVO_>(
-    `/api/salary-manage/batches/${param0}/anomalies`,
-    {
-      method: 'GET',
-      ...(options || {}),
-    },
-  );
-}
-
-/** adjustDetail PUT /salary-manage/batches/${param0}/adjust */
+/** adjustDetail PUT /api/salary-manage/batches/${param0}/adjust */
 export async function adjustDetailUsingPut(
-  params: { id: number },
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.adjustDetailUsingPUTParams,
   body: API.SalaryBatchAdjustRequest,
   options?: { [key: string]: any },
 ) {
-  const { id: param0 } = params;
+  const { id: param0, ...queryParams } = params;
   return request<API.BaseResponseString_>(
     `/api/salary-manage/batches/${param0}/adjust`,
     {
@@ -327,51 +203,112 @@ export async function adjustDetailUsingPut(
       headers: {
         'Content-Type': 'application/json',
       },
+      params: { ...queryParams },
       data: body,
       ...(options || {}),
     },
   );
 }
 
-/** submitForApproval POST /salary-manage/batches/${param0}/submit */
-export async function submitForApprovalUsingPost(
-  params: { id: number },
+/** getAnomalies GET /api/salary-manage/batches/${param0}/anomalies */
+export async function getAnomaliesUsingGet(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getAnomaliesUsingGETParams,
   options?: { [key: string]: any },
 ) {
-  const { id: param0 } = params;
-  return request<API.BaseResponseString_>(
-    `/api/salary-manage/batches/${param0}/submit`,
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseListSalaryDetailVO_>(
+    `/api/salary-manage/batches/${param0}/anomalies`,
     {
-      method: 'POST',
+      method: 'GET',
+      params: { ...queryParams },
       ...(options || {}),
     },
   );
 }
 
-// ==================== 5. 审批操作 ====================
-
-/** approveBatch POST /salary-manage/batches/${param0}/approve */
+/** approveBatch POST /api/salary-manage/batches/${param0}/approve */
 export async function approveBatchUsingPost(
-  params: { id: number },
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.approveBatchUsingPOSTParams,
   options?: { [key: string]: any },
 ) {
-  const { id: param0 } = params;
+  const { id: param0, ...queryParams } = params;
   return request<API.BaseResponseString_>(
     `/api/salary-manage/batches/${param0}/approve`,
     {
       method: 'POST',
+      params: { ...queryParams },
       ...(options || {}),
     },
   );
 }
 
-/** rejectBatch POST /salary-manage/batches/${param0}/reject */
+/** calculateBatch POST /api/salary-manage/batches/${param0}/calculate */
+export async function calculateBatchUsingPost(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.calculateBatchUsingPOSTParams,
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseString_>(
+    `/api/salary-manage/batches/${param0}/calculate`,
+    {
+      method: 'POST',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}
+
+/** markPaid POST /api/salary-manage/batches/${param0}/mark-paid */
+export async function markPaidUsingPost(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.markPaidUsingPOSTParams,
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseString_>(
+    `/api/salary-manage/batches/${param0}/mark-paid`,
+    {
+      method: 'POST',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}
+
+/** previewBatch GET /api/salary-manage/batches/${param0}/preview */
+export async function previewBatchUsingGet(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.previewBatchUsingGETParams,
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseSalaryBatchPreviewVO_>(
+    `/api/salary-manage/batches/${param0}/preview`,
+    {
+      method: 'GET',
+      params: {
+        // current has a default value: 1
+        current: '1',
+        // size has a default value: 20
+        size: '20',
+        ...queryParams,
+      },
+      ...(options || {}),
+    },
+  );
+}
+
+/** rejectBatch POST /api/salary-manage/batches/${param0}/reject */
 export async function rejectBatchUsingPost(
-  params: { id: number },
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.rejectBatchUsingPOSTParams,
   body: API.SalaryBatchRejectRequest,
   options?: { [key: string]: any },
 ) {
-  const { id: param0 } = params;
+  const { id: param0, ...queryParams } = params;
   return request<API.BaseResponseString_>(
     `/api/salary-manage/batches/${param0}/reject`,
     {
@@ -379,22 +316,120 @@ export async function rejectBatchUsingPost(
       headers: {
         'Content-Type': 'application/json',
       },
+      params: { ...queryParams },
       data: body,
       ...(options || {}),
     },
   );
 }
 
-/** markPaid POST /salary-manage/batches/${param0}/mark-paid */
-export async function markPaidUsingPost(
-  params: { id: number },
+/** submitForApproval POST /api/salary-manage/batches/${param0}/submit */
+export async function submitForApprovalUsingPost(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.submitForApprovalUsingPOSTParams,
   options?: { [key: string]: any },
 ) {
-  const { id: param0 } = params;
+  const { id: param0, ...queryParams } = params;
   return request<API.BaseResponseString_>(
-    `/api/salary-manage/batches/${param0}/mark-paid`,
+    `/api/salary-manage/batches/${param0}/submit`,
     {
       method: 'POST',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}
+
+/** getEmployeeSalary GET /api/salary-manage/employee-salaries/${param0} */
+export async function getEmployeeSalaryUsingGet(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getEmployeeSalaryUsingGETParams,
+  options?: { [key: string]: any },
+) {
+  const { employeeId: param0, ...queryParams } = params;
+  return request<API.BaseResponseEmployeeSalaryVO_>(
+    `/api/salary-manage/employee-salaries/${param0}`,
+    {
+      method: 'GET',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}
+
+/** updateEmployeeSalary PUT /api/salary-manage/employee-salaries/${param0} */
+export async function updateEmployeeSalaryUsingPut(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.updateEmployeeSalaryUsingPUTParams,
+  body: API.EmployeeSalaryUpdateRequest,
+  options?: { [key: string]: any },
+) {
+  const { employeeId: param0, ...queryParams } = params;
+  return request<API.BaseResponseString_>(
+    `/api/salary-manage/employee-salaries/${param0}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    },
+  );
+}
+
+/** getEmployeeSalaryHistory GET /api/salary-manage/employee-salaries/${param0}/history */
+export async function getEmployeeSalaryHistoryUsingGet(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getEmployeeSalaryHistoryUsingGETParams,
+  options?: { [key: string]: any },
+) {
+  const { employeeId: param0, ...queryParams } = params;
+  return request<API.BaseResponseListSalaryChangeLogVO_>(
+    `/api/salary-manage/employee-salaries/${param0}/history`,
+    {
+      method: 'GET',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}
+
+/** updateItem PUT /api/salary-manage/items/${param0} */
+export async function updateItemUsingPut(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.updateItemUsingPUTParams,
+  body: API.SalaryItemRequest,
+  options?: { [key: string]: any },
+) {
+  const { itemId: param0, ...queryParams } = params;
+  return request<API.BaseResponseString_>(
+    `/api/salary-manage/items/${param0}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      params: { ...queryParams },
+      data: body,
+      ...(options || {}),
+    },
+  );
+}
+
+/** deleteItem DELETE /api/salary-manage/items/${param0} */
+export async function deleteItemUsingDelete(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.deleteItemUsingDELETEParams,
+  options?: { [key: string]: any },
+) {
+  const { itemId: param0, ...queryParams } = params;
+  return request<API.BaseResponseString_>(
+    `/api/salary-manage/items/${param0}`,
+    {
+      method: 'DELETE',
+      params: { ...queryParams },
       ...(options || {}),
     },
   );

@@ -1,7 +1,5 @@
-import { searchEmployeesUsingGet } from '@/api/employeeController';
-import {
-  getEmployeeSalaryUsingGet,
-} from '@/api/salaryManageController';
+import { listEmployeesUsingGet } from '@/api/employeeController';
+import { getEmployeeSalaryUsingGet } from '@/api/salaryManageController';
 import {
   EditOutlined,
   HistoryOutlined,
@@ -10,14 +8,11 @@ import {
 import {
   Button,
   Card,
-  Col,
   Descriptions,
   Empty,
   Input,
   List,
   message,
-  Row,
-  Select,
   Space,
   Spin,
   Tag,
@@ -27,17 +22,14 @@ import HistoryDrawer from './components/HistoryDrawer';
 import SalaryEditModal from './components/SalaryEditModal';
 
 const EmployeeSalaryPage: React.FC = () => {
-  // 搜索
   const [keyword, setKeyword] = useState('');
-  const [employees, setEmployees] = useState<API.EmployeeSimpleVO[]>([]);
+  const [employees, setEmployees] = useState<API.EmployeeVO[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<API.EmployeeSimpleVO | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<API.EmployeeVO | null>(null);
 
-  // 薪资档案
   const [salary, setSalary] = useState<API.EmployeeSalaryVO | null>(null);
   const [salaryLoading, setSalaryLoading] = useState(false);
 
-  // 弹窗
   const [editOpen, setEditOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
 
@@ -45,8 +37,8 @@ const EmployeeSalaryPage: React.FC = () => {
     if (!keyword.trim()) return;
     setSearchLoading(true);
     try {
-      const res = await searchEmployeesUsingGet({ keyword: keyword.trim() });
-      const data = (res as any)?.data ?? [];
+      const res = await listEmployeesUsingGet({ keyword: keyword.trim() });
+      const data = (res as any)?.data?.records ?? [];
       setEmployees(data);
       if (data.length === 0) message.info('未找到匹配的员工');
     } catch {
@@ -56,7 +48,7 @@ const EmployeeSalaryPage: React.FC = () => {
     }
   }, [keyword]);
 
-  const handleSelectEmployee = async (emp: API.EmployeeSimpleVO) => {
+  const handleSelectEmployee = async (emp: API.EmployeeVO) => {
     setSelectedEmployee(emp);
     setSalary(null);
     setSalaryLoading(true);
@@ -105,15 +97,13 @@ const EmployeeSalaryPage: React.FC = () => {
                   padding: '8px 12px',
                   borderRadius: 6,
                   background:
-                    selectedEmployee?.id === emp.id
-                      ? '#e6f4ff'
-                      : undefined,
+                    selectedEmployee?.id === emp.id ? '#e6f4ff' : undefined,
                 }}
               >
                 <div>
                   <div style={{ fontWeight: 500 }}>{emp.employeeName}</div>
                   <div style={{ fontSize: 12, color: '#999' }}>
-                    工号：{emp.employeeNo}
+                    工号：{emp.employeeNo} | {emp.departmentName ?? '-'}
                   </div>
                 </div>
               </List.Item>
@@ -154,7 +144,6 @@ const EmployeeSalaryPage: React.FC = () => {
           <Empty description="该员工暂无薪资档案" />
         ) : (
           <>
-            {/* 基本信息 */}
             <Descriptions
               title="基本信息"
               column={3}
@@ -184,7 +173,6 @@ const EmployeeSalaryPage: React.FC = () => {
               </Descriptions.Item>
             </Descriptions>
 
-            {/* 薪资基数 */}
             <Descriptions
               title="薪资基数"
               column={3}
@@ -216,7 +204,6 @@ const EmployeeSalaryPage: React.FC = () => {
               </Descriptions.Item>
             </Descriptions>
 
-            {/* 预估社保公积金扣除 */}
             <Descriptions
               title="预估月度扣除（按基数×默认比例）"
               column={3}
@@ -248,7 +235,6 @@ const EmployeeSalaryPage: React.FC = () => {
         )}
       </Card>
 
-      {/* 编辑弹窗 */}
       <SalaryEditModal
         open={editOpen}
         employeeId={selectedEmployee?.id!}
@@ -260,7 +246,6 @@ const EmployeeSalaryPage: React.FC = () => {
         }}
       />
 
-      {/* 调薪历史抽屉 */}
       <HistoryDrawer
         open={historyOpen}
         employeeId={selectedEmployee?.id ?? null}
