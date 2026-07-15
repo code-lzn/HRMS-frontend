@@ -35,9 +35,10 @@ const EmployeeAddPage: React.FC = () => {
       setDeptTreeData((deptRes as any)?.data ?? []);
       setPositionOptions((posRes as any)?.data ?? []);
       const roles: API.RoleVO[] = (roleRes as any)?.data ?? [];
+      console.log('[Add] role list:', JSON.stringify(roles)); // 调试：查看返回的角色列表
       setRoleOptions(
         roles
-          .filter((r) => r.id !== 1) // 排除系统管理员
+          .filter((r) => r.roleName !== '系统管理员')
           .map((r) => ({ label: r.roleName ?? '', value: r.id! })),
       );
     } catch {

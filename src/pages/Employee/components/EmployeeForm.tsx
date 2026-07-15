@@ -307,7 +307,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
               >
                 <Select
                   placeholder="请选择身份"
-                  options={roleOptions.filter((r) => r.value !== 1)}
+                  options={roleOptions}
                 />
               </Form.Item>
             </Col>
