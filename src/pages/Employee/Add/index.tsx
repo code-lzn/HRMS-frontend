@@ -5,6 +5,7 @@ import { addEmployeeUsingPost } from '@/api/employeeController';
 import {
   listPositionsUsingGet,
 } from '@/api/positionController';
+import { listAllRolesUsingGet } from '@/api/roleController';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { Button, Card, Form, message, Modal, Space, Spin } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -19,18 +20,26 @@ const EmployeeAddPage: React.FC = () => {
   // 数据源
   const [deptTreeData, setDeptTreeData] = useState<API.DepartmentTreeVO[]>([]);
   const [positionOptions, setPositionOptions] = useState<API.PositionVO[]>([]);
+  const [roleOptions, setRoleOptions] = useState<{ label: string; value: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   // 加载数据源
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [deptRes, posRes] = await Promise.all([
+      const [deptRes, posRes, roleRes] = await Promise.all([
         getDepartmentTreeUsingGet(),
         listPositionsUsingGet({}),
+        listAllRolesUsingGet(),
       ]);
       setDeptTreeData((deptRes as any)?.data ?? []);
       setPositionOptions((posRes as any)?.data ?? []);
+      const roles: API.RoleVO[] = (roleRes as any)?.data ?? [];
+      setRoleOptions(
+        roles
+          .filter((r) => r.id !== 1) // 排除系统管理员
+          .map((r) => ({ label: r.roleName ?? '', value: r.id! })),
+      );
     } catch {
       // ignore
     } finally {
@@ -62,6 +71,7 @@ const EmployeeAddPage: React.FC = () => {
         workLocation: values.workLocation,
         hireDate: values.hireDate?.format('YYYY-MM-DD'),
         employmentType: values.employmentType,
+        roleId: values.roleId,
         contractType: values.contractType,
         contractExpireDate: values.contractExpireDate?.format('YYYY-MM-DD'),
         probationRatio: values.probationRatio,
@@ -139,6 +149,7 @@ const EmployeeAddPage: React.FC = () => {
           form={form}
           departmentTreeData={deptTreeData}
           positionOptions={positionOptions}
+          roleOptions={roleOptions}
         />
       </Form>
     </div>

@@ -35,6 +35,8 @@ interface EmployeeFormProps {
   departmentTreeData: API.DepartmentTreeVO[];
   /** 职位列表 */
   positionOptions: API.PositionVO[];
+  /** 角色选项（新增时选择身份，不包括系统管理员） */
+  roleOptions?: { label: string; value: number }[];
 }
 
 const EmployeeForm: React.FC<EmployeeFormProps> = ({
@@ -43,6 +45,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
   lockedFields = [],
   departmentTreeData,
   positionOptions,
+  roleOptions = [],
 }) => {
   const [employeeOptions, setEmployeeOptions] = useState<API.EmployeeSimpleVO[]>([]);
   const [employeeLoading, setEmployeeLoading] = useState(false);
@@ -273,6 +276,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
             <Form.Item
               name="hireDate"
               label="入职日期"
+              rules={[{ required: true, message: '请选择入职日期' }]}
             >
               <DatePicker style={{ width: '100%' }} placeholder="请选择入职日期" />
             </Form.Item>
@@ -293,6 +297,21 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
               />
             </Form.Item>
           </Col>
+          {mode === 'add' && roleOptions.length > 0 && (
+            <Col span={8}>
+              <Form.Item
+                name="roleId"
+                label="身份"
+                rules={[{ required: true, message: '请选择身份' }]}
+                tooltip="新增员工的系统角色权限"
+              >
+                <Select
+                  placeholder="请选择身份"
+                  options={roleOptions.filter((r) => r.value !== 1)}
+                />
+              </Form.Item>
+            </Col>
+          )}
         </Row>
       </Card>
 

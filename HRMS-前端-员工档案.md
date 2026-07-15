@@ -176,8 +176,9 @@ UED：选填
 | 职位 | Select | Y | `/api/positions/list` |
 | 直接汇报人 | Select + 搜索 | N | 员工列表搜索 |
 | 工作地点 | Input | N | |
-| 入职日期 | DatePicker | N | |
+| 入职日期 | DatePicker | Y | |
 | 录用类型 | Select | Y | FULL_TIME/PART_TIME/INTERN |
+| 身份（角色） | Select | Y | 可选：HR专员/部门主管/财务专员/普通员工，排除系统管理员 |
 
 **薪资与合同区：**
 
@@ -213,6 +214,7 @@ UED：选填
 | `GET /api/positions/list` | 职位下拉 |
 | `GET /api/positions/sequences` | 职级数据 |
 | `GET /api/employee/list` | 汇报人搜索 |
+| `GET /api/role/list/all` | 角色列表（身份选择数据源） |
 
 ---
 
@@ -273,12 +275,28 @@ UED：选填
 
 ## 2.3 菜单与权限变动
 
-| 菜单路径 | 权限 | 备注 |
-| --- | --- | --- |
-| 员工管理 > 员工列表 | hr / system_admin / dept_manager | 数据范围不同 |
-| 员工管理 > 员工详情 | 所有登录用户 | 本人无限制 |
-| 员工管理 > 员工新增 | hr / system_admin | |
-| 员工管理 > 员工编辑 | hr（全字段）/ dept_manager（部分）/ employee（仅己） | |
+### 权限体系（基于 roleId）
+
+> 通过 `src/utils/permission.ts` 统一管理，后续可无缝对接权限模块。
+
+| roleId | 角色 | 权限码 |
+|-------|------|--------|
+| 1 | 系统管理员 | `*:*`（全部） |
+| 2 | HR专员 | `employee:list`, `employee:add`, `employee:edit`, `employee:delete`, `org:manage` |
+| 3 | 部门主管 | `employee:list`, `employee:edit`, `approval:process`, `org:view` |
+| 4 | 财务专员 | `salary:list`, `salary:view`, `salary:audit`, `org:view` |
+| 5 | 普通员工 | `attendance:clock`, `org:view` |
+
+### 页面访问与操作控制
+
+| 菜单路径 | 访问权限 | 操作权限 | 备注 |
+| --- | --- | --- | --- |
+| 员工管理 > 员工列表 | `employee:list`（roleId 1/2/3） | 新增：`employee:add`（1/2） | 查看始终显示 |
+| | | 编辑：`employee:edit`（1/2/3） | |
+| | | 调岗/离职：`employee:delete`（1/2） | |
+| 员工管理 > 员工详情 | `employee:list`（roleId 1/2/3） | 编辑：`employee:edit`（1/2/3） | 字段级可见性由 `useEmployeeFieldPermission` 控制 |
+| 员工管理 > 员工新增 | `employee:add`（roleId 1/2） | - | |
+| 员工管理 > 员工编辑 | `employee:edit`（roleId 1/2/3） | 锁定字段 Tooltip | |
 
 ## 2.4 模块划分与工作量评估
 
@@ -325,3 +343,5 @@ UED：选填
 | 2026-07-13 | 1.2 | 补全四类字段定义、高级搜索、字段权限、变更历史 | - |
 | 2026-07-14 | 1.3 | 同步后端：移除 jobLevel 列表字段、移除 salaryProfileId/hireType 表单字段 | - |
 | 2026-07-15 | 1.4 | 同步后端 v1.4：详情页改用扁平 VO 无分区嵌套、新增响应仅返回 id、移除 hireType/salaryProfileId | - |
+| 2026-07-16 | 1.5 | 统一权限系统：新增 permission.ts，基于 roleId 的 hasPermission 控制按钮/页面访问 | - |
+| 2026-07-16 | 1.6 | 新增员工时增加「身份」选择（排除系统管理员），入职日期改回必填 | - |
