@@ -1,3 +1,4 @@
+import { userLogoutUsingPost } from '@/api/userController';
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons';
 import { Link } from '@umijs/max';
 import { Avatar, Button, Dropdown, Space, Spin } from 'antd';
@@ -39,8 +40,9 @@ const RightContent: React.FC<RightContentProps> = ({
       key: 'logout',
       icon: <LogoutOutlined />,
       label: '退出登录',
-      onClick: () => {
-        runtimeConfig?.logout?.(initialState);
+      onClick: async () => {
+        await userLogoutUsingPost();
+        window.location.href = '/user/login';
       },
     },
   ];
