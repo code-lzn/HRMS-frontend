@@ -1,4 +1,9 @@
 declare namespace API {
+  type abandonUsingPOSTParams = {
+    /** id */
+    id: number;
+  };
+
   type addItemUsingPOSTParams = {
     /** id */
     id: number;
@@ -37,6 +42,22 @@ declare namespace API {
     id?: number;
     startDate?: string;
     status?: number;
+  };
+
+  type ApprovalDetail = {
+    action?: string;
+    approverId?: number;
+    approverName?: string;
+    comment?: string;
+    createTime?: string;
+    delegatedBy?: number;
+    id?: number;
+    isDelegated?: number;
+    nodeId?: number;
+    nodeName?: string;
+    operateTime?: string;
+    recordId?: number;
+    stepOrder?: number;
   };
 
   type ApprovalDetailVO = {
@@ -164,9 +185,33 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseHrRegularization_ = {
+    code?: number;
+    data?: HrRegularization;
+    message?: string;
+  };
+
+  type BaseResponseHrResignation_ = {
+    code?: number;
+    data?: HrResignation;
+    message?: string;
+  };
+
+  type BaseResponseHrTransfer_ = {
+    code?: number;
+    data?: HrTransfer;
+    message?: string;
+  };
+
   type BaseResponseInt_ = {
     code?: number;
     data?: number;
+    message?: string;
+  };
+
+  type BaseResponseLeaveBalanceVO_ = {
+    code?: number;
+    data?: LeaveBalanceVO;
     message?: string;
   };
 
@@ -239,6 +284,12 @@ declare namespace API {
   type BaseResponseListModuleUsageVO_ = {
     code?: number;
     data?: ModuleUsageVO[];
+    message?: string;
+  };
+
+  type BaseResponseListMutationLogVO_ = {
+    code?: number;
+    data?: MutationLogVO[];
     message?: string;
   };
 
@@ -350,6 +401,18 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseMyProfileVO_ = {
+    code?: number;
+    data?: MyProfileVO;
+    message?: string;
+  };
+
+  type BaseResponseOnboardingVO_ = {
+    code?: number;
+    data?: OnboardingVO;
+    message?: string;
+  };
+
   type BaseResponsePageEmployeeChangeLogVO_ = {
     code?: number;
     data?: PageEmployeeChangeLogVO_;
@@ -362,15 +425,51 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponsePageOnboardingVO_ = {
+    code?: number;
+    data?: PageOnboardingVO_;
+    message?: string;
+  };
+
+  type BaseResponsePageRegularizationVO_ = {
+    code?: number;
+    data?: PageRegularizationVO_;
+    message?: string;
+  };
+
+  type BaseResponsePageResignationVO_ = {
+    code?: number;
+    data?: PageResignationVO_;
+    message?: string;
+  };
+
   type BaseResponsePageRoleVO_ = {
     code?: number;
     data?: PageRoleVO_;
     message?: string;
   };
 
+  type BaseResponsePageTransferVO_ = {
+    code?: number;
+    data?: PageTransferVO_;
+    message?: string;
+  };
+
   type BaseResponsePageUserVO_ = {
     code?: number;
     data?: PageUserVO_;
+    message?: string;
+  };
+
+  type BaseResponseRegularizationVO_ = {
+    code?: number;
+    data?: RegularizationVO;
+    message?: string;
+  };
+
+  type BaseResponseResignationVO_ = {
+    code?: number;
+    data?: ResignationVO;
     message?: string;
   };
 
@@ -410,6 +509,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseTransferVO_ = {
+    code?: number;
+    data?: TransferVO;
+    message?: string;
+  };
+
   type BaseResponseUser_ = {
     code?: number;
     data?: User;
@@ -425,6 +530,11 @@ declare namespace API {
   type BaseResponseUserVO_ = {
     code?: number;
     data?: UserVO;
+    message?: string;
+  };
+
+  type BaseResponseVoid_ = {
+    code?: number;
     message?: string;
   };
 
@@ -456,6 +566,13 @@ declare namespace API {
   type checkPermissionUsingGETParams = {
     /** code */
     code: string;
+  };
+
+  type confirmUsingPOSTParams = {
+    /** actualEntryDate */
+    actualEntryDate: string;
+    /** id */
+    id: number;
   };
 
   type ConversionRateVO = {
@@ -507,6 +624,26 @@ declare namespace API {
     id: number;
   };
 
+  type deleteUsingDELETE1Params = {
+    /** id */
+    id: number;
+  };
+
+  type deleteUsingDELETE2Params = {
+    /** id */
+    id: number;
+  };
+
+  type deleteUsingDELETE3Params = {
+    /** id */
+    id: number;
+  };
+
+  type deleteUsingDELETEParams = {
+    /** id */
+    id: number;
+  };
+
   type DepartmentAddRequest = {
     code?: string;
     description?: string;
@@ -545,6 +682,26 @@ declare namespace API {
     managerId?: number;
     name?: string;
     sortOrder?: number;
+  };
+
+  type detailUsingGET1Params = {
+    /** id */
+    id: number;
+  };
+
+  type detailUsingGET2Params = {
+    /** id */
+    id: number;
+  };
+
+  type detailUsingGET3Params = {
+    /** id */
+    id: number;
+  };
+
+  type detailUsingGETParams = {
+    /** id */
+    id: number;
   };
 
   type EmployeeAddRequest = {
@@ -586,6 +743,11 @@ declare namespace API {
     oldValue?: string;
     operatorName?: string;
     remark?: string;
+  };
+
+  type employeeConfirmUsingPOSTParams = {
+    /** id */
+    id: number;
   };
 
   type EmployeeDetailVO = {
@@ -767,6 +929,15 @@ declare namespace API {
     month: string;
   };
 
+  type getChangeLogsUsingGET1Params = {
+    /** employeeId */
+    employeeId?: number;
+    /** pageNum */
+    pageNum: number;
+    /** pageSize */
+    pageSize: number;
+  };
+
   type getChangeLogsUsingGETParams = {
     /** employeeId */
     employeeId?: number;
@@ -811,6 +982,11 @@ declare namespace API {
     month: string;
   };
 
+  type getMyProfileUsingGET1Params = {
+    /** employeeId */
+    employeeId?: number;
+  };
+
   type getRoleByIdUsingGETParams = {
     /** id */
     id: number;
@@ -847,11 +1023,91 @@ declare namespace API {
     userCount?: number;
   };
 
+  type HrRegularization = {
+    adjustRemark?: string;
+    approverId?: number;
+    businessNo?: string;
+    confirmBaseSalary?: number;
+    confirmDate?: string;
+    createTime?: string;
+    employeeId?: number;
+    extendedMonths?: number;
+    flowId?: number;
+    id?: number;
+    isDeleted?: number;
+    operatorId?: number;
+    originHireDate?: string;
+    probationComment?: string;
+    probationEndDate?: string;
+    probationScore?: number;
+    recordId?: number;
+    remark?: string;
+    result?: string;
+    salaryAdjustment?: number;
+    status?: string;
+    updateTime?: string;
+  };
+
+  type HrResignation = {
+    applyDate?: string;
+    approverId?: number;
+    businessNo?: string;
+    createTime?: string;
+    employeeId?: number;
+    flowId?: number;
+    handoverPersonId?: number;
+    handoverStatus?: number;
+    id?: number;
+    isDeleted?: number;
+    lastWorkDate?: string;
+    operatorId?: number;
+    recordId?: number;
+    remark?: string;
+    resignReason?: string;
+    resignReasonType?: string;
+    resignType?: number;
+    settleDate?: string;
+    settleSalary?: number;
+    status?: string;
+    updateTime?: string;
+  };
+
+  type HrTransfer = {
+    approverId?: number;
+    businessNo?: string;
+    createTime?: string;
+    employeeId?: number;
+    flowId?: number;
+    id?: number;
+    isDeleted?: number;
+    newBaseSalary?: number;
+    operatorId?: number;
+    recordId?: number;
+    remark?: string;
+    sourceDeptId?: number;
+    sourcePositionId?: number;
+    status?: string;
+    targetDeptId?: number;
+    targetPositionId?: number;
+    toRankCode?: string;
+    toReporterId?: number;
+    transferDate?: string;
+    transferReason?: string;
+    updateTime?: string;
+  };
+
   type LeaveApplyRequest = {
     endDate?: string;
     leaveType?: number;
     reason?: string;
     startDate?: string;
+  };
+
+  type LeaveBalanceVO = {
+    annualRemaining?: number;
+    compRemaining?: number;
+    sickRemaining?: number;
+    totalRemaining?: number;
   };
 
   type LeaveProgressVO = {
@@ -894,6 +1150,50 @@ declare namespace API {
     departmentId?: number;
     /** sequence */
     sequence?: number;
+  };
+
+  type listUsingGET1Params = {
+    /** keyword */
+    keyword?: string;
+    /** page */
+    page?: number;
+    /** size */
+    size?: number;
+    /** statuses */
+    statuses?: string[];
+  };
+
+  type listUsingGET2Params = {
+    /** keyword */
+    keyword?: string;
+    /** page */
+    page?: number;
+    /** size */
+    size?: number;
+    /** statuses */
+    statuses?: string[];
+  };
+
+  type listUsingGET3Params = {
+    /** keyword */
+    keyword?: string;
+    /** page */
+    page?: number;
+    /** size */
+    size?: number;
+    /** statuses */
+    statuses?: string[];
+  };
+
+  type listUsingGETParams = {
+    /** keyword */
+    keyword?: string;
+    /** page */
+    page?: number;
+    /** size */
+    size?: number;
+    /** statuses */
+    statuses?: string[];
   };
 
   type LoginLogVO = {
@@ -955,6 +1255,68 @@ declare namespace API {
     usageCount?: number;
   };
 
+  type MutationLogVO = {
+    approvalDetails?: ApprovalDetail[];
+    approvalStatus?: string;
+    businessId?: number;
+    businessNo?: string;
+    businessType?: string;
+    createTime?: string;
+    deptId?: number;
+    deptName?: string;
+    effectDate?: string;
+    employeeId?: number;
+    employeeName?: string;
+    id?: number;
+    operatorId?: number;
+    operatorName?: string;
+  };
+
+  type MyDetailUpdateRequest = {
+    currentAddress?: string;
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
+    employeeId?: number;
+  };
+
+  type MyProfileVO = {
+    account?: string;
+    bankAccount?: string;
+    bankName?: string;
+    baseSalary?: number;
+    birthday?: string;
+    contractExpireDate?: string;
+    contractType?: number;
+    contractTypeDesc?: string;
+    currentAddress?: string;
+    departmentId?: number;
+    departmentName?: string;
+    directReportId?: number;
+    directReportName?: string;
+    editableFields?: string[];
+    email?: string;
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
+    employeeName?: string;
+    employeeNo?: string;
+    gender?: number;
+    genderDesc?: string;
+    hireDate?: string;
+    hireType?: number;
+    id?: number;
+    idCard?: string;
+    isSensitiveRole?: boolean;
+    jobLevel?: string;
+    phone?: string;
+    positionId?: number;
+    positionName?: string;
+    probationRatio?: number;
+    registeredAddress?: string;
+    status?: number;
+    statusDesc?: string;
+    workLocation?: string;
+  };
+
   type NodeDetail = {
     action?: string;
     actionText?: string;
@@ -965,6 +1327,65 @@ declare namespace API {
     nodeName?: string;
     operateTime?: string;
     stepOrder?: number;
+  };
+
+  type OnboardingAddRequest = {
+    bankAccount?: string;
+    bankName?: string;
+    baseSalary?: number;
+    candidateName?: string;
+    contractExpireDate?: string;
+    contractType?: number;
+    deptId?: number;
+    email?: string;
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
+    employmentType?: string;
+    flowId?: number;
+    hireDate?: string;
+    housingFundBase?: number;
+    idCard?: string;
+    phone?: string;
+    positionId?: number;
+    probationMonth?: number;
+    remark?: string;
+    socialInsuranceBase?: number;
+  };
+
+  type OnboardingVO = {
+    approvalProgress?: string;
+    approvalStatus?: string;
+    approverId?: number;
+    approverName?: string;
+    bankAccount?: string;
+    bankName?: string;
+    baseSalary?: number;
+    businessNo?: string;
+    candidateName?: string;
+    contractExpireDate?: string;
+    contractType?: number;
+    createTime?: string;
+    deptId?: number;
+    deptName?: string;
+    email?: string;
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
+    employeeId?: number;
+    employmentType?: string;
+    flowId?: number;
+    hireDate?: string;
+    housingFundBase?: number;
+    id?: number;
+    idCard?: string;
+    operatorId?: number;
+    phone?: string;
+    positionId?: number;
+    positionName?: string;
+    probationMonth?: number;
+    recordId?: number;
+    remark?: string;
+    socialInsuranceBase?: number;
+    updateTime?: string;
   };
 
   type OrderItem = {
@@ -998,6 +1419,45 @@ declare namespace API {
     total?: number;
   };
 
+  type PageOnboardingVO_ = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: OnboardingVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
+  type PageRegularizationVO_ = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: RegularizationVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
+  type PageResignationVO_ = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: ResignationVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
   type PageRoleVO_ = {
     countId?: string;
     current?: number;
@@ -1006,6 +1466,19 @@ declare namespace API {
     orders?: OrderItem[];
     pages?: number;
     records?: RoleVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
+  type PageTransferVO_ = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: TransferVO[];
     searchCount?: boolean;
     size?: number;
     total?: number;
@@ -1089,9 +1562,89 @@ declare namespace API {
     operatorName?: string;
   };
 
+  type RegularizationAddRequest = {
+    adjustRemark?: string;
+    employeeId?: number;
+    evaluation?: string;
+    extendedMonths?: number;
+    flowId?: number;
+    probationScore?: number;
+    remark?: string;
+    result?: string;
+    salaryAdjustment?: number;
+  };
+
+  type RegularizationVO = {
+    adjustRemark?: string;
+    approvalProgress?: string;
+    approvalStatus?: string;
+    approverId?: number;
+    approverName?: string;
+    businessNo?: string;
+    createTime?: string;
+    deptName?: string;
+    employeeId?: number;
+    employeeName?: string;
+    employeeNo?: string;
+    evaluation?: string;
+    extendedMonths?: number;
+    flowId?: number;
+    id?: number;
+    operatorId?: number;
+    operatorName?: string;
+    positionName?: string;
+    probationEndDate?: string;
+    probationStartDate?: string;
+    recordId?: number;
+    remark?: string;
+    result?: string;
+    salaryAdjustment?: number;
+    status?: string;
+    updateTime?: string;
+  };
+
   type rejectBatchUsingPOSTParams = {
     /** id */
     id: number;
+  };
+
+  type ResignationAddRequest = {
+    detailReason?: string;
+    employeeId?: number;
+    flowId?: number;
+    handoverPersonId?: number;
+    remark?: string;
+    resignDate?: string;
+    resignReasonType?: string;
+    resignType?: string;
+  };
+
+  type ResignationVO = {
+    approvalProgress?: string;
+    approvalStatus?: string;
+    approverId?: number;
+    approverName?: string;
+    businessNo?: string;
+    createTime?: string;
+    deptName?: string;
+    detailReason?: string;
+    employeeId?: number;
+    employeeName?: string;
+    employeeNo?: string;
+    flowId?: number;
+    handoverPersonId?: number;
+    handoverPersonName?: string;
+    id?: number;
+    operatorId?: number;
+    operatorName?: string;
+    positionName?: string;
+    recordId?: number;
+    remark?: string;
+    resignDate?: string;
+    resignReasonType?: string;
+    resignType?: string;
+    status?: string;
+    updateTime?: string;
   };
 
   type RoleAddRequest = {
@@ -1322,9 +1875,74 @@ declare namespace API {
     sourceName?: string;
   };
 
+  type submitDraftUsingPOST1Params = {
+    /** id */
+    id: number;
+  };
+
+  type submitDraftUsingPOST2Params = {
+    /** id */
+    id: number;
+  };
+
+  type submitDraftUsingPOST3Params = {
+    /** id */
+    id: number;
+  };
+
+  type submitDraftUsingPOSTParams = {
+    /** id */
+    id: number;
+  };
+
   type submitForApprovalUsingPOSTParams = {
     /** id */
     id: number;
+  };
+
+  type TransferAddRequest = {
+    effectiveDate?: string;
+    employeeId?: number;
+    flowId?: number;
+    reason?: string;
+    remark?: string;
+    salaryAdjustment?: number;
+    toDeptId?: number;
+    toPositionId?: number;
+    toRankCode?: string;
+    toReporterId?: number;
+  };
+
+  type TransferVO = {
+    approvalProgress?: string;
+    approvalStatus?: string;
+    approverId?: number;
+    approverName?: string;
+    businessNo?: string;
+    createTime?: string;
+    effectiveDate?: string;
+    employeeId?: number;
+    employeeName?: string;
+    employeeNo?: string;
+    flowId?: number;
+    fromDeptId?: number;
+    fromDeptName?: string;
+    id?: number;
+    operatorId?: number;
+    operatorName?: string;
+    reason?: string;
+    recordId?: number;
+    remark?: string;
+    salaryAdjustment?: number;
+    status?: string;
+    toDeptId?: number;
+    toDeptName?: string;
+    toPositionId?: number;
+    toPositionName?: string;
+    toRankCode?: string;
+    toReporterId?: number;
+    toReporterName?: string;
+    updateTime?: string;
   };
 
   type updateAccountUsingPUTParams = {
@@ -1347,6 +1965,26 @@ declare namespace API {
     id?: number;
     /** status */
     status?: number;
+  };
+
+  type updateUsingPUT1Params = {
+    /** id */
+    id: number;
+  };
+
+  type updateUsingPUT2Params = {
+    /** id */
+    id: number;
+  };
+
+  type updateUsingPUT3Params = {
+    /** id */
+    id: number;
+  };
+
+  type updateUsingPUTParams = {
+    /** id */
+    id: number;
   };
 
   type uploadFileUsingPOSTParams = {

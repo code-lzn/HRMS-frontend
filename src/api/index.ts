@@ -12,12 +12,17 @@ import * as employeeController from './employeeController';
 import * as fileController from './fileController';
 import * as leaveController from './leaveController';
 import * as makeupPunchController from './makeupPunchController';
+import * as onboardingController from './onboardingController';
 import * as permissionController from './permissionController';
 import * as positionController from './positionController';
+import * as profileController from './profileController';
+import * as regularizationController from './regularizationController';
+import * as resignationController from './resignationController';
 import * as roleController from './roleController';
 import * as salaryController from './salaryController';
 import * as salaryManageController from './salaryManageController';
 import * as testHealth from './testHealth';
+import * as transferController from './transferController';
 import * as userController from './userController';
 export default {
   accountSecurityController,
@@ -29,12 +34,17 @@ export default {
   dashboardController,
   departmentController,
   employeeController,
+  profileController,
   fileController,
   testHealth,
+  onboardingController,
   permissionController,
   positionController,
+  regularizationController,
+  resignationController,
   roleController,
   salaryManageController,
   salaryController,
+  transferController,
   userController,
 };

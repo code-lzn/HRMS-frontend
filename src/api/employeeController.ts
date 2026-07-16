@@ -80,22 +80,6 @@ export async function listEmployeesUsingGet(
   });
 }
 
-/** searchEmployees GET /api/employee/list */
-export async function searchEmployeesUsingGet(
-  params: { keyword: string },
-  options?: { [key: string]: any },
-) {
-  return request<API.BaseResponsePageEmployeeVO_>('/api/employee/list', {
-    method: 'GET',
-    params: {
-      ...params,
-      page: 1,
-      size: 20,
-    },
-    ...(options || {}),
-  });
-}
-
 /** getMyProfile GET /api/employee/profile */
 export async function getMyProfileUsingGet(options?: { [key: string]: any }) {
   return request<API.BaseResponseEmpProfileVO_>('/api/employee/profile', {
