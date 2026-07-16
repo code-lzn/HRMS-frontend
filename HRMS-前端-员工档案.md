@@ -123,7 +123,7 @@ UED：选填
 | --- | --- | --- |
 | 所属部门 | `departmentName` | 所有人 |
 | 职位 | `positionName` | 所有人 |
-| 直接汇报人 | `directReportName` | HR + 主管 + 本人 |
+| 直属上级 | `directReportName` | HR + 主管 + 本人 |
 | 工作地点 | `workLocation` | 所有人 |
 | 录用类型 | `employmentType` | HR + 本人 |
 
@@ -174,7 +174,7 @@ UED：选填
 | --- | --- | --- | --- |
 | 所属部门 | TreeSelect | Y | `/api/departments/tree` |
 | 职位 | Select | Y | `/api/positions/list` |
-| 直接汇报人 | Select + 搜索 | N | 员工列表搜索 |
+| 直属上级 | Select + 搜索 | N | 员工列表搜索 |
 | 工作地点 | Input | N | |
 | 入职日期 | DatePicker | Y | |
 | 录用类型 | Select | Y | FULL_TIME/PART_TIME/INTERN |
@@ -233,7 +233,7 @@ UED：选填
 | 手机号 | "如需修改手机号请联系HR" |
 | 身份证号 | "如需修改身份证号请联系HR" |
 | 部门/职位 | "如需调整请走调岗流程" |
-| 直接汇报人/工作地点 | "如需调整请走调岗流程" |
+| 直属上级/工作地点 | "如需调整请走调岗流程" |
 | 录用类型 | "录用类型不可修改" |
 | 薪资合同字段 | "仅HR可编辑" |
 

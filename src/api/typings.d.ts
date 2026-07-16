@@ -571,6 +571,7 @@ declare namespace API {
     positionId?: number;
     probationRatio?: number;
     registeredAddress?: string;
+    roleId?: number;
     workLocation?: string;
   };
 
@@ -685,6 +686,18 @@ declare namespace API {
     probationRatio?: number;
     registeredAddress?: string;
     workLocation?: string;
+  };
+
+  type EmployeeSimpleVO = {
+    id?: number;
+    employeeName?: string;
+    employeeNo?: string;
+  };
+
+  type BaseResponseListEmployeeSimpleVO_ = {
+    code?: number;
+    data?: EmployeeSimpleVO[];
+    message?: string;
   };
 
   type EmployeeVO = {

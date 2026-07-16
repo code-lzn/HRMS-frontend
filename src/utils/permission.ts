@@ -12,14 +12,16 @@
 
 /** 根据角色ID获取该角色拥有的权限列表 */
 const getRolePermissions = (roleId: number): string[] => {
+  // API 返回的 roleId 可能是字符串，统一转数字
+  const numRoleId = Number(roleId);
   const rolePermissionMap: Record<number, string[]> = {
     1: ['*:*'], // 系统管理员：全部权限
-    2: ['employee:list', 'employee:add', 'employee:edit', 'employee:delete', 'org:manage'],
+    2: ['employee:list', 'employee:add', 'employee:edit', 'employee:delete', 'org:manage', 'salary:view'],
     3: ['employee:list', 'employee:edit', 'approval:process', 'org:view'],
     4: ['salary:list', 'salary:view', 'salary:audit', 'org:view'],
     5: ['attendance:clock', 'org:view'],
   };
-  return rolePermissionMap[roleId] ?? [];
+  return rolePermissionMap[numRoleId] ?? [];
 };
 
 /**

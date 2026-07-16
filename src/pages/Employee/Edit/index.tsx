@@ -7,28 +7,28 @@ import {
 } from '@/api/positionController';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { Button, Card, Form, message, Modal, Space, Spin } from 'antd';
-import React, { useCallback, useEffect, useState } from 'react';
-import { history, useParams } from '@umijs/max';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { history, useModel, useParams } from '@umijs/max';
+import { hasPermission } from '@/utils/permission';
 import EmployeeForm from '../components/EmployeeForm';
 import dayjs from 'dayjs';
 
-/** 编辑模式下默认被锁定的字段 */
-const DEFAULT_LOCKED_FIELDS = [
-  'phone',
-  'idCard',
-  'departmentId',
-  'positionId',
-  'directReportId',
-  'workLocation',
-  'contractType',
-  'contractExpireDate',
-  'probationRatio',
-  'baseSalary',
-  'bankAccount',
-  'bankName',
-];
+/** 从后端响应中取值，兼容扁平 VO 和 { personalInfo/workInfo/salaryInfo/emergencyContact } 嵌套 VO */
+const pickVal = (detail: any, flatKey: string, nestedParent?: string, nestedKey?: string): any => {
+  if (!detail) return undefined;
+  // 扁平优先
+  if (detail[flatKey] !== undefined && detail[flatKey] !== null) return detail[flatKey];
+  // 嵌套兜底
+  if (nestedParent && nestedKey && detail[nestedParent]?.[nestedKey] !== undefined && detail[nestedParent]?.[nestedKey] !== null) {
+    return detail[nestedParent][nestedKey];
+  }
+  return undefined;
+};
 
 const EmployeeEditPage: React.FC = () => {
+  const { initialState } = useModel('@@initialState');
+  const currentUser = initialState?.currentUser;
+
   const params = useParams<{ id: string }>();
   const employeeId = Number(params.id);
 
@@ -40,6 +40,28 @@ const EmployeeEditPage: React.FC = () => {
   // 数据源
   const [deptTreeData, setDeptTreeData] = useState<API.DepartmentTreeVO[]>([]);
   const [positionOptions, setPositionOptions] = useState<API.PositionVO[]>([]);
+
+  /** 根据当前用户角色动态生成锁定字段列表 */
+  const lockedFields = useMemo(() => {
+    // 调岗流程字段（所有人不可直接编辑）
+    const processFields = ['departmentId', 'positionId', 'directReportId', 'workLocation'];
+    // 录用类型（业务上不可修改）
+    const alwaysLocked = ['employmentType'];
+    // 需HR协助的字段（身份证/手机号唯一性约束）
+    const hrRequiredFields = ['phone', 'idCard'];
+    // 薪资合同字段（仅HR/管理员可编辑）
+    const salaryFields = ['contractType', 'contractExpireDate', 'probationRatio', 'baseSalary', 'bankAccount', 'bankName'];
+
+    const roleId = Number(currentUser?.roleId) || 5;
+
+    // 系统管理员(1)：仅录用类型不可修改
+    if (roleId === 1) return alwaysLocked;
+    // HR专员(2)：调岗流程 + 录用类型不可修改
+    if (roleId === 2) return [...processFields, ...alwaysLocked];
+    // 部门主管(3) / 财务(4) / 普通员工(5)：全部锁定
+    const personalInfoFields = ['employeeName', 'gender', 'email', 'birthday', 'registeredAddress', 'currentAddress'];
+    return [...processFields, ...alwaysLocked, ...hrRequiredFields, ...salaryFields, ...personalInfoFields];
+  }, [currentUser]);
 
   /** 记录初始值用于对比变更字段 */
   const [initialValues, setInitialValues] = useState<Record<string, any>>({});
@@ -57,32 +79,36 @@ const EmployeeEditPage: React.FC = () => {
       setDeptTreeData((deptRes as any)?.data ?? []);
       setPositionOptions((posRes as any)?.data ?? []);
 
-      const detail: API.EmployeeDetailVO = (detailRes as any)?.data;
+      const detail: any = (detailRes as any)?.data;
       if (detail) {
         const vals: Record<string, any> = {
-          employeeName: detail.employeeName,
-          gender: detail.gender,
-          phone: detail.phone,
-          email: detail.email,
-          idCard: detail.idCard,
-          birthday: detail.birthday ? dayjs(detail.birthday) : undefined,
-          registeredAddress: detail.registeredAddress,
-          currentAddress: detail.currentAddress,
-          departmentId: detail.departmentId,
-          positionId: detail.positionId,
-          directReportId: detail.directReportId,
-          workLocation: detail.workLocation,
-          hireDate: detail.hireDate ? dayjs(detail.hireDate) : undefined,
-          employmentType: detail.employmentType,
-          contractType: detail.contractType,
-          contractExpireDate: detail.contractExpireDate ? dayjs(detail.contractExpireDate) : undefined,
-          probationRatio: detail.probationRatio,
-          baseSalary: detail.baseSalary,
-          bankAccount: detail.bankAccount,
-          bankName: detail.bankName,
-          emergencyContactName: detail.emergencyContactName,
-          emergencyContactPhone: detail.emergencyContactPhone,
+          employeeName: pickVal(detail, 'employeeName', 'personalInfo', 'employeeName'),
+          gender: pickVal(detail, 'gender', 'personalInfo', 'gender'),
+          phone: pickVal(detail, 'phone', 'personalInfo', 'phone'),
+          email: pickVal(detail, 'email', 'personalInfo', 'email'),
+          idCard: pickVal(detail, 'idCard', 'personalInfo', 'idCard'),
+          birthday: pickVal(detail, 'birthday', 'personalInfo', 'birthday'),
+          registeredAddress: pickVal(detail, 'registeredAddress', 'personalInfo', 'registeredAddress'),
+          currentAddress: pickVal(detail, 'currentAddress', 'personalInfo', 'currentAddress'),
+          departmentId: pickVal(detail, 'departmentId', 'workInfo', 'departmentId'),
+          positionId: pickVal(detail, 'positionId', 'workInfo', 'positionId'),
+          directReportId: pickVal(detail, 'directReportId', 'workInfo', 'directReportId'),
+          workLocation: pickVal(detail, 'workLocation', 'workInfo', 'workLocation'),
+          hireDate: pickVal(detail, 'hireDate'),
+          employmentType: pickVal(detail, 'employmentType', 'workInfo', 'employmentType'),
+          contractType: pickVal(detail, 'contractType', 'salaryInfo', 'contractType'),
+          contractExpireDate: pickVal(detail, 'contractExpireDate', 'salaryInfo', 'contractExpireDate'),
+          probationRatio: pickVal(detail, 'probationRatio', 'salaryInfo', 'probationRatio'),
+          baseSalary: pickVal(detail, 'baseSalary', 'salaryInfo', 'baseSalary'),
+          bankAccount: pickVal(detail, 'bankAccount', 'salaryInfo', 'bankAccount'),
+          bankName: pickVal(detail, 'bankName', 'salaryInfo', 'bankName'),
+          emergencyContactName: pickVal(detail, 'emergencyContactName', 'emergencyContact', 'emergencyContactName'),
+          emergencyContactPhone: pickVal(detail, 'emergencyContactPhone', 'emergencyContact', 'emergencyContactPhone'),
         };
+        // dayjs 转换
+        if (vals.birthday) vals.birthday = dayjs(vals.birthday);
+        if (vals.contractExpireDate) vals.contractExpireDate = dayjs(vals.contractExpireDate);
+        if (vals.hireDate) vals.hireDate = dayjs(vals.hireDate);
         form.setFieldsValue(vals);
         setInitialValues(vals);
       }
@@ -212,7 +238,7 @@ const EmployeeEditPage: React.FC = () => {
         <EmployeeForm
           mode="edit"
           form={form}
-          lockedFields={DEFAULT_LOCKED_FIELDS}
+          lockedFields={lockedFields}
           departmentTreeData={deptTreeData}
           positionOptions={positionOptions}
         />
