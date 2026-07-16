@@ -42,7 +42,7 @@ const ApprovalDelegation: React.FC = () => {
       });
       const list = res?.data?.records ?? [];
       setUserOptions(
-        list.map((u) => ({ label: `${u.userName ?? ''}（${u.userRole ?? 'user'}）`, value: u.id! })),
+        list.map((u) => ({ label: u.userName ?? '', value: u.id! })),
       );
     } catch {
       setUserOptions([]);

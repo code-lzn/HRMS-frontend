@@ -25,11 +25,6 @@ export default defineConfig({
     //   component: './Access',
     // },
     {
-      name: ' CRUD 示例',
-      path: '/table',
-      component: './Table',
-    },
-    {
       name: '审批中心',
       path: '/approval',
       access: 'canSeeApprovalMenu',

@@ -98,6 +98,7 @@ const OnboardingPage: React.FC = () => {
         actionRef={actionRef}
         columns={columns}
         rowKey="id"
+        scroll={{ x: 1200 }}
         params={{ statuses: activeTab ? [activeTab] : undefined }}
         request={async (p) => {
           const res = await listOnboarding({
