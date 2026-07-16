@@ -1,4 +1,4 @@
-import { addUserUsingPost, deleteUserUsingPost, listUserByPageUsingPost, updateUserUsingPost } from '@/api/userController';
+import { deleteUserUsingPost, listUserByPageUsingPost, updateUserUsingPost, userRegisterUsingPost } from '@/api/userController';
 import { assignRoleUsingPost, listAllRolesUsingGet } from '@/api/roleController';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
@@ -111,8 +111,12 @@ const UserManage: React.FC = () => {
         await updateUserUsingPost({ id: editing.id!, userName: values.userName, userProfile: values.userProfile, userRole: values.userRole });
         message.success('已更新');
       } else {
-        await addUserUsingPost(values);
-        message.success('已创建');
+        await userRegisterUsingPost({
+          userAccount: values.userAccount,
+          userPassword: values.userPassword,
+          checkPassword: values.checkPassword,
+        });
+        message.success('注册成功');
       }
       setModalOpen(false);
       form.resetFields();
@@ -153,18 +157,47 @@ const UserManage: React.FC = () => {
 
       <Modal title={editing ? '编辑用户' : '新建用户'} open={modalOpen} onOk={handleSubmit} onCancel={() => setModalOpen(false)} confirmLoading={submitting} destroyOnClose>
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
-          <Form.Item name="userName" label="用户名" rules={[{ required: true }]}>
-            <Input placeholder="请输入用户名" />
-          </Form.Item>
-          <Form.Item name="userAvatar" label="头像URL">
-            <Input placeholder="请输入头像URL" />
-          </Form.Item>
-          <Form.Item name="userProfile" label="简介">
-            <Input.TextArea rows={2} placeholder="请输入用户简介" />
-          </Form.Item>
-          <Form.Item name="userRole" label="角色">
-            <Select options={roles.map((r) => ({ label: r.roleName, value: r.roleCode }))} placeholder="请选择角色" loading={roles.length === 0} />
-          </Form.Item>
+          {editing ? (
+            <>
+              <Form.Item name="userName" label="用户名" rules={[{ required: true }]}>
+                <Input placeholder="请输入用户名" />
+              </Form.Item>
+              <Form.Item name="userAvatar" label="头像URL">
+                <Input placeholder="请输入头像URL" />
+              </Form.Item>
+              <Form.Item name="userProfile" label="简介">
+                <Input.TextArea rows={2} placeholder="请输入用户简介" />
+              </Form.Item>
+              <Form.Item name="userRole" label="角色">
+                <Select options={roles.map((r) => ({ label: r.roleName, value: r.roleCode }))} placeholder="请选择角色" loading={roles.length === 0} />
+              </Form.Item>
+            </>
+          ) : (
+            <>
+              <Form.Item name="userAccount" label="账号" rules={[{ required: true, message: '请输入账号' }]}>
+                <Input placeholder="请输入账号" />
+              </Form.Item>
+              <Form.Item name="userPassword" label="密码" rules={[{ required: true, message: '请输入密码' }]}>
+                <Input.Password placeholder="请输入密码" />
+              </Form.Item>
+              <Form.Item
+                name="checkPassword"
+                label="确认密码"
+                dependencies={['userPassword']}
+                rules={[
+                  { required: true, message: '请确认密码' },
+                  ({ getFieldValue }) => ({
+                    validator(_, v) {
+                      if (!v || getFieldValue('userPassword') === v) return Promise.resolve();
+                      return Promise.reject(new Error('两次密码不一致'));
+                    },
+                  }),
+                ]}
+              >
+                <Input.Password placeholder="请再次输入密码" />
+              </Form.Item>
+            </>
+          )}
         </Form>
       </Modal>
 
