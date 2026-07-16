@@ -59,7 +59,9 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
     const fetchId = fetchRef.current;
     setEmployeeLoading(true);
     try {
-      const res = await listEmployeesUsingGet({ keyword, page: 1, size: 20 });
+      const params: any = { page: 1, size: 20 };
+      if (keyword) params.keyword = keyword;
+      const res = await listEmployeesUsingGet(params);
       if (fetchId === fetchRef.current) {
         const records = (res as any)?.data?.records ?? [];
         setEmployeeOptions((prev) => {
@@ -88,12 +90,13 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
     [fetchEmployees],
   );
 
-  // 重置员工选项
+  // 加载初始员工列表（供汇报人选择）
   useEffect(() => {
+    fetchEmployees('');
     return () => {
       clearTimeout(debounceTimerRef.current);
     };
-  }, []);
+  }, [fetchEmployees]);
 
   const isLocked = (field: string) => mode === 'edit' && lockedFields.includes(field);
 
