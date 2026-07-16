@@ -38,6 +38,7 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import React, { useCallback, useRef, useState } from 'react';
+import usePermission from '@/hooks/usePermission';
 import BatchAdjustModal from './components/BatchAdjustModal';
 import BatchPreviewDrawer from './components/BatchPreviewDrawer';
 
@@ -56,6 +57,7 @@ const { confirm } = Modal;
 
 const BatchPage: React.FC = () => {
   const actionRef = useRef<ActionType>();
+  const { canAuditSalary } = usePermission();
 
   // 创建批次
   const [createOpen, setCreateOpen] = useState(false);
@@ -358,8 +360,8 @@ const BatchPage: React.FC = () => {
           );
         }
 
-        // 审批中 → 通过 / 驳回
-        if (status === 'APPROVING') {
+        // 审批中 → 通过 / 驳回（需审核权限）
+        if (status === 'APPROVING' && canAuditSalary) {
           actions.push(
             <Button
               key="approve"
@@ -384,8 +386,8 @@ const BatchPage: React.FC = () => {
           );
         }
 
-        // 已通过 → 标记发放
-        if (status === 'APPROVED') {
+        // 已通过 → 标记发放（需审核权限）
+        if (status === 'APPROVED' && canAuditSalary) {
           actions.push(
             <Button
               key="paid"
@@ -427,14 +429,16 @@ const BatchPage: React.FC = () => {
         }}
         toolbar={{
           actions: [
-            <Button
-              key="create"
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setCreateOpen(true)}
-            >
-              新建核算批次
-            </Button>,
+            canAuditSalary && (
+              <Button
+                key="create"
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => setCreateOpen(true)}
+              >
+                新建核算批次
+              </Button>
+            ),
             <Button
               key="refresh"
               icon={<ReloadOutlined />}
@@ -442,7 +446,7 @@ const BatchPage: React.FC = () => {
             >
               刷新
             </Button>,
-          ],
+          ].filter(Boolean),
         }}
       />
 

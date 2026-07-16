@@ -57,14 +57,40 @@ const EmployeeDetailPage: React.FC = () => {
   const employeeId = Number(params.id);
 
   // 无权限查看详情
-  if (!hasPermission(initialState?.currentUser, 'employee:list')) {
+  const canViewDetail =
+    hasPermission(initialState?.currentUser, 'employee:list') ||
+    hasPermission(initialState?.currentUser, 'employee:detail');
+  if (!canViewDetail) {
     return (
-      <Result
-        status="403"
-        title="无权限"
-        subTitle="您没有权限查看员工档案"
-        extra={<Button type="primary" onClick={() => history.push('/home')}>返回首页</Button>}
-      />
+      <div style={{
+        display: 'flex', justifyContent: 'center', alignItems: 'center',
+        minHeight: '60vh', padding: 40,
+        background: 'linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%)',
+      }}>
+        <Result
+          status="403"
+          title={<span style={{ fontSize: 20, fontWeight: 600 }}>暂无访问权限</span>}
+          subTitle={
+            <span style={{ color: '#8c8c8c' }}>
+              您没有权限查看员工档案。如需开通权限，请联系系统管理员。
+            </span>
+          }
+          extra={
+            <Space>
+              <Button type="primary" onClick={() => history.push('/home')} style={{ borderRadius: 8 }}>
+                返回首页
+              </Button>
+              <Button onClick={() => history.push('/employee/list')} style={{ borderRadius: 8 }}>
+                员工列表
+              </Button>
+            </Space>
+          }
+          style={{
+            background: '#fff', borderRadius: 16, padding: '48px 64px',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+          }}
+        />
+      </div>
     );
   }
 

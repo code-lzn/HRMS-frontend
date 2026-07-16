@@ -2,6 +2,7 @@ import { ProTable, type ProColumns, type ActionType } from '@ant-design/pro-comp
 import { Button, Tag, message, Popconfirm, Tabs } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useRef, useState } from 'react';
+import usePermission from '@/hooks/usePermission';
 import OnboardingFormModal from './components/OnboardingFormModal';
 import ConfirmModal from './components/ConfirmModal';
 import {
@@ -20,6 +21,7 @@ const STATUS_MAP: Record<string, { color: string; text: string }> = {
 
 const OnboardingPage: React.FC = () => {
   const actionRef = useRef<ActionType>();
+  const { canAddEmployee } = usePermission();
   const [activeTab, setActiveTab] = useState('');
   const [formOpen, setFormOpen] = useState(false);
   const [editRecord, setEditRecord] = useState<OnboardingVO | null>(null);
@@ -112,12 +114,12 @@ const OnboardingPage: React.FC = () => {
         }}
         search={{ labelWidth: 'auto' }}
         toolbar={{
-          actions: [
-            <Button type="primary" icon={<PlusOutlined />}
+          actions: canAddEmployee ? [
+            <Button key="add" type="primary" icon={<PlusOutlined />}
               onClick={() => { setEditRecord(null); setFormOpen(true); }}>
               新增入职
             </Button>,
-          ],
+          ] : [],
         }}
         headerTitle={
           <Tabs activeKey={activeTab}

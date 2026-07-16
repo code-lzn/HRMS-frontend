@@ -6,11 +6,13 @@ import { ProTable } from '@ant-design/pro-components';
 import { Button, Form, Input, message, Modal, Select, Space, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
+import usePermission from '@/hooks/usePermission';
 
 const ROLE_TAG_COLOR: Record<string, string> = { admin: 'red', user: 'blue' };
 
 const UserManage: React.FC = () => {
   const actionRef = useRef<ActionType>();
+  const { canSeeRoleMenu } = usePermission();
   const [modalOpen, setModalOpen] = useState(false);
   const [roleModalOpen, setRoleModalOpen] = useState(false);
   const [editing, setEditing] = useState<API.User | null>(null);
@@ -59,9 +61,13 @@ const UserManage: React.FC = () => {
       width: 240,
       render: (_, record) => (
         <Space>
-          <Button type="link" size="small" onClick={() => openEdit(record)}>编辑</Button>
-          <Button type="link" size="small" onClick={() => openAssignRole(record)}>分配角色</Button>
-          <Button type="link" size="small" danger onClick={() => handleDelete(record)}>删除</Button>
+          {canSeeRoleMenu && (
+            <>
+              <Button type="link" size="small" onClick={() => openEdit(record)}>编辑</Button>
+              <Button type="link" size="small" onClick={() => openAssignRole(record)}>分配角色</Button>
+              <Button type="link" size="small" danger onClick={() => handleDelete(record)}>删除</Button>
+            </>
+          )}
         </Space>
       ),
     },
@@ -152,7 +158,7 @@ const UserManage: React.FC = () => {
           } catch { return { data: [], success: false }; }
         }}
         rowKey="id"
-        toolBarRender={() => [<Button key="create" type="primary" icon={<PlusOutlined />} onClick={openCreate}>新建用户</Button>]}
+        toolBarRender={() => canSeeRoleMenu ? [<Button key="create" type="primary" icon={<PlusOutlined />} onClick={openCreate}>新建用户</Button>] : []}
       />
 
       <Modal title={editing ? '编辑用户' : '新建用户'} open={modalOpen} onOk={handleSubmit} onCancel={() => setModalOpen(false)} confirmLoading={submitting} destroyOnClose>

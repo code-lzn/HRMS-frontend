@@ -15,6 +15,7 @@ import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, message, Modal, Space, Tag } from 'antd';
 import React, { useRef, useState } from 'react';
+import usePermission from '@/hooks/usePermission';
 import AccountDetailDrawer from './components/AccountDetailDrawer';
 import AccountFormModal from './components/AccountFormModal';
 
@@ -28,6 +29,7 @@ const SCOPE_TYPE_MAP: Record<number, string> = {
 
 const AccountPage: React.FC = () => {
   const actionRef = useRef<ActionType>();
+  const { canAuditSalary } = usePermission();
 
   // 账套弹窗
   const [formOpen, setFormOpen] = useState(false);
@@ -120,35 +122,39 @@ const AccountPage: React.FC = () => {
           >
             查看
           </Button>
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => {
-              setFormMode('edit');
-              setEditRecord(record);
-              setFormOpen(true);
-            }}
-          >
-            编辑
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            icon={<CopyOutlined />}
-            onClick={() => handleCopy(record)}
-          >
-            复制
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record)}
-          >
-            删除
-          </Button>
+          {canAuditSalary && (
+            <>
+              <Button
+                type="link"
+                size="small"
+                icon={<EditOutlined />}
+                onClick={() => {
+                  setFormMode('edit');
+                  setEditRecord(record);
+                  setFormOpen(true);
+                }}
+              >
+                编辑
+              </Button>
+              <Button
+                type="link"
+                size="small"
+                icon={<CopyOutlined />}
+                onClick={() => handleCopy(record)}
+              >
+                复制
+              </Button>
+              <Button
+                type="link"
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => handleDelete(record)}
+              >
+                删除
+              </Button>
+            </>
+          )}
         </Space>
       ),
     },
@@ -177,18 +183,20 @@ const AccountPage: React.FC = () => {
         }}
         toolbar={{
           actions: [
-            <Button
-              key="add"
-              type="primary"
-              onClick={() => {
-                setFormMode('add');
-                setEditRecord(null);
-                setFormOpen(true);
-              }}
-            >
-              新建账套
-            </Button>,
-          ],
+            canAuditSalary && (
+              <Button
+                key="add"
+                type="primary"
+                onClick={() => {
+                  setFormMode('add');
+                  setEditRecord(null);
+                  setFormOpen(true);
+                }}
+              >
+                新建账套
+              </Button>
+            ),
+          ].filter(Boolean),
         }}
       />
 

@@ -18,10 +18,12 @@ import {
   Tag,
 } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
+import usePermission from '@/hooks/usePermission';
 import HistoryDrawer from './components/HistoryDrawer';
 import SalaryEditModal from './components/SalaryEditModal';
 
 const EmployeeSalaryPage: React.FC = () => {
+  const { canAuditSalary, hasAnyPerm } = usePermission();
   const [keyword, setKeyword] = useState('');
   const [employees, setEmployees] = useState<API.EmployeeVO[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -132,13 +134,15 @@ const EmployeeSalaryPage: React.FC = () => {
               >
                 调薪历史
               </Button>
-              <Button
-                type="primary"
-                icon={<EditOutlined />}
-                onClick={() => setEditOpen(true)}
-              >
-                编辑档案
-              </Button>
+              {canAuditSalary && (
+                <Button
+                  type="primary"
+                  icon={<EditOutlined />}
+                  onClick={() => setEditOpen(true)}
+                >
+                  编辑档案
+                </Button>
+              )}
             </Space>
           ) : null
         }

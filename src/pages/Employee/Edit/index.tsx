@@ -8,29 +8,32 @@ import {
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { Button, Card, Form, message, Modal, Space, Spin } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
-import { history, useParams } from '@umijs/max';
+import { history, useModel, useParams } from '@umijs/max';
 import EmployeeForm from '../components/EmployeeForm';
+import { hasPermission } from '@/utils/permission';
 import dayjs from 'dayjs';
 
-/** 编辑模式下默认被锁定的字段 */
-const DEFAULT_LOCKED_FIELDS = [
-  'phone',
-  'idCard',
-  'departmentId',
-  'positionId',
-  'directReportId',
-  'workLocation',
+/** 编辑模式下锁定的字段 — 仅对无 employee:edit 权限的用户（不应出现，但做兜底） */
+const RESTRICTED_FIELDS = [
   'contractType',
   'contractExpireDate',
   'probationRatio',
   'baseSalary',
   'bankAccount',
   'bankName',
+  'departmentId',
+  'positionId',
+  'directReportId',
 ];
 
 const EmployeeEditPage: React.FC = () => {
+  const { initialState } = useModel('@@initialState');
   const params = useParams<{ id: string }>();
   const employeeId = Number(params.id);
+
+  // 管理员/HR 拥有 employee:edit，所有字段可编辑
+  const canEditAll = hasPermission(initialState?.currentUser, 'employee:edit');
+  const lockedFields = canEditAll ? [] : RESTRICTED_FIELDS;
 
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
@@ -212,7 +215,7 @@ const EmployeeEditPage: React.FC = () => {
         <EmployeeForm
           mode="edit"
           form={form}
-          lockedFields={DEFAULT_LOCKED_FIELDS}
+          lockedFields={lockedFields}
           departmentTreeData={deptTreeData}
           positionOptions={positionOptions}
         />

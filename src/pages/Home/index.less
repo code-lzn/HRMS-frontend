@@ -1,3 +1,252 @@
-.container {
-  padding-top: 80px;
+.homePage {
+  min-height: 100%;
+  padding: 24px;
+
+  // Welcome banner
+  .welcomeBanner {
+    background: linear-gradient(135deg, #1677ff 0%, #0958d9 50%, #003eb3 100%);
+    border-radius: 16px;
+    padding: 40px 48px;
+    margin-bottom: 24px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: -60px;
+      right: -40px;
+      width: 240px;
+      height: 240px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 50%;
+    }
+
+    &::before {
+      content: '';
+      position: absolute;
+      bottom: -80px;
+      right: 140px;
+      width: 160px;
+      height: 160px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 50%;
+    }
+
+    .welcomeGreeting {
+      font-size: 16px;
+      opacity: 0.85;
+      margin-bottom: 8px;
+      font-weight: 400;
+    }
+
+    .welcomeName {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+
+    .welcomeSubtitle {
+      font-size: 14px;
+      opacity: 0.75;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .dot {
+        width: 6px;
+        height: 6px;
+        background: rgba(255,255,255,0.5);
+        border-radius: 50%;
+      }
+    }
+  }
+
+  // Stat cards
+  .statRow {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .statCard {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border: 1px solid #f0f0f0;
+    position: relative;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      border-color: transparent;
+    }
+
+    .statIcon {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .statContent {
+      flex: 1;
+      min-width: 0;
+
+      .statLabel {
+        font-size: 13px;
+        color: #8c8c8c;
+        margin-bottom: 4px;
+      }
+
+      .statValue {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1a1a1a;
+        line-height: 1.2;
+      }
+
+      .statDesc {
+        font-size: 12px;
+        color: #8c8c8c;
+        margin-top: 2px;
+      }
+    }
+
+    .statArrow {
+      color: #bfbfbf;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    &:hover .statArrow {
+      opacity: 1;
+    }
+  }
+
+  // Quick actions section
+  .sectionHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+
+    .sectionTitle {
+      font-size: 17px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+  }
+
+  .quickActions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .quickActionCard {
+    background: #fff;
+    border-radius: 12px;
+    padding: 22px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    border: 1px solid #f0f0f0;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      border-color: transparent;
+
+      .actionIcon {
+        transform: scale(1.08);
+      }
+    }
+
+    .actionIcon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 10px;
+      transition: transform 0.25s ease;
+    }
+
+    .actionTitle {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+
+    .actionDesc {
+      font-size: 12px;
+      color: #8c8c8c;
+    }
+  }
+
+  // Bottom grid (2 columns on desktop)
+  .bottomGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .infoCard {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid #f0f0f0;
+
+    .infoCardHeader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #f5f5f5;
+
+      .infoCardTitle {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1a1a1a;
+      }
+    }
+  }
+
+  // Responsive
+  @media (max-width: 1200px) {
+    .statRow, .quickActions {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .bottomGrid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .statRow, .quickActions {
+      grid-template-columns: 1fr;
+    }
+    .welcomeBanner {
+      padding: 28px 24px;
+    }
+  }
 }

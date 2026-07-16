@@ -1,7 +1,11 @@
 import { userLogoutUsingPost } from '@/api/userController';
-import { LogoutOutlined, UserOutlined } from '@ant-design/icons';
-import { Link } from '@umijs/max';
-import { Avatar, Button, Dropdown, Space, Spin } from 'antd';
+import {
+  LogoutOutlined,
+  SafetyCertificateOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
+import { Link, useModel } from '@umijs/max';
+import { Avatar, Button, Dropdown, Space, Spin, Tag } from 'antd';
 import type { MenuProps } from 'antd';
 import React from 'react';
 
@@ -10,6 +14,15 @@ interface RightContentProps {
   setInitialState: any;
   runtimeConfig: any;
 }
+
+/** dataScope → 角色颜色映射 */
+const ROLE_COLOR_MAP: Record<number, string> = {
+  1: 'red',
+  2: 'blue',
+  3: 'green',
+  4: 'orange',
+  5: 'default',
+};
 
 const RightContent: React.FC<RightContentProps> = ({
   initialState,
@@ -21,7 +34,9 @@ const RightContent: React.FC<RightContentProps> = ({
     return <Spin size="small" style={{ marginLeft: 8, marginRight: 8 }} />;
   }
 
-  const currentUser = initialState.currentUser;
+  const currentUser = initialState?.currentUser;
+  const dataScope = initialState?.dataScope ?? 5;
+  const dataScopeDesc = initialState?.dataScopeDesc ?? '';
 
   // 未登录
   if (!currentUser) {
@@ -34,8 +49,22 @@ const RightContent: React.FC<RightContentProps> = ({
     );
   }
 
-  // 已登录 - 头像 + 下拉菜单
-  const items: MenuProps['items'] = [
+  // 已登录 - 角色标签 + 头像 + 下拉菜单
+  const menuItems: MenuProps['items'] = [
+    {
+      key: 'role',
+      icon: <SafetyCertificateOutlined />,
+      label: (
+        <span>
+          当前角色：
+          <Tag color={ROLE_COLOR_MAP[dataScope] ?? 'default'} style={{ marginLeft: 4 }}>
+            {dataScopeDesc || currentUser.roleName || '普通用户'}
+          </Tag>
+        </span>
+      ),
+      disabled: true,
+    },
+    { type: 'divider' },
     {
       key: 'logout',
       icon: <LogoutOutlined />,
@@ -48,7 +77,7 @@ const RightContent: React.FC<RightContentProps> = ({
   ];
 
   return (
-    <Dropdown menu={{ items }}>
+    <Dropdown menu={{ items: menuItems }}>
       <Space style={{ cursor: 'pointer' }}>
         <Avatar
           size="small"
@@ -56,6 +85,12 @@ const RightContent: React.FC<RightContentProps> = ({
           icon={!currentUser.userAvatar && <UserOutlined />}
         />
         <span>{currentUser.userName}</span>
+        <Tag
+          color={ROLE_COLOR_MAP[dataScope] ?? 'default'}
+          style={{ marginLeft: 0, lineHeight: '20px', fontSize: 11 }}
+        >
+          {dataScopeDesc || currentUser.roleName || '普通用户'}
+        </Tag>
       </Space>
     </Dropdown>
   );

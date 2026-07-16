@@ -32,6 +32,7 @@ export default defineConfig({
     {
       name: '审批中心',
       path: '/approval',
+      access: 'canSeeApprovalMenu',
       routes: [
         { path: '/approval', redirect: '/approval/workbench' },
         { name: '审批工作台', path: '/approval/workbench', component: './ApprovalCenter/Workbench' },
@@ -47,7 +48,7 @@ export default defineConfig({
     {
       name: 'HR中控台',
       path: '/hr',
-      access: 'canAdmin',
+      access: 'canSeeHRConsole',
       routes: [
         { path: '/hr', redirect: '/hr/onboarding' },
         { name: '入职办理', path: '/hr/onboarding', component: './HR/Onboarding' },
@@ -71,6 +72,7 @@ export default defineConfig({
     {
       name: '组织架构',
       path: '/organization',
+      access: 'canSeeOrgMenu',
       routes: [
         { path: '/organization', redirect: '/organization/department' },
         { name: '部门管理', path: '/organization/department', component: './Organization/Department' },
@@ -80,6 +82,7 @@ export default defineConfig({
     {
       name: '员工管理',
       path: '/employee',
+      access: 'canSeeEmployeeMenu',
       routes: [
         { path: '/employee', redirect: '/employee/list' },
         { name: '员工列表', path: '/employee/list', component: './Employee/List' },
@@ -91,6 +94,7 @@ export default defineConfig({
     {
       name: '中台管理系统',
       path: '/admin',
+      access: 'canAdmin',
       routes: [
         { path: '/admin', redirect: '/admin/dashboard' },
         { name: '仪表盘', path: '/admin/dashboard', component: './Dashboard' },
@@ -103,6 +107,7 @@ export default defineConfig({
     {
       name: '薪资管理',
       path: '/salary-manage',
+      access: 'canSeeSalaryMenu',
       routes: [
         { path: '/salary-manage', redirect: '/salary-manage/account' },
         { name: '账套管理', path: '/salary-manage/account', component: './SalaryManage/Account' },

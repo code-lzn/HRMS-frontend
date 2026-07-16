@@ -5,7 +5,7 @@ import { addEmployeeUsingPost } from '@/api/employeeController';
 import {
   listPositionsUsingGet,
 } from '@/api/positionController';
-import { listAllRolesUsingGet } from '@/api/roleController';
+import { listEnabledRolesUsingGet } from '@/api/roleController';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { Button, Card, Form, message, Modal, Space, Spin } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -23,26 +23,34 @@ const EmployeeAddPage: React.FC = () => {
   const [roleOptions, setRoleOptions] = useState<{ label: string; value: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 加载数据源
+  // 加载数据源 — 各接口独立，一个失败不影响其他
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [deptRes, posRes, roleRes] = await Promise.all([
+      const [deptRes, posRes, roleRes] = await Promise.allSettled([
         getDepartmentTreeUsingGet(),
         listPositionsUsingGet({}),
-        listAllRolesUsingGet(),
+        listEnabledRolesUsingGet(),
       ]);
-      setDeptTreeData((deptRes as any)?.data ?? []);
-      setPositionOptions((posRes as any)?.data ?? []);
-      const roles: API.RoleVO[] = (roleRes as any)?.data ?? [];
-      console.log('[Add] role list:', JSON.stringify(roles)); // 调试：查看返回的角色列表
+
+      const depts: API.DepartmentTreeVO[] =
+        deptRes.status === 'fulfilled' ? (deptRes.value as any)?.data ?? [] : [];
+      const positions: API.PositionVO[] =
+        posRes.status === 'fulfilled' ? (posRes.value as any)?.data ?? [] : [];
+      const roles: API.RoleVO[] =
+        roleRes.status === 'fulfilled' ? (roleRes.value as any)?.data ?? [] : [];
+
+      setDeptTreeData(depts);
+      setPositionOptions(positions);
       setRoleOptions(
         roles
           .filter((r) => r.roleName !== '系统管理员')
           .map((r) => ({ label: r.roleName ?? '', value: r.id! })),
       );
+
+      // 数据为空时不弹警告，下拉框无选项即是提示
     } catch {
-      // ignore
+      // 静默失败，下拉框为空即是提示
     } finally {
       setLoading(false);
     }
@@ -72,7 +80,7 @@ const EmployeeAddPage: React.FC = () => {
         workLocation: values.workLocation,
         hireDate: values.hireDate?.format('YYYY-MM-DD'),
         employmentType: values.employmentType,
-        roleId: values.roleId,
+        ...(values.roleId != null ? { roleId: values.roleId } : {}),
         contractType: values.contractType,
         contractExpireDate: values.contractExpireDate?.format('YYYY-MM-DD'),
         probationRatio: values.probationRatio,
@@ -113,7 +121,7 @@ const EmployeeAddPage: React.FC = () => {
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
-        <Spin size="large" />
+        <Spin size="large" tip="加载中..." />
       </div>
     );
   }
