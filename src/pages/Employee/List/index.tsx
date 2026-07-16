@@ -194,7 +194,7 @@ const EmployeeListPage: React.FC = () => {
       dataIndex: 'hireDate',
       key: 'hireDate',
       width: 120,
-      render: (text: string) => text ?? '-',
+      render: (text: string) => (text ? text.slice(0, 10) : '-'),
     },
     {
       title: '操作',
