@@ -31,27 +31,30 @@ const ApprovalDelegation: React.FC = () => {
   >([]);
   const [userSearchLoading, setUserSearchLoading] = useState(false);
 
-  const handleUserSearch = async (keyword: string) => {
-    if (!keyword) {
-      setUserOptions([]);
-      return;
-    }
+  /** 加载用户列表（可传 keyword 搜索） */
+  const loadUsers = async (keyword?: string) => {
     setUserSearchLoading(true);
     try {
       const res = await listUserVoByPageUsingPost({
         current: 1,
-        pageSize: 20,
-        userName: keyword,
+        pageSize: 50,
+        userName: keyword || undefined,
       });
       const list = res?.data?.records ?? [];
       setUserOptions(
-        list.map((u) => ({ label: u.userName ?? '', value: u.id! })),
+        list.map((u) => ({ label: `${u.userName ?? ''}（${u.userRole ?? 'user'}）`, value: u.id! })),
       );
     } catch {
       setUserOptions([]);
     } finally {
       setUserSearchLoading(false);
     }
+  };
+
+  /** 打开新建委托弹窗 */
+  const openCreateModal = () => {
+    loadUsers();
+    setCreateModalOpen(true);
   };
 
   const columns: ProColumns<API.ApprovalDelegationVO>[] = [
@@ -175,7 +178,7 @@ const ApprovalDelegation: React.FC = () => {
           <Button
             type="primary"
             key="create"
-            onClick={() => setCreateModalOpen(true)}
+            onClick={openCreateModal}
           >
             新建委托
           </Button>,
@@ -203,10 +206,11 @@ const ApprovalDelegation: React.FC = () => {
               showSearch
               placeholder="搜索并选择被委托人"
               filterOption={false}
-              onSearch={handleUserSearch}
+              onSearch={(val) => loadUsers(val)}
               loading={userSearchLoading}
               options={userOptions}
-              notFoundContent={null}
+              notFoundContent="暂无用户"
+              defaultActiveFirstOption={false}
             />
           </Form.Item>
           <Form.Item

@@ -49,6 +49,17 @@ export async function approveUsingPost1(
   });
 }
 
+/** getBalance GET /api/attendance/leave/balance */
+export async function getBalanceUsingGet(options?: { [key: string]: any }) {
+  return request<API.BaseResponseLeaveBalanceVO_>(
+    '/api/attendance/leave/balance',
+    {
+      method: 'GET',
+      ...(options || {}),
+    },
+  );
+}
+
 /** cancel POST /api/attendance/leave/cancel/${param0} */
 export async function cancelUsingPost(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

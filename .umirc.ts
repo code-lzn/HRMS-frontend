@@ -19,11 +19,11 @@ export default defineConfig({
       path: '/home',
       component: './Home',
     },
-    {
-      name: '权限演示',
-      path: '/access',
-      component: './Access',
-    },
+    // {
+    //   name: '权限演示',
+    //   path: '/access',
+    //   component: './Access',
+    // },
     {
       name: ' CRUD 示例',
       path: '/table',
@@ -125,10 +125,10 @@ export default defineConfig({
   ],
   npmClient: 'pnpm',
   utoopack: {},
-  proxy: {
-    '/api': {
-      target: 'http://localhost:8123',
-      changeOrigin: true,
-    },
-  },
+  // proxy: {
+  //   '/api': {
+  //     target: 'http://localhost:8123',
+  //     changeOrigin: true,
+  //   },
+  // },
 });

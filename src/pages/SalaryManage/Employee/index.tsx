@@ -17,7 +17,7 @@ import {
   Spin,
   Tag,
 } from 'antd';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import HistoryDrawer from './components/HistoryDrawer';
 import SalaryEditModal from './components/SalaryEditModal';
 
@@ -33,19 +33,26 @@ const EmployeeSalaryPage: React.FC = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
 
-  const handleSearch = useCallback(async () => {
-    if (!keyword.trim()) return;
+  /** 初始加载全部员工 */
+  useEffect(() => {
+    loadEmployees('');
+  }, []);
+
+  const loadEmployees = async (kw: string) => {
     setSearchLoading(true);
     try {
-      const res = await listEmployeesUsingGet({ keyword: keyword.trim() });
+      const res = await listEmployeesUsingGet({ keyword: kw || undefined });
       const data = (res as any)?.data?.records ?? [];
       setEmployees(data);
-      if (data.length === 0) message.info('未找到匹配的员工');
     } catch {
       // ignore
     } finally {
       setSearchLoading(false);
     }
+  };
+
+  const handleSearch = useCallback(async () => {
+    loadEmployees(keyword.trim());
   }, [keyword]);
 
   const handleSelectEmployee = async (emp: API.EmployeeVO) => {
@@ -88,7 +95,7 @@ const EmployeeSalaryPage: React.FC = () => {
         <Spin spinning={searchLoading}>
           <List
             dataSource={employees}
-            locale={{ emptyText: '请输入关键词搜索员工' }}
+            locale={{ emptyText: '暂无员工数据' }}
             renderItem={(emp) => (
               <List.Item
                 onClick={() => handleSelectEmployee(emp)}

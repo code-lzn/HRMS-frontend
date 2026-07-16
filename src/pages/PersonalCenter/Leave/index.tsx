@@ -1,10 +1,11 @@
-import { applyUsingPost, cancelUsingPost, getMyLeavesUsingGet } from '@/api/leaveController';
+import { applyUsingPost, cancelUsingPost, getBalanceUsingGet, getMyLeavesUsingGet } from '@/api/leaveController';
 import { getApprovalProgressUsingGet } from '@/api/leaveController';
+import { CalendarOutlined, CoffeeOutlined, MedicineBoxOutlined, ScheduleOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, DatePicker, Form, Input, message, Modal, Select, Space, Tag, Timeline } from 'antd';
+import { Button, Card, Col, DatePicker, Form, Input, message, Modal, Row, Select, Space, Statistic, Tag, Timeline } from 'antd';
 import dayjs from 'dayjs';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const LEAVE_TYPE_OPTIONS = [
   { label: '事假', value: 0 },
@@ -28,8 +29,13 @@ const MyLeave: React.FC = () => {
   const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [progressModalOpen, setProgressModalOpen] = useState(false);
   const [selectedLeave, setSelectedLeave] = useState<API.LeaveVO | null>(null);
+  const [balance, setBalance] = useState<API.LeaveBalanceVO | null>(null);
   const [progressData, setProgressData] = useState<API.LeaveProgressVO | null>(null);
   const [form] = Form.useForm();
+
+  useEffect(() => {
+    getBalanceUsingGet().then((r) => setBalance(r?.data ?? null)).catch(() => {});
+  }, []);
 
   const columns: ProColumns<API.LeaveVO>[] = [
     {
@@ -154,6 +160,53 @@ const MyLeave: React.FC = () => {
 
   return (
     <div>
+      <Row gutter={16} style={{ marginBottom: 16 }}>
+        <Col xs={12} sm={6}>
+          <Card>
+            <Statistic
+              title="年假剩余"
+              value={balance?.annualRemaining ?? 0}
+              suffix="天"
+              prefix={<CalendarOutlined />}
+              valueStyle={{ color: '#1677ff' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={12} sm={6}>
+          <Card>
+            <Statistic
+              title="调休剩余"
+              value={balance?.compRemaining ?? 0}
+              suffix="天"
+              prefix={<CoffeeOutlined />}
+              valueStyle={{ color: '#52c41a' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={12} sm={6}>
+          <Card>
+            <Statistic
+              title="病假剩余"
+              value={balance?.sickRemaining ?? 0}
+              suffix="天"
+              prefix={<MedicineBoxOutlined />}
+              valueStyle={{ color: '#fa8c16' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={12} sm={6}>
+          <Card>
+            <Statistic
+              title="合计剩余"
+              value={balance?.totalRemaining ?? 0}
+              suffix="天"
+              prefix={<ScheduleOutlined />}
+              valueStyle={{ color: '#722ed1' }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
       <ProTable<API.LeaveVO>
         headerTitle="我的请假"
         actionRef={actionRef}
