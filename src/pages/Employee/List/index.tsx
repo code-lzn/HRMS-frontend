@@ -256,7 +256,7 @@ const EmployeeListPage: React.FC = () => {
       dataIndex: 'hireDate',
       key: 'hireDate',
       width: 120,
-      render: (text: string) => text ?? '-',
+      render: (text: string) => (text ? text.slice(0, 10) : '-'),
     },
     // 操作列：仅 HR/管理员可见（需要 employee:edit 或 employee:delete）
     ...(can('employee:edit') || can('employee:delete')

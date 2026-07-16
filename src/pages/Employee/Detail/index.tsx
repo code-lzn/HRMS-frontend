@@ -183,11 +183,11 @@ const EmployeeDetailPage: React.FC = () => {
       <Card title="基础信息" size="small">
         <Descriptions bordered column={{ xs: 1, sm: 2, md: 3 }}>
           <Descriptions.Item label="工号">{detail.employeeNo ?? '-'}</Descriptions.Item>
-          <Descriptions.Item label="系统账号">{detail.account ?? '-'}</Descriptions.Item>
+          <Descriptions.Item label="系统账号">{detail.account ? `${detail.account.slice(0, 3)}***${detail.account.slice(-2)}` : (detail.phone ? `${detail.phone.slice(0, 3)}***${detail.phone.slice(-2)}` : '-')}</Descriptions.Item>
           <Descriptions.Item label="在职状态">
             <Tag color={statusInfo.color}>{detail.statusDesc ?? '-'}</Tag>
           </Descriptions.Item>
-          <Descriptions.Item label="入职日期">{detail.hireDate ?? '-'}</Descriptions.Item>
+          <Descriptions.Item label="入职日期">{detail.hireDate ? detail.hireDate.slice(0, 10) : '-'}</Descriptions.Item>
           <Descriptions.Item label="创建时间">{detail.createTime ?? '-'}</Descriptions.Item>
         </Descriptions>
       </Card>

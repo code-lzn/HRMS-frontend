@@ -1,9 +1,11 @@
 import { deleteUserUsingPost, listUserByPageUsingPost, updateUserUsingPost, userRegisterUsingPost } from '@/api/userController';
 import { assignRoleUsingPost, listAllRolesUsingGet } from '@/api/roleController';
-import { PlusOutlined } from '@ant-design/icons';
+import { uploadFileUsingPost } from '@/api/fileController';
+import { CameraOutlined, PlusOutlined, UserOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, Form, Input, message, Modal, Select, Space, Tag } from 'antd';
+import { Avatar, Button, Form, Input, message, Modal, Select, Space, Spin, Tag, Upload } from 'antd';
+import type { UploadProps } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
 import usePermission from '@/hooks/usePermission';
@@ -21,6 +23,8 @@ const UserManage: React.FC = () => {
   const [roleForm] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
   const [roles, setRoles] = useState<API.RoleVO[]>([]);
+  const [editAvatar, setEditAvatar] = useState('');
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   const columns: ProColumns<API.User>[] = [
     { title: '用户名', dataIndex: 'userName', width: 120 },
@@ -84,9 +88,26 @@ const UserManage: React.FC = () => {
     setModalOpen(true);
   };
 
+  const handleAvatarUpload: UploadProps['customRequest'] = async (options) => {
+    const file = options.file as File;
+    setAvatarUploading(true);
+    try {
+      const res = await uploadFileUsingPost({ biz: 'avatar' }, {}, file);
+      const url = res?.data ?? '';
+      setEditAvatar(url);
+      form.setFieldValue('userAvatar', url);
+      message.success('头像上传成功');
+    } catch (e: any) {
+      message.error(e.message || '头像上传失败');
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
   const openEdit = async (record: API.User) => {
     setEditing(record);
-    form.setFieldsValue({ userName: record.userName, userProfile: record.userProfile, userRole: record.userRole });
+    setEditAvatar(record.userAvatar ?? '');
+    form.setFieldsValue({ userName: record.userName, userProfile: record.userProfile, userRole: record.userRole, userAvatar: record.userAvatar });
     await loadRoles();
     setModalOpen(true);
   };
@@ -165,11 +186,17 @@ const UserManage: React.FC = () => {
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
           {editing ? (
             <>
+              <Form.Item name="userAvatar" label="头像" style={{ marginBottom: 16 }}>
+                <Upload customRequest={handleAvatarUpload} showUploadList={false} accept="image/*">
+                  <Spin spinning={avatarUploading}>
+                    <Avatar size={64} src={editAvatar || undefined} icon={!editAvatar && <UserOutlined />} style={{ cursor: 'pointer' }} />
+                    <Button size="small" icon={<CameraOutlined />} style={{ marginLeft: 12, verticalAlign: 'super' }}>上传头像</Button>
+                  </Spin>
+                </Upload>
+              </Form.Item>
+              <Form.Item name="userAvatar" hidden><Input /></Form.Item>
               <Form.Item name="userName" label="用户名" rules={[{ required: true }]}>
                 <Input placeholder="请输入用户名" />
-              </Form.Item>
-              <Form.Item name="userAvatar" label="头像URL">
-                <Input placeholder="请输入头像URL" />
               </Form.Item>
               <Form.Item name="userProfile" label="简介">
                 <Input.TextArea rows={2} placeholder="请输入用户简介" />
