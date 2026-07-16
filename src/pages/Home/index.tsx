@@ -37,7 +37,7 @@ const ROLE_GRADIENT: Record<string, [string, string]> = {
   dept_head: ['#52c41a', '#389e0d'],
   finance: ['#fa8c16', '#d46b08'],
 };
-const DEFAULT_GRADIENT: [string, string] = ['#8c8c8c', '#595959'];
+const DEFAULT_GRADIENT: [string, string] = ['#91caff', '#e6f4ff'];
 
 const iconStyle = (color: string, bg: string): React.CSSProperties => ({
   color,

@@ -4,61 +4,63 @@
 
   // Welcome banner
   .welcomeBanner {
-    background: linear-gradient(135deg, #1677ff 0%, #0958d9 50%, #003eb3 100%);
+    background: linear-gradient(135deg, #1677ff 0%, #4096ff 50%, #69b1ff 100%);
     border-radius: 16px;
-    padding: 40px 48px;
+    padding: 36px 44px;
     margin-bottom: 24px;
     color: #fff;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 2px 16px rgba(22, 119, 255, 0.18);
 
     &::after {
       content: '';
       position: absolute;
-      top: -60px;
-      right: -40px;
-      width: 240px;
-      height: 240px;
-      background: rgba(255,255,255,0.06);
+      top: -40px;
+      right: -20px;
+      width: 200px;
+      height: 200px;
+      background: rgba(255, 255, 255, 0.08);
       border-radius: 50%;
     }
 
     &::before {
       content: '';
       position: absolute;
-      bottom: -80px;
-      right: 140px;
-      width: 160px;
-      height: 160px;
-      background: rgba(255,255,255,0.04);
+      bottom: -60px;
+      right: 120px;
+      width: 120px;
+      height: 120px;
+      background: rgba(255, 255, 255, 0.05);
       border-radius: 50%;
     }
 
     .welcomeGreeting {
-      font-size: 16px;
+      font-size: 15px;
       opacity: 0.85;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       font-weight: 400;
+      letter-spacing: 0.3px;
     }
 
     .welcomeName {
-      font-size: 28px;
+      font-size: 30px;
       font-weight: 700;
-      margin-bottom: 6px;
-      letter-spacing: 1px;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
     }
 
     .welcomeSubtitle {
-      font-size: 14px;
+      font-size: 13px;
       opacity: 0.75;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
 
       .dot {
-        width: 6px;
-        height: 6px;
-        background: rgba(255,255,255,0.5);
+        width: 5px;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.45);
         border-radius: 50%;
       }
     }
@@ -69,7 +71,7 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
   }
 
   .statCard {
@@ -80,24 +82,28 @@
     align-items: center;
     gap: 16px;
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.2s ease;
     border: 1px solid #f0f0f0;
     position: relative;
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-      border-color: transparent;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+      border-color: #e6f4ff;
+    }
+
+    &:active {
+      transform: translateY(0);
     }
 
     .statIcon {
-      width: 52px;
-      height: 52px;
-      border-radius: 12px;
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 24px;
+      font-size: 22px;
       flex-shrink: 0;
     }
 
@@ -106,34 +112,38 @@
       min-width: 0;
 
       .statLabel {
-        font-size: 13px;
-        color: #8c8c8c;
-        margin-bottom: 4px;
+        font-size: 12px;
+        color: #999;
+        margin-bottom: 3px;
+        font-weight: 500;
+        letter-spacing: 0.2px;
+        text-transform: uppercase;
       }
 
       .statValue {
-        font-size: 24px;
+        font-size: 22px;
         font-weight: 700;
-        color: #1a1a1a;
+        color: #262626;
         line-height: 1.2;
       }
 
       .statDesc {
-        font-size: 12px;
-        color: #8c8c8c;
+        font-size: 11px;
+        color: #bbb;
         margin-top: 2px;
       }
     }
 
     .statArrow {
-      color: #bfbfbf;
-      font-size: 14px;
+      color: #d9d9d9;
+      font-size: 13px;
       opacity: 0;
-      transition: opacity 0.2s;
+      transition: all 0.15s ease;
     }
 
     &:hover .statArrow {
       opacity: 1;
+      color: #1677ff;
     }
   }
 
@@ -145,9 +155,10 @@
     margin-bottom: 16px;
 
     .sectionTitle {
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 600;
-      color: #1a1a1a;
+      color: #262626;
+      letter-spacing: 0.3px;
     }
   }
 
@@ -155,54 +166,54 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 16px;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
   }
 
   .quickActionCard {
     background: #fff;
     border-radius: 12px;
-    padding: 22px 20px;
+    padding: 22px 18px;
     text-align: center;
     cursor: pointer;
-    transition: all 0.25s ease;
+    transition: all 0.2s ease;
     border: 1px solid #f0f0f0;
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-      border-color: transparent;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+      border-color: #e6f4ff;
 
       .actionIcon {
-        transform: scale(1.08);
+        transform: scale(1.06);
       }
     }
 
     .actionIcon {
-      width: 44px;
-      height: 44px;
+      width: 42px;
+      height: 42px;
       border-radius: 10px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
+      font-size: 20px;
       margin-bottom: 10px;
-      transition: transform 0.25s ease;
+      transition: transform 0.2s ease;
     }
 
     .actionTitle {
       font-size: 14px;
       font-weight: 600;
-      color: #1a1a1a;
-      margin-bottom: 4px;
+      color: #262626;
+      margin-bottom: 3px;
     }
 
     .actionDesc {
       font-size: 12px;
-      color: #8c8c8c;
+      color: #999;
     }
   }
 
-  // Bottom grid (2 columns on desktop)
+  // Bottom grid
   .bottomGrid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -219,21 +230,23 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 20px;
-      padding-bottom: 14px;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
       border-bottom: 1px solid #f5f5f5;
 
       .infoCardTitle {
         font-size: 15px;
         font-weight: 600;
-        color: #1a1a1a;
+        color: #262626;
+        letter-spacing: 0.2px;
       }
     }
   }
 
   // Responsive
   @media (max-width: 1200px) {
-    .statRow, .quickActions {
+    .statRow,
+    .quickActions {
       grid-template-columns: repeat(2, 1fr);
     }
     .bottomGrid {
@@ -242,11 +255,13 @@
   }
 
   @media (max-width: 768px) {
-    .statRow, .quickActions {
+    padding: 16px;
+    .statRow,
+    .quickActions {
       grid-template-columns: 1fr;
     }
     .welcomeBanner {
-      padding: 28px 24px;
+      padding: 24px 20px;
     }
   }
 }

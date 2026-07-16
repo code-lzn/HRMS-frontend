@@ -7,9 +7,17 @@
 | **日期** | **版本** | **修订说明** | **作者** |
 | --- | --- | --- | --- |
 | 2026-07-10 | 1.0 | 初稿 | - |
-| 2026-07-12 | 1.1 | 根据实际代码实现更新：修正表结构、API路径、响应格式、密码加密方案 | - |
+| 2026-07-12 | 1.1 | 根据实际代码实现更新：修正表结构、API 路径、响应格式、密码加密方案 | - |
 
 ## 项目背景
+
+# 标准格式
+
+git commit --no-verify -m "你的提交信息"
+
+# 跳过 pre-push 钩子，直接推送
+
+git push --no-verify
 
 > 对本次项目的背景以及目标进行描述，方便开发者理解需求，对齐上下文。
 
@@ -22,10 +30,10 @@
 ### 参与人
 
 | **项目负责人** | ... |
-| --- | --- |
-| **产品经理** | ... |
-| **设计师** | ... |
-| **工程师** | ... |
+| -------------- | --- |
+| **产品经理**   | ... |
+| **设计师**     | ... |
+| **工程师**     | ... |
 
 ## 功能模块
 
@@ -35,8 +43,8 @@
 
 1. **我的考勤**：日历视图标记每日出勤状态，上班/下班打卡（网页端），月度考勤记录查询
 2. **我的请假**：请假申请、请假列表及当前状态、审批进度查看、取消申请（仅审批中状态可操作）
-3. **我的薪资**：历史工资条列表（按月倒序），工资条详情查看（需二次密码验证），个人薪资趋势数据（近6个月）
-4. **账号安全**：修改密码（旧密码验证+历史密码检查），绑定/解绑手机，登录日志查看（最近30条）
+3. **我的薪资**：历史工资条列表（按月倒序），工资条详情查看（需二次密码验证），个人薪资趋势数据（近 6 个月）
+4. **账号安全**：修改密码（旧密码验证+历史密码检查），绑定/解绑手机，登录日志查看（最近 30 条）
 
 ### 功能模块树
 
@@ -217,19 +225,19 @@ CREATE TABLE IF NOT EXISTS sal_batch_detail (
 
 > 基础路径: `/attendance`
 
-| 接口 | 方法 | 说明 |
-| --- | --- | --- |
-| /attendance/punch | POST | 上班/下班打卡 |
-| /attendance/today | GET | 获取今日打卡状态 |
-| /attendance/calendar?month= | GET | 考勤日历视图 |
-| /attendance/records?month= | GET | 当月考勤记录列表 |
+| 接口                        | 方法 | 说明             |
+| --------------------------- | ---- | ---------------- |
+| /attendance/punch           | POST | 上班/下班打卡    |
+| /attendance/today           | GET  | 获取今日打卡状态 |
+| /attendance/calendar?month= | GET  | 考勤日历视图     |
+| /attendance/records?month=  | GET  | 当月考勤记录列表 |
 
 #### 打卡请求 (PunchRequest)
 
-| **参数** | **类型** | **必填** | **描述** |
-| --- | --- | --- | --- |
-| punchType | Integer | 是 | 0=上班打卡, 1=下班打卡 |
-| location | String | 否 | 打卡位置 |
+| **参数**  | **类型** | **必填** | **描述**               |
+| --------- | -------- | -------- | ---------------------- |
+| punchType | Integer  | 是       | 0=上班打卡, 1=下班打卡 |
+| location  | String   | 否       | 打卡位置               |
 
 #### 考勤日历响应 (AttendanceCalendarVO)
 
@@ -258,13 +266,13 @@ CREATE TABLE IF NOT EXISTS sal_batch_detail (
 
 > 基础路径: `/attendance/leave`
 
-| 接口 | 方法 | 说明 |
-| --- | --- | --- |
-| /attendance/leave/apply | POST | 申请请假 |
-| /attendance/leave/approve | POST | 审批请假（审批人操作） |
-| /attendance/leave/my | GET | 获取我的请假记录列表 |
-| /attendance/leave/cancel/{id} | POST | 取消申请（仅审批中状态） |
-| /attendance/leave/{id}/progress | GET | 查看审批进度 |
+| 接口                            | 方法 | 说明                     |
+| ------------------------------- | ---- | ------------------------ |
+| /attendance/leave/apply         | POST | 申请请假                 |
+| /attendance/leave/approve       | POST | 审批请假（审批人操作）   |
+| /attendance/leave/my            | GET  | 获取我的请假记录列表     |
+| /attendance/leave/cancel/{id}   | POST | 取消申请（仅审批中状态） |
+| /attendance/leave/{id}/progress | GET  | 查看审批进度             |
 
 #### 请假申请请求 (LeaveApplyRequest)
 
@@ -324,12 +332,7 @@ CREATE TABLE IF NOT EXISTS sal_batch_detail (
 }
 ```
 
-**节点状态 (status)**:
-| 值 | 含义 |
-| --- | --- |
-| 0 | 已完成 |
-| 1 | 进行中 |
-| 2 | 未开始/已跳过 |
+**节点状态 (status)**: | 值 | 含义 | | --- | --- | | 0 | 已完成 | | 1 | 进行中 | | 2 | 未开始/已跳过 |
 
 ---
 
@@ -337,11 +340,11 @@ CREATE TABLE IF NOT EXISTS sal_batch_detail (
 
 > 基础路径: `/salary`
 
-| 接口 | 方法 | 说明 |
-| --- | --- | --- |
-| /salary/slips | GET | 获取我的工资条列表（按月倒序） |
-| /salary/slip/{id} | POST | 查看工资条详情（需密码验证） |
-| /salary/trend | GET | 获取近6个月薪资趋势 |
+| 接口              | 方法 | 说明                           |
+| ----------------- | ---- | ------------------------------ |
+| /salary/slips     | GET  | 获取我的工资条列表（按月倒序） |
+| /salary/slip/{id} | POST | 查看工资条详情（需密码验证）   |
+| /salary/trend     | GET  | 获取近 6 个月薪资趋势          |
 
 #### 工资条列表响应 (SalarySlipVO)
 
@@ -353,9 +356,9 @@ CREATE TABLE IF NOT EXISTS sal_batch_detail (
       "id": 1001,
       "salaryMonth": "2026-07",
       "batchStatus": "APPROVED",
-      "grossSalary": 15000.00,
-      "totalDeduction": 3200.00,
-      "netSalary": 11800.00,
+      "grossSalary": 15000.0,
+      "totalDeduction": 3200.0,
+      "netSalary": 11800.0,
       "hasAnomaly": 0
     }
   ]
@@ -374,22 +377,22 @@ CREATE TABLE IF NOT EXISTS sal_batch_detail (
     "salaryMonth": "2026-07",
     "employeeName": "张三",
     "employeeNo": "EMP001",
-    "baseSalary": 12000.00,
-    "allowance": 2000.00,
-    "performanceBonus": 1000.00,
-    "overtimePay": 0.00,
-    "manualAdjust": 0.00,
+    "baseSalary": 12000.0,
+    "allowance": 2000.0,
+    "performanceBonus": 1000.0,
+    "overtimePay": 0.0,
+    "manualAdjust": 0.0,
     "adjustReason": null,
-    "grossSalary": 15000.00,
-    "lateDeduction": 0.00,
-    "leaveDeduction": 0.00,
-    "socialPension": 1200.00,
-    "socialMedical": 300.00,
-    "socialUnemployment": 150.00,
-    "housingFund": 1200.00,
-    "incomeTax": 350.00,
-    "totalDeduction": 3200.00,
-    "netSalary": 11800.00
+    "grossSalary": 15000.0,
+    "lateDeduction": 0.0,
+    "leaveDeduction": 0.0,
+    "socialPension": 1200.0,
+    "socialMedical": 300.0,
+    "socialUnemployment": 150.0,
+    "housingFund": 1200.0,
+    "incomeTax": 350.0,
+    "totalDeduction": 3200.0,
+    "netSalary": 11800.0
   }
 }
 ```
@@ -406,12 +409,12 @@ CREATE TABLE IF NOT EXISTS sal_batch_detail (
 {
   "code": 0,
   "data": [
-    { "month": "2026-02", "netSalary": 11500.00, "grossSalary": 14800.00 },
-    { "month": "2026-03", "netSalary": 11800.00, "grossSalary": 15000.00 },
-    { "month": "2026-04", "netSalary": 11600.00, "grossSalary": 15000.00 },
-    { "month": "2026-05", "netSalary": 12000.00, "grossSalary": 15200.00 },
-    { "month": "2026-06", "netSalary": 11800.00, "grossSalary": 15000.00 },
-    { "month": "2026-07", "netSalary": 11800.00, "grossSalary": 15000.00 }
+    { "month": "2026-02", "netSalary": 11500.0, "grossSalary": 14800.0 },
+    { "month": "2026-03", "netSalary": 11800.0, "grossSalary": 15000.0 },
+    { "month": "2026-04", "netSalary": 11600.0, "grossSalary": 15000.0 },
+    { "month": "2026-05", "netSalary": 12000.0, "grossSalary": 15200.0 },
+    { "month": "2026-06", "netSalary": 11800.0, "grossSalary": 15000.0 },
+    { "month": "2026-07", "netSalary": 11800.0, "grossSalary": 15000.0 }
   ]
 }
 ```
@@ -424,21 +427,22 @@ CREATE TABLE IF NOT EXISTS sal_batch_detail (
 
 > 基础路径: `/account`
 
-| 接口 | 方法 | 说明 |
-| --- | --- | --- |
-| /account/changePassword | POST | 修改密码 |
-| /account/bindPhone | POST | 绑定/解绑手机 |
-| /account/loginLogs | GET | 登录日志（最近30条） |
+| 接口                    | 方法 | 说明                   |
+| ----------------------- | ---- | ---------------------- |
+| /account/changePassword | POST | 修改密码               |
+| /account/bindPhone      | POST | 绑定/解绑手机          |
+| /account/loginLogs      | GET  | 登录日志（最近 30 条） |
 
 #### 修改密码请求 (ChangePasswordRequest)
 
-| **参数** | **类型** | **必填** | **描述** |
-| --- | --- | --- | --- |
-| oldPassword | String | 是 | 旧密码 |
-| newPassword | String | 是 | 新密码（>=8位） |
-| confirmPassword | String | 是 | 确认新密码（需与 newPassword 一致） |
+| **参数**        | **类型** | **必填** | **描述**                            |
+| --------------- | -------- | -------- | ----------------------------------- |
+| oldPassword     | String   | 是       | 旧密码                              |
+| newPassword     | String   | 是       | 新密码（>=8 位）                    |
+| confirmPassword | String   | 是       | 确认新密码（需与 newPassword 一致） |
 
 **校验规则**:
+
 1. 参数非空
 2. newPassword.length() >= 8
 3. newPassword.equals(confirmPassword)
@@ -450,11 +454,12 @@ CREATE TABLE IF NOT EXISTS sal_batch_detail (
 
 #### 绑定手机请求 (BindPhoneRequest)
 
-| **参数** | **类型** | **必填** | **描述** |
-| --- | --- | --- | --- |
-| phone | String | 是 | 手机号（传空字符串或 null 表示解绑） |
+| **参数** | **类型** | **必填** | **描述**                             |
+| -------- | -------- | -------- | ------------------------------------ |
+| phone    | String   | 是       | 手机号（传空字符串或 null 表示解绑） |
 
 **校验规则**:
+
 1. 非空时需匹配正则 `^1[3-9]\d{9}$`
 2. 手机号不能被其他员工已绑定 → 否则 PHONE_ALREADY_BOUND (50021)
 
@@ -504,23 +509,23 @@ String encryptPassword = DigestUtils.md5DigestAsHex((SALT + password).getBytes()
 public SalarySlipDetailVO getSalarySlipDetail(Long detailId, Long userId, String password) {
     User user = userService.getById(userId);
     String encryptPassword = DigestUtils.md5DigestAsHex((SALT + password).getBytes());
-    
+
     // 比对密码
     ThrowUtils.throwIf(!Objects.equals(user.getUserPassword(), encryptPassword),
             ErrorCode.SALARY_VERIFY_FAILED);  // 50015
-    
+
     // 校验工资条存在且属于当前员工
     SalarySlip slip = this.getById(detailId);
     ThrowUtils.throwIf(slip == null, ErrorCode.SALARY_NOT_FOUND);  // 50017
     Employee emp = getEmployee(userId);
     ThrowUtils.throwIf(!Objects.equals(slip.getEmployeeId(), emp.getId()),
             ErrorCode.NO_AUTH_ERROR);
-    
+
     // 组装返回 SalarySlipDetailVO...
 }
 ```
 
-> 当前每次查看都需要传入密码，没有 session 级别的验证标记（未实现"10分钟内免验证"）。
+> 当前每次查看都需要传入密码，没有 session 级别的验证标记（未实现"10 分钟内免验证"）。
 
 ### 密码修改
 
@@ -553,6 +558,7 @@ public void changePassword(Long userId, String oldPassword, String newPassword, 
 手机号存储在 `employee.phone` 字段（非 `user` 表）。更新时通过 `employeeService.lambdaQuery().eq(Employee::getUserId, userId)` 找到员工记录后修改。
 
 校验逻辑：
+
 - 格式校验：`^1[3-9]\d{9}$`
 - 唯一性校验：检查其他员工是否已绑定该手机号
 - 传空字符串 = 解绑（将 phone 设为 null）
@@ -576,6 +582,7 @@ loginLogService.recordLoginLog(user.getId(),
 ### 审批进度构建
 
 `LeaveServiceImpl.getApprovalProgress()` 构建两个节点的进度：
+
 1. **提交申请** (status=0 已完成)：操作人=申请人，时间=创建时间
 2. **审批** (status 根据实际状态):
    - PENDING → status=1 (进行中)
@@ -584,15 +591,15 @@ loginLogService.recordLoginLog(user.getId(),
 
 ## 错误码
 
-| **错误码** | **常量** | **说明** |
-| --- | --- | --- |
-| 50015 | SALARY_VERIFY_FAILED | 密码验证失败（工资条二次验证） |
-| 50016 | SALARY_VERIFY_LOCKED | 验证次数过多（已预留，当前未使用） |
-| 50017 | SALARY_NOT_FOUND | 工资条不存在 |
-| 50018 | PASSWORD_ERROR | 原密码错误 |
-| 50019 | PASSWORD_SAME_AS_OLD | 新密码不能与旧密码相同 |
-| 50020 | PASSWORD_RECENTLY_USED | 新密码与近期使用过的密码重复 |
-| 50021 | PHONE_ALREADY_BOUND | 该手机号已被其他账号绑定 |
+| **错误码** | **常量**               | **说明**                           |
+| ---------- | ---------------------- | ---------------------------------- |
+| 50015      | SALARY_VERIFY_FAILED   | 密码验证失败（工资条二次验证）     |
+| 50016      | SALARY_VERIFY_LOCKED   | 验证次数过多（已预留，当前未使用） |
+| 50017      | SALARY_NOT_FOUND       | 工资条不存在                       |
+| 50018      | PASSWORD_ERROR         | 原密码错误                         |
+| 50019      | PASSWORD_SAME_AS_OLD   | 新密码不能与旧密码相同             |
+| 50020      | PASSWORD_RECENTLY_USED | 新密码与近期使用过的密码重复       |
+| 50021      | PHONE_ALREADY_BOUND    | 该手机号已被其他账号绑定           |
 
 ## 排期
 
@@ -600,12 +607,12 @@ loginLogService.recordLoginLog(user.getId(),
 
 | **阶段** | **内容** | **预估工期** |
 | --- | --- | --- |
-| 需求评审 | 评审个人中心功能范围，确认安全策略 | 0.5天 |
-| 技术方案 | 完成系分文档评审，确认 API 设计与安全方案 | 1天 |
-| 数据库开发 | 新增 login_log、password_history、sal_batch、sal_batch_detail 表 | 0.5天 |
-| 后端开发 | 考勤打卡/日历、请假CRUD+审批进度、工资条列表/详情+二次验证+趋势、密码修改/手机绑定/登录日志 | 4天 |
-| 前端开发 | 考勤日历+打卡、请假列表/详情/进度、工资条列表/详情/趋势图、密码修改页、登录日志页 | 4天 |
-| 联调测试 | 前后端联调、安全测试（密码策略/二次验证） | 2天 |
-| 回归上线 | 全量回归、预发验证、正式上线 | 1.5天 |
+| 需求评审 | 评审个人中心功能范围，确认安全策略 | 0.5 天 |
+| 技术方案 | 完成系分文档评审，确认 API 设计与安全方案 | 1 天 |
+| 数据库开发 | 新增 login_log、password_history、sal_batch、sal_batch_detail 表 | 0.5 天 |
+| 后端开发 | 考勤打卡/日历、请假 CRUD+审批进度、工资条列表/详情+二次验证+趋势、密码修改/手机绑定/登录日志 | 4 天 |
+| 前端开发 | 考勤日历+打卡、请假列表/详情/进度、工资条列表/详情/趋势图、密码修改页、登录日志页 | 4 天 |
+| 联调测试 | 前后端联调、安全测试（密码策略/二次验证） | 2 天 |
+| 回归上线 | 全量回归、预发验证、正式上线 | 1.5 天 |
 
 > **总预估工期**：约 13.5 个工作日
