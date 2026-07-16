@@ -9,9 +9,20 @@ export function listOnboarding(params: {
   page: number;
   size: number;
 }) {
-  return request.get<{ code: number; data: PageVO<OnboardingVO>; message: string }>(
-    `${BASE}/list`, { params }
-  );
+  const queryParts: string[] = [];
+  if (params.keyword) {
+    queryParts.push(`keyword=${encodeURIComponent(params.keyword)}`);
+  }
+  if (params.statuses && params.statuses.length > 0) {
+    params.statuses.forEach(s => {
+      queryParts.push(`statuses=${encodeURIComponent(s)}`);
+    });
+  }
+  queryParts.push(`page=${params.page}`);
+  queryParts.push(`size=${params.size}`);
+  
+  const url = `${BASE}/list?${queryParts.join('&')}`;
+  return request.get<{ code: number; data: PageVO<OnboardingVO>; message: string }>(url);
 }
 
 export function getOnboardingDetail(id: number) {

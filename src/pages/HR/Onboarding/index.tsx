@@ -16,7 +16,7 @@ const STATUS_MAP: Record<string, { color: string; text: string }> = {
   APPROVING:  { color: '#1677ff', text: '审批中' },
   APPROVED:   { color: '#52c41a', text: '已批准待入职' },
   REJECTED:   { color: '#ff4d4f', text: '已拒绝' },
-  ONBOARDED:  { color: '#52c41a', text: '已入职' },
+  ONBOARDED:  { color: '#52c41a', text: '完成入职' },
 };
 
 const OnboardingPage: React.FC = () => {
@@ -77,17 +77,12 @@ const OnboardingPage: React.FC = () => {
           <a href={`/approval/detail/${r.recordId}`}>查看审批进度</a>
         );
         if (status === 'APPROVED') return (
-          <>
-            <a onClick={() => { setConfirmId(r.id); setConfirmOpen(true); }}>确认入职</a>
-            <Popconfirm title="确定放弃？" onConfirm={() => abandonOnboarding(r.id).then(() => actionRef.current?.reload())}>
-              <a style={{ color: '#faad14', marginLeft: 8 }}>放弃</a>
-            </Popconfirm>
-          </>
+          <a onClick={() => { setConfirmId(r.id); setConfirmOpen(true); }}>确认入职</a>
         );
         if (status === 'REJECTED') return (
           <a onClick={() => { setEditRecord(r); setFormOpen(true); }}>重新编辑</a>
         );
-        return <span style={{ color: '#999' }}>已入职</span>;
+        return <span style={{ color: '#999' }}>完成入职</span>;
       },
     },
   ];
@@ -103,7 +98,7 @@ const OnboardingPage: React.FC = () => {
         request={async (p) => {
           const res = await listOnboarding({
             keyword: p.keyword as string,
-            statuses: p.statuses as string[],
+            statuses: activeTab ? [activeTab] : undefined,
             page: p.current ?? 1,
             size: p.pageSize ?? 10,
           });

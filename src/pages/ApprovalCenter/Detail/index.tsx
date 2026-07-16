@@ -4,7 +4,7 @@ import {
   rejectUsingPost,
   transferUsingPost,
 } from '@/api/approvalController';
-import { listUserVoByPageUsingPost } from '@/api/userController';
+import { getTransferableUsersUsingGet } from '@/api/onboardingController';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useNavigate, useParams, useSearchParams } from '@umijs/max';
 import {
@@ -84,21 +84,21 @@ const ApprovalDetail: React.FC = () => {
   // 审批中即显示操作按钮，权限由后端校验
   const canOperate = detail?.status === 'APPROVING';
 
-  const handleUserSearch = async (keyword: string) => {
-    if (!keyword) {
-      setUserOptions([]);
-      return;
-    }
+  const handleUserSearch = async () => {
     setUserSearchLoading(true);
     try {
-      const res = await listUserVoByPageUsingPost({
-        current: 1,
-        pageSize: 20,
-        userName: keyword,
-      });
-      const list = res?.data?.records ?? [];
+      const res = await getTransferableUsersUsingGet();
+      const list = res?.data ?? [];
       setUserOptions(
-        list.map((u) => ({ label: u.userName ?? '', value: u.id! })),
+        list.map((u) => ({
+          label: (
+            <span>
+              <div>{u.userName ?? ''}</div>
+              <div style={{ fontSize: 12, color: '#999' }}>{u.userRoleName ?? ''}</div>
+            </span>
+          ),
+          value: u.id!,
+        })),
       );
     } catch {
       setUserOptions([]);
@@ -368,9 +368,11 @@ const ApprovalDetail: React.FC = () => {
           </label>
           <Select
             showSearch
-            placeholder="搜索并选择转交人"
-            filterOption={false}
-            onSearch={handleUserSearch}
+            placeholder="选择转交人"
+            filterOption={(input, option) =>
+              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            onDropdownVisibleChange={() => handleUserSearch()}
             loading={userSearchLoading}
             options={userOptions}
             value={transferUserId}

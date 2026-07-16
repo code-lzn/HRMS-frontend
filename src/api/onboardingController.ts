@@ -170,3 +170,16 @@ export async function submitUsingPost(
     ...(options || {}),
   });
 }
+
+/** getTransferableUsers GET /api/onboarding/transferable-users */
+export async function getTransferableUsersUsingGet(options?: {
+  [key: string]: any;
+}) {
+  return request<API.BaseResponseListUserVO_>(
+    '/api/onboarding/transferable-users',
+    {
+      method: 'GET',
+      ...(options || {}),
+    },
+  );
+}
