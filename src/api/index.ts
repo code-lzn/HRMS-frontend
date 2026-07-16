@@ -10,6 +10,7 @@ import * as dashboardController from './dashboardController';
 import * as departmentController from './departmentController';
 import * as employeeController from './employeeController';
 import * as fileController from './fileController';
+import * as hrAttendanceController from './hrAttendanceController';
 import * as leaveController from './leaveController';
 import * as makeupPunchController from './makeupPunchController';
 import * as onboardingController from './onboardingController';
@@ -37,6 +38,7 @@ export default {
   profileController,
   fileController,
   testHealth,
+  hrAttendanceController,
   onboardingController,
   permissionController,
   positionController,

@@ -185,6 +185,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseHRAttendanceVO_ = {
+    code?: number;
+    data?: HRAttendanceVO;
+    message?: string;
+  };
+
   type BaseResponseHrRegularization_ = {
     code?: number;
     data?: HrRegularization;
@@ -443,6 +449,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponsePageResultHRAttendanceVO_ = {
+    code?: number;
+    data?: PageResultHRAttendanceVO_;
+    message?: string;
+  };
+
   type BaseResponsePageRoleVO_ = {
     code?: number;
     data?: PageRoleVO_;
@@ -606,6 +618,11 @@ declare namespace API {
   };
 
   type deleteAccountUsingDELETEParams = {
+    /** id */
+    id: number;
+  };
+
+  type deleteAttendanceUsingDELETEParams = {
     /** id */
     id: number;
   };
@@ -970,6 +987,11 @@ declare namespace API {
     id: number;
   };
 
+  type getDetailUsingGET1Params = {
+    /** id */
+    id: number;
+  };
+
   type getDetailUsingGETParams = {
     /** id */
     id?: number;
@@ -1034,6 +1056,44 @@ declare namespace API {
     date?: string;
     revenue?: number;
     userCount?: number;
+  };
+
+  type HRAttendanceDTO = {
+    attendanceDate?: string;
+    employeeId?: number;
+    id?: number;
+    leaveType?: string;
+    month?: string;
+    overtimeHours?: number;
+    punchInLocation?: string;
+    punchInTime?: string;
+    punchOutLocation?: string;
+    punchOutTime?: string;
+    remark?: string;
+  };
+
+  type HRAttendanceVO = {
+    attendanceDate?: string;
+    createTime?: string;
+    departmentId?: number;
+    deptName?: string;
+    earlyMinutes?: number;
+    employeeId?: number;
+    employeeName?: string;
+    employeeNo?: string;
+    id?: number;
+    lateMinutes?: number;
+    leaveTypeText?: string;
+    month?: string;
+    overtimeHours?: number;
+    punchInLocation?: string;
+    punchInTime?: string;
+    punchOutLocation?: string;
+    punchOutTime?: string;
+    remark?: string;
+    status?: number;
+    statusText?: string;
+    updateTime?: string;
   };
 
   type HrRegularization = {
@@ -1471,6 +1531,13 @@ declare namespace API {
     total?: number;
   };
 
+  type PageResultHRAttendanceVO_ = {
+    list?: HRAttendanceVO[];
+    pageNum?: number;
+    pageSize?: number;
+    total?: number;
+  };
+
   type PageRoleVO_ = {
     countId?: string;
     current?: number;
@@ -1566,6 +1633,22 @@ declare namespace API {
   type PunchRequest = {
     location?: string;
     punchType?: number;
+  };
+
+  type queryAttendanceUsingGETParams = {
+    departmentId?: number;
+    employeeName?: string;
+    employeeNo?: string;
+    month?: string;
+    pageNum?: number;
+    pageSize?: number;
+    positionId?: number;
+    punchLocation?: string;
+    punchType?: number;
+    sortField?: string;
+    sortOrder?: string;
+    status?: number;
+    teamId?: number;
   };
 
   type RecentLogVO = {
