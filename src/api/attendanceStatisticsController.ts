@@ -2,14 +2,14 @@
 /* eslint-disable */
 import request from '@/libs/request';
 
-/** getAttendanceRate GET /api/api/attendance/statistics/charts/attendance-rate */
+/** getAttendanceRate GET /api/attendance/statistics/charts/attendance-rate */
 export async function getAttendanceRateUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getAttendanceRateUsingGETParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOfAttendanceRateChartVO>(
-    '/api/api/attendance/statistics/charts/attendance-rate',
+  return request<API.BaseResponseAttendanceRateChartVO_>(
+    '/api/attendance/statistics/charts/attendance-rate',
     {
       method: 'GET',
       params: {
@@ -22,14 +22,14 @@ export async function getAttendanceRateUsingGet(
   );
 }
 
-/** getLateEarlyRanking GET /api/api/attendance/statistics/charts/late-early-ranking */
+/** getLateEarlyRanking GET /api/attendance/statistics/charts/late-early-ranking */
 export async function getLateEarlyRankingUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getLateEarlyRankingUsingGETParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOfListOfLeaveEarlyRankingVO>(
-    '/api/api/attendance/statistics/charts/late-early-ranking',
+  return request<API.BaseResponseListLeaveEarlyRankingVO_>(
+    '/api/attendance/statistics/charts/late-early-ranking',
     {
       method: 'GET',
       params: {
@@ -42,14 +42,14 @@ export async function getLateEarlyRankingUsingGet(
   );
 }
 
-/** getLeaveDistribution GET /api/api/attendance/statistics/charts/leave-distribution */
+/** getLeaveDistribution GET /api/attendance/statistics/charts/leave-distribution */
 export async function getLeaveDistributionUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getLeaveDistributionUsingGETParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOfListOfLeaveDistributionVO>(
-    '/api/api/attendance/statistics/charts/leave-distribution',
+  return request<API.BaseResponseListLeaveDistributionVO_>(
+    '/api/attendance/statistics/charts/leave-distribution',
     {
       method: 'GET',
       params: {
