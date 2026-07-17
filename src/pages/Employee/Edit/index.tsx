@@ -13,6 +13,15 @@ import { hasPermission } from '@/utils/permission';
 import EmployeeForm from '../components/EmployeeForm';
 import dayjs from 'dayjs';
 
+/** 从详情对象中安全取值，支持嵌套结构回退到扁平结构 */
+const pickVal = (obj: any, flatKey: string, section?: string, nestedKey?: string): any => {
+  if (!obj) return undefined;
+  if (section && nestedKey && obj[section]?.[nestedKey] !== undefined) {
+    return obj[section][nestedKey];
+  }
+  return obj[flatKey];
+};
+
 const EmployeeEditPage: React.FC = () => {
   const { initialState } = useModel('@@initialState');
   const currentUser = initialState?.currentUser;
