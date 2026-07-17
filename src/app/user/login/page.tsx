@@ -1,35 +1,25 @@
 import { userLoginUsingPost } from '@/api/userController';
-import logo from '@/assets/logo.jpg';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProForm, ProFormText } from '@ant-design/pro-components';
-import { Link, useLocation, useModel, useNavigate } from '@umijs/max';
-import { Image, message } from 'antd';
+import { useLocation, useModel, useNavigate } from '@umijs/max';
+import { message } from 'antd';
 import React from 'react';
 import './index.css';
 
-/**
- * 用户登录页面
- * @constructor
- */
 const UserLoginPage: React.FC = () => {
   const [form] = ProForm.useForm();
   const navigate = useNavigate();
   const location = useLocation();
   const { setInitialState } = useModel('@@initialState');
 
-  // 获取登录后回跳地址
   const searchParams = new URLSearchParams(location.search);
   const redirect = searchParams.get('redirect') || '/';
 
-  /**
-   * 提交
-   */
   const doSubmit = async (values: API.UserLoginRequest) => {
     try {
       const res = await userLoginUsingPost(values);
       if (res.data) {
         message.success('登录成功');
-        // 更新全局登录用户状态
         setInitialState((pre: any) => ({
           ...pre,
           currentUser: res.data,
@@ -43,49 +33,78 @@ const UserLoginPage: React.FC = () => {
   };
 
   return (
-    <div id="userLoginPage" className="user-auth-page">
-      <LoginForm
-        form={form}
-        logo={
-          <Image src={logo} alt="HRMS" height={44} width={44} preview={false} />
-        }
-        title="HRMS 人力资源管理系统"
-        subTitle="欢迎登录"
-        onFinish={doSubmit}
-      >
-        <ProFormText
-          name="userAccount"
-          fieldProps={{
-            size: 'large',
-            prefix: <UserOutlined />,
-          }}
-          placeholder={'请输入用户账号'}
-          rules={[
-            {
-              required: true,
-              message: '请输入用户账号!',
-            },
-          ]}
-        />
-        <ProFormText.Password
-          name="userPassword"
-          fieldProps={{
-            size: 'large',
-            prefix: <LockOutlined />,
-          }}
-          placeholder={'请输入密码'}
-          rules={[
-            {
-              required: true,
-              message: '请输入密码！',
-            },
-          ]}
-        />
-        <div className="user-auth-footer">
-          还没有账号？
-          <Link to="/user/register">去注册</Link>
+    <div id="userLoginPage" className="login-page">
+      <div className="login-panel-left">
+        <div className="login-brand">
+          <div className="login-brand-icon">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+              <rect width="48" height="48" rx="10" fill="rgba(255,255,255,0.15)"/>
+              <path d="M14 32V18L24 12L34 18V32L24 38L14 32Z" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
+              <circle cx="24" cy="25" r="5" stroke="white" strokeWidth="2"/>
+              <path d="M24 20V22" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M24 28V30" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M19 25H21" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M27 25H29" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </div>
+          <h1>HRMS</h1>
+          <p>Human Resource Management System</p>
+          <div className="login-brand-divider" />
+          <span className="login-brand-desc">
+            高效 · 安全 · 智能
+          </span>
         </div>
-      </LoginForm>
+      </div>
+
+      <div className="login-panel-right">
+        <div className="login-form-wrapper">
+          <div className="login-form-header">
+            <h2>欢迎登录</h2>
+            <p>请使用您的员工账号登录系统</p>
+          </div>
+
+          <LoginForm
+            form={form}
+            submitter={{
+              searchConfig: { submitText: '登 录' },
+              submitButtonProps: {
+                size: 'large',
+                block: true,
+                style: {
+                  height: 46,
+                  borderRadius: 6,
+                  fontSize: 16,
+                  fontWeight: 500,
+                },
+              },
+            }}
+            onFinish={doSubmit}
+          >
+            <ProFormText
+              name="userAccount"
+              fieldProps={{
+                size: 'large',
+                prefix: <UserOutlined style={{ color: '#8c8c8c' }} />,
+              }}
+              placeholder="请输入账号"
+              rules={[{ required: true, message: '请输入账号' }]}
+            />
+            <ProFormText.Password
+              name="userPassword"
+              fieldProps={{
+                size: 'large',
+                prefix: <LockOutlined style={{ color: '#8c8c8c' }} />,
+              }}
+              placeholder="请输入密码"
+              rules={[{ required: true, message: '请输入密码' }]}
+            />
+          </LoginForm>
+
+          <div className="login-form-footer">
+            © 2026 HRMS. All rights reserved.
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -34,6 +34,14 @@ export default (initialState?: {
       role === 'admin' || role === 'hr' || role === 'dept_head',
     /** 可查看薪资信息 */
     canViewSalary: role === 'admin' || role === 'hr' || role === 'finance',
+    /** 可管理薪资账套 */
+    canManageSalaryAccount: role === 'admin' || role === 'hr',
+    /** 可管理薪资核算批次 */
+    canManageSalaryBatch: role === 'admin' || role === 'hr',
+    /** 可审批薪资（通过/驳回/发放） */
+    canApproveSalary: role === 'admin' || role === 'finance',
+    /** 可查看工资条 */
+    canViewPayslip: !!initialState?.currentUser,
     /** 可编辑员工档案（HR/Admin 全部；dept_head 和普通员工的限制在组件内判断） */
     canEditAnyEmployee: role === 'admin' || role === 'hr',
     /** 可执行调岗/离职操作 */

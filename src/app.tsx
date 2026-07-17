@@ -1,17 +1,14 @@
-import {
-  getLoginUserUsingGet,
-  userLogoutUsingPost,
-} from '@/api/userController';
+import { userLogoutUsingPost } from '@/api/userController';
 import { queryClient } from '@/libs/queryClient';
 import {
   LogoutOutlined,
-  UserOutlined,
   UserSwitchOutlined,
 } from '@ant-design/icons';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useModel, useNavigate } from '@umijs/max';
-import { Avatar, Dropdown, message } from 'antd';
+import { Dropdown, message } from 'antd';
 import { createElement } from 'react';
+import HRMSAssistant from '@/components/HRMSAssistant';
 
 const originalError = console.error;
 console.error = (...args: any[]) => {
@@ -29,17 +26,9 @@ export async function getInitialState() {
     name: '人资管理系统',
     currentUser: undefined as API.LoginUserVO | undefined,
   };
-  try {
-    const res = await getLoginUserUsingGet();
-    if (res.data) {
-      initialState.currentUser = res.data as API.LoginUserVO;
-    }
-  } catch (error) {
-    //
-  }
 
   const currentPath = window.location.pathname;
-  const publicPaths = ['/user/login', '/user/register'];
+  const publicPaths = ['/user/login'];
   if (!publicPaths.includes(currentPath) && !initialState.currentUser) {
     window.location.href = `/user/login?redirect=${encodeURIComponent(
       currentPath,
@@ -91,7 +80,6 @@ const RightContent: React.FC = () => {
         }}
       >
         <span style={{ fontSize: 14 }}>{currentUser.userName}</span>
-        <Avatar size={28} icon={<UserOutlined />} />
       </div>
     </Dropdown>
   );
@@ -109,5 +97,10 @@ export const layout = () => {
 };
 
 export function rootContainer(container: any) {
-  return createElement(QueryClientProvider, { client: queryClient }, container);
+  return createElement(
+    QueryClientProvider,
+    { client: queryClient },
+    container,
+    createElement(HRMSAssistant),
+  );
 }

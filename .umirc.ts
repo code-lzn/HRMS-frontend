@@ -7,7 +7,7 @@ export default defineConfig({
   initialState: {},
   request: {},
   layout: {
-    title: '@umijs/max',
+    title: 'HRMS',
   },
   routes: [
     {
@@ -53,6 +53,72 @@ export default defineConfig({
         },
       ],
     },
+    // ========== 薪资管理 ==========
+    {
+      name: '薪资管理',
+      path: '/salary',
+      access: 'canViewSalary',
+      routes: [
+        {
+          name: '薪资账套',
+          path: '/salary/accounts',
+          component: './salary/accounts',
+        },
+        {
+          name: '账套详情',
+          path: '/salary/accounts/:id',
+          component: './salary/accounts/detail',
+          hideInMenu: true,
+        },
+        {
+          name: '员工薪资',
+          path: '/salary/employees',
+          component: './salary/employees',
+        },
+        {
+          name: '员工薪资详情',
+          path: '/salary/employees/:employeeId',
+          component: './salary/employees/detail',
+          hideInMenu: true,
+        },
+        {
+          name: '编辑薪资档案',
+          path: '/salary/employees/:employeeId/edit',
+          component: './salary/employees/edit',
+          hideInMenu: true,
+        },
+        {
+          name: '薪资核算',
+          path: '/salary/batches',
+          component: './salary/batches',
+        },
+        {
+          name: '核算详情',
+          path: '/salary/batches/:batchId',
+          component: './salary/batches/detail',
+          hideInMenu: true,
+        },
+        {
+          name: '薪资统计',
+          path: '/salary/statistics',
+          component: './salary/statistics',
+        },
+      ],
+    },
+    // ========== 工资条（所有员工可见） ==========
+    {
+      name: '我的工资条',
+      path: '/salary/payslips',
+      component: './salary/payslips',
+      access: 'canViewPayslip',
+    },
+    {
+      name: '工资条详情',
+      path: '/salary/payslips/:id',
+      component: './salary/payslips/detail',
+      hideInMenu: true,
+      access: 'canViewPayslip',
+    },
     // ========== 入职管理 ==========
     {
       name: '入职管理',
@@ -86,13 +152,13 @@ export default defineConfig({
       component: '../app/user/login/page',
       layout: false,
     },
-    {
-      name: '用户注册',
-      path: '/user/register',
-      component: '../app/user/register/page',
-      layout: false,
-    },
   ],
   npmClient: 'pnpm',
+  proxy: {
+    '/api/chat': {
+      target: 'http://localhost:8000',
+      changeOrigin: true,
+    },
+  },
   utoopack: {},
 });
