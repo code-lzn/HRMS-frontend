@@ -2,12 +2,27 @@
 /* eslint-disable */
 import request from '@/libs/request';
 
-/** addDepartment POST /api/departments/add */
-export async function addDepartmentUsingPost(
-  body: API.DepartmentAddRequest,
+/** getDepartmentList GET /api/api/v1/departments */
+export async function getDepartmentListUsingGet(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getDepartmentListUsingGETParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseMapStringLong_>('/api/departments/add', {
+  return request<API.BaseResponsePageDepartmentVO_>('/api/api/v1/departments', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
+/** createDepartment POST /api/api/v1/departments */
+export async function createDepartmentUsingPost(
+  body: API.DepartmentCreateRequest,
+  options?: { [key: string]: any },
+) {
+  return request<API.BaseResponseDepartment_>('/api/api/v1/departments', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -17,63 +32,68 @@ export async function addDepartmentUsingPost(
   });
 }
 
-/** deleteDepartment POST /api/departments/delete */
-export async function deleteDepartmentUsingPost(
-  body: API.DeleteRequest,
+/** getDepartmentDetail GET /api/api/v1/departments/${param0} */
+export async function getDepartmentDetailUsingGet(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getDepartmentDetailUsingGETParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseBoolean_>('/api/departments/delete', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  });
-}
-
-/** mergeDepartments POST /api/departments/merge */
-export async function mergeDepartmentsUsingPost(
-  body: API.DepartmentMergeRequest,
-  options?: { [key: string]: any },
-) {
-  return request<API.BaseResponseDepartmentMergeResultVO_>(
-    '/api/departments/merge',
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseDepartmentVO_>(
+    `/api/api/v1/departments/${param0}`,
     {
-      method: 'POST',
+      method: 'GET',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}
+
+/** updateDepartment PUT /api/api/v1/departments/${param0} */
+export async function updateDepartmentUsingPut(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.updateDepartmentUsingPUTParams,
+  body: API.DepartmentUpdateRequest,
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseDepartment_>(
+    `/api/api/v1/departments/${param0}`,
+    {
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
+      params: { ...queryParams },
       data: body,
       ...(options || {}),
     },
   );
 }
 
-/** getDepartmentTree GET /api/departments/tree */
+/** deleteDepartment DELETE /api/api/v1/departments/${param0} */
+export async function deleteDepartmentUsingDelete(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.deleteDepartmentUsingDELETEParams,
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseVoid_>(`/api/api/v1/departments/${param0}`, {
+    method: 'DELETE',
+    params: { ...queryParams },
+    ...(options || {}),
+  });
+}
+
+/** getDepartmentTree GET /api/api/v1/departments/tree */
 export async function getDepartmentTreeUsingGet(options?: {
   [key: string]: any;
 }) {
-  return request<API.BaseResponseListDepartmentTreeVO_>(
-    '/api/departments/tree',
+  return request<API.BaseResponseListDepartmentTreeNode_>(
+    '/api/api/v1/departments/tree',
     {
       method: 'GET',
       ...(options || {}),
     },
   );
-}
-
-/** updateDepartment PUT /api/departments/update */
-export async function updateDepartmentUsingPut(
-  body: API.DepartmentUpdateRequest,
-  options?: { [key: string]: any },
-) {
-  return request<API.BaseResponseBoolean_>('/api/departments/update', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  });
 }
