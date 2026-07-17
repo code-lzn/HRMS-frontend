@@ -2,120 +2,85 @@
 /* eslint-disable */
 import request from '@/libs/request';
 
-/** approve POST /api/approval/approve */
-export async function approveUsingPost(
-  body: API.ApprovalActionRequest,
+/** 查询待办列表 GET /api/v1/approvals/pending */
+export async function getPendingList(
+  params: { bizType?: string; current?: number; pageSize?: number },
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseBoolean_>('/api/approval/approve', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
+  return request<API.BaseResponsePagePendingItemVO_>('/api/v1/approvals/pending', {
+    method: 'GET', params, ...(options || {}),
   });
 }
 
-/** createDelegation POST /api/approval/delegation */
-export async function createDelegationUsingPost(
-  body: API.DelegationRequest,
-  options?: { [key: string]: any },
-) {
-  return request<API.BaseResponseLong_>('/api/approval/delegation', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
+/** 获取待办数量 GET /api/v1/approvals/pending-count */
+export async function getPendingCount(options?: { [key: string]: any }) {
+  return request<API.BaseResponsePendingCountVO_>('/api/v1/approvals/pending-count', {
+    method: 'GET', ...(options || {}),
   });
 }
 
-/** cancelDelegation POST /api/approval/delegation/cancel/${param0} */
-export async function cancelDelegationUsingPost(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.cancelDelegationUsingPOSTParams,
+/** 查询已办列表 GET /api/v1/approvals/processed */
+export async function getProcessedList(
+  params: { bizType?: string; current?: number; pageSize?: number },
   options?: { [key: string]: any },
 ) {
-  const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseBoolean_>(
-    `/api/approval/delegation/cancel/${param0}`,
-    {
-      method: 'POST',
-      params: { ...queryParams },
-      ...(options || {}),
-    },
-  );
-}
-
-/** getMyDelegations GET /api/approval/delegation/my */
-export async function getMyDelegationsUsingGet(options?: {
-  [key: string]: any;
-}) {
-  return request<API.BaseResponseListApprovalDelegationVO_>(
-    '/api/approval/delegation/my',
-    {
-      method: 'GET',
-      ...(options || {}),
-    },
-  );
-}
-
-/** getApprovalDetail GET /api/approval/detail/${param0} */
-export async function getApprovalDetailUsingGet(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getApprovalDetailUsingGETParams,
-  options?: { [key: string]: any },
-) {
-  const { recordId: param0, ...queryParams } = params;
-  return request<API.BaseResponseApprovalDetailVO_>(
-    `/api/approval/detail/${param0}`,
-    {
-      method: 'GET',
-      params: { ...queryParams },
-      ...(options || {}),
-    },
-  );
-}
-
-/** getPendingList GET /api/approval/pending */
-export async function getPendingListUsingGet(options?: { [key: string]: any }) {
-  return request<API.BaseResponseListApprovalPendingVO_>(
-    '/api/approval/pending',
-    {
-      method: 'GET',
-      ...(options || {}),
-    },
-  );
-}
-
-/** reject POST /api/approval/reject */
-export async function rejectUsingPost(
-  body: API.ApprovalActionRequest,
-  options?: { [key: string]: any },
-) {
-  return request<API.BaseResponseBoolean_>('/api/approval/reject', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
+  return request<API.BaseResponsePageProcessedItemVO_>('/api/v1/approvals/processed', {
+    method: 'GET', params, ...(options || {}),
   });
 }
 
-/** transfer POST /api/approval/transfer */
-export async function transferUsingPost(
-  body: API.ApprovalActionRequest,
-  options?: { [key: string]: any },
-) {
-  return request<API.BaseResponseBoolean_>('/api/approval/transfer', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
+/** 获取审批详情 GET /api/v1/approvals/{instanceId} */
+export async function getApprovalDetail(instanceId: number, options?: { [key: string]: any }) {
+  return request<API.BaseResponseApprovalInstanceVO_>(`/api/v1/approvals/${instanceId}`, {
+    method: 'GET', ...(options || {}),
+  });
+}
+
+/** 审批通过 POST /api/v1/approvals/{nodeId}/approve */
+export async function approve(nodeId: number, body: { comment?: string }, options?: { [key: string]: any }) {
+  return request<API.BaseResponseApprovalActionVO_>(`/api/v1/approvals/${nodeId}/approve`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, data: body, ...(options || {}),
+  });
+}
+
+/** 审批拒绝 POST /api/v1/approvals/{nodeId}/reject */
+export async function rejectApproval(nodeId: number, body: { comment: string }, options?: { [key: string]: any }) {
+  return request<API.BaseResponseApprovalActionVO_>(`/api/v1/approvals/${nodeId}/reject`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, data: body, ...(options || {}),
+  });
+}
+
+/** 审批转交 POST /api/v1/approvals/{nodeId}/transfer */
+export async function transferApproval(nodeId: number, body: { toApproverId: number; comment?: string }, options?: { [key: string]: any }) {
+  return request<API.BaseResponseApprovalActionVO_>(`/api/v1/approvals/${nodeId}/transfer`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, data: body, ...(options || {}),
+  });
+}
+
+/** 撤回申请 POST /api/v1/approvals/{instanceId}/cancel */
+export async function cancelApproval(instanceId: number, options?: { [key: string]: any }) {
+  return request<API.BaseResponseApprovalActionVO_>(`/api/v1/approvals/${instanceId}/cancel`, {
+    method: 'POST', ...(options || {}),
+  });
+}
+
+/** 设置委托审批 POST /api/v1/approvals/delegates */
+export async function createDelegate(body: { delegateId: number; startTime: string; endTime: string }, options?: { [key: string]: any }) {
+  return request<API.BaseResponseApprovalDelegateVO_>('/api/v1/approvals/delegates', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, data: body, ...(options || {}),
+  });
+}
+
+/** 取消委托审批 DELETE /api/v1/approvals/delegates/{id} */
+export async function cancelDelegate(id: number, options?: { [key: string]: any }) {
+  return request<API.BaseResponseBoolean_>(`/api/v1/approvals/delegates/${id}`, {
+    method: 'DELETE', ...(options || {}),
+  });
+}
+
+/** 查询我的委托 GET /api/v1/approvals/delegates/my */
+export async function getMyDelegates(options?: { [key: string]: any }) {
+  return request<API.BaseResponseMyDelegatesVO_>('/api/v1/approvals/delegates/my', {
+    method: 'GET', ...(options || {}),
   });
 }

@@ -678,4 +678,26 @@ declare namespace API {
   type VerifyPasswordRequest = {
     password?: string;
   };
+  // ============ 审批中心 ============
+  type PendingItemVO = { instanceId?: number; nodeId?: number; bizType?: string; bizTypeDesc?: string; title?: string; applicantId?: number; applicantName?: string; nodeName?: string; nodeOrder?: number; delegatorName?: string; createTime?: string; deadLine?: string; status?: number; statusDesc?: string };
+  type ProcessedItemVO = { instanceId?: number; nodeId?: number; bizType?: string; bizTypeDesc?: string; title?: string; applicantName?: string; nodeName?: string; nodeStatus?: number; nodeStatusDesc?: string; comment?: string; operateTime?: string };
+  type ApprovalNodeVO = { nodeId?: number; nodeName?: string; nodeOrder?: number; approverId?: number; approverName?: string; originalApproverId?: number; originalApproverName?: string; status?: number; statusDesc?: string; comment?: string; operateTime?: string };
+  type ApprovalInstanceVO = { instanceId?: number; bizType?: string; bizTypeDesc?: string; title?: string; status?: number; statusDesc?: string; applicantId?: number; applicantName?: string; currentNodeOrder?: number; nodes?: ApprovalNodeVO[]; createTime?: string };
+  type ApprovalDelegateVO = { id?: number; delegatorId?: number; delegatorName?: string; delegateId?: number; delegateName?: string; startTime?: string; endTime?: string; enabled?: number };
+  type ApprovalActionRequest = { comment?: string; toApproverId?: number };
+  type DelegateSettingRequest = { delegateId?: number; startTime?: string; endTime?: string };
+  type PagePendingItemVO_ = { records?: PendingItemVO[]; total?: number };
+  type PageProcessedItemVO_ = { records?: ProcessedItemVO[]; total?: number };
+  type MyDelegatesVO = { asDelegator?: ApprovalDelegateVO[]; asDelegate?: ApprovalDelegateVO[] };
+  type PendingCountVO = { count?: number };
+  type BaseResponsePagePendingItemVO_ = { code?: number; data?: PagePendingItemVO_; message?: string };
+  type BaseResponsePageProcessedItemVO_ = { code?: number; data?: PageProcessedItemVO_; message?: string };
+  type BaseResponseApprovalInstanceVO_ = { code?: number; data?: ApprovalInstanceVO; message?: string };
+  type BaseResponseApprovalActionVO_ = { code?: number; data?: Record<string, any>; message?: string };
+  type BaseResponseApprovalDelegateVO_ = { code?: number; data?: ApprovalDelegateVO; message?: string };
+  type BaseResponseMyDelegatesVO_ = { code?: number; data?: MyDelegatesVO; message?: string };
+  type BaseResponsePendingCountVO_ = { code?: number; data?: PendingCountVO; message?: string };
+  type EmployeeListVO = { id?: number; employeeNo?: string; name?: string; departmentName?: string; positionName?: string };
+  type PageEmployeeListVO_ = { records?: EmployeeListVO[]; total?: number };
+  type BaseResponsePageEmployeeListVO_ = { code?: number; data?: PageEmployeeListVO_; message?: string };
 }
