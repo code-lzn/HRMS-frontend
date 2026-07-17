@@ -1,10 +1,12 @@
 import { getMySalarySlipsUsingGet, getMySalaryTrendUsingGet, getSalarySlipDetailUsingPost } from '@/api/salaryController';
 import { Line } from '@ant-design/charts';
 import { EyeOutlined } from '@ant-design/icons';
-import { Button, Card, Form, Input, message, Modal, Space, Statistic, Table, Tag } from 'antd';
-import dayjs from 'dayjs';
+import { Button, Card, Form, Input, message, Modal, Table, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import './index.less';
+
+const fmtAmt = (v?: number) =>
+  v != null ? `¥${v.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '-';
 
 const MySalary: React.FC = () => {
   const [slips, setSlips] = useState<API.SalarySlipVO[]>([]);
@@ -198,79 +200,60 @@ const MySalary: React.FC = () => {
       >
         {detail && (
           <div className="salary-slip-detail">
-            <div className="slip-header">
-              <span>员工：{detail.employeeName}</span>
-              <span>工号：{detail.employeeNo}</span>
+            <div className="slip-head">
+              <h3>工 资 条</h3>
+              <div className="slip-head-row">
+                <span className="slip-head-item">姓名<strong>{detail.employeeName}</strong></span>
+                <span className="slip-head-item">工号<strong>{detail.employeeNo}</strong></span>
+                <span className="slip-head-item">月份<strong>{detail.salaryMonth}</strong></span>
+              </div>
             </div>
 
-            <Card title="收入项" size="small" style={{ marginBottom: 12 }}>
-              <div className="slip-row">
-                <span>基本工资</span>
-                <span>¥{(detail.baseSalary ?? 0).toFixed(2)}</span>
+            <div className="slip-section">
+              <div className="slip-section-head">
+                <span className="slip-section-dot" style={{ background: '#52c41a' }} />
+                <span className="slip-section-label">收入项</span>
               </div>
-              <div className="slip-row">
-                <span>岗位津贴</span>
-                <span>¥{(detail.allowance ?? 0).toFixed(2)}</span>
+              <div className="slip-items">
+                <div className="slip-item"><span className="slip-item-label">基本工资</span><span className="slip-item-value">{fmtAmt(detail.baseSalary)}</span></div>
+                <div className="slip-item"><span className="slip-item-label">岗位津贴</span><span className="slip-item-value">{fmtAmt(detail.allowance)}</span></div>
+                <div className="slip-item"><span className="slip-item-label">绩效奖金</span><span className="slip-item-value">{fmtAmt(detail.performanceBonus)}</span></div>
+                <div className="slip-item"><span className="slip-item-label">加班费</span><span className="slip-item-value">{fmtAmt(detail.overtimePay)}</span></div>
+                {(detail.manualAdjust ?? 0) !== 0 && (
+                  <div className="slip-item"><span className="slip-item-label">手动调整</span><span className="slip-item-value">{fmtAmt(detail.manualAdjust)}</span></div>
+                )}
               </div>
-              <div className="slip-row">
-                <span>绩效奖金</span>
-                <span>¥{(detail.performanceBonus ?? 0).toFixed(2)}</span>
-              </div>
-              <div className="slip-row">
-                <span>加班费</span>
-                <span>¥{(detail.overtimePay ?? 0).toFixed(2)}</span>
-              </div>
-              {(detail.manualAdjust ?? 0) !== 0 && (
-                <div className="slip-row">
-                  <span>手动调整</span>
-                  <span>¥{(detail.manualAdjust ?? 0).toFixed(2)}</span>
-                </div>
-              )}
-            </Card>
+            </div>
 
-            <Card title="扣除项" size="small" style={{ marginBottom: 12 }}>
-              <div className="slip-row">
-                <span>迟到扣款</span>
-                <span>¥{(detail.lateDeduction ?? 0).toFixed(2)}</span>
+            <div className="slip-section">
+              <div className="slip-section-head">
+                <span className="slip-section-dot" style={{ background: '#ff4d4f' }} />
+                <span className="slip-section-label">扣除项</span>
               </div>
-              <div className="slip-row">
-                <span>请假扣款</span>
-                <span>¥{(detail.leaveDeduction ?? 0).toFixed(2)}</span>
+              <div className="slip-items">
+                <div className="slip-item"><span className="slip-item-label">迟到扣款</span><span className="slip-item-value">{fmtAmt(detail.lateDeduction)}</span></div>
+                <div className="slip-item"><span className="slip-item-label">请假扣款</span><span className="slip-item-value">{fmtAmt(detail.leaveDeduction)}</span></div>
+                <div className="slip-item"><span className="slip-item-label">养老保险</span><span className="slip-item-value">{fmtAmt(detail.socialPension)}</span></div>
+                <div className="slip-item"><span className="slip-item-label">医疗保险</span><span className="slip-item-value">{fmtAmt(detail.socialMedical)}</span></div>
+                <div className="slip-item"><span className="slip-item-label">失业保险</span><span className="slip-item-value">{fmtAmt(detail.socialUnemployment)}</span></div>
+                <div className="slip-item"><span className="slip-item-label">住房公积金</span><span className="slip-item-value">{fmtAmt(detail.housingFund)}</span></div>
+                <div className="slip-item"><span className="slip-item-label">个人所得税</span><span className="slip-item-value">{fmtAmt(detail.incomeTax)}</span></div>
               </div>
-              <div className="slip-row">
-                <span>养老保险</span>
-                <span>¥{(detail.socialPension ?? 0).toFixed(2)}</span>
-              </div>
-              <div className="slip-row">
-                <span>医疗保险</span>
-                <span>¥{(detail.socialMedical ?? 0).toFixed(2)}</span>
-              </div>
-              <div className="slip-row">
-                <span>失业保险</span>
-                <span>¥{(detail.socialUnemployment ?? 0).toFixed(2)}</span>
-              </div>
-              <div className="slip-row">
-                <span>住房公积金</span>
-                <span>¥{(detail.housingFund ?? 0).toFixed(2)}</span>
-              </div>
-              <div className="slip-row">
-                <span>个人所得税</span>
-                <span>¥{(detail.incomeTax ?? 0).toFixed(2)}</span>
-              </div>
-            </Card>
+            </div>
 
-            <div className="slip-summary">
-              <div className="slip-row">
-                <span>应发工资</span>
-                <span>¥{(detail.grossSalary ?? 0).toFixed(2)}</span>
+            <div className="slip-total">
+              <div className="slip-total-row">
+                <span className="slip-total-label">应发工资</span>
+                <span className="slip-total-value">{fmtAmt(detail.grossSalary)}</span>
               </div>
-              <div className="slip-row">
-                <span>应扣合计</span>
-                <span>¥{(detail.totalDeduction ?? 0).toFixed(2)}</span>
+              <div className="slip-total-row">
+                <span className="slip-total-label">应扣合计</span>
+                <span className="slip-total-value">{fmtAmt(detail.totalDeduction)}</span>
               </div>
-              <div className="slip-row" style={{ fontWeight: 700, fontSize: 18, color: '#1677ff' }}>
-                <span>实发工资</span>
-                <span>¥{(detail.netSalary ?? 0).toFixed(2)}</span>
+              <div className="slip-total-divider" />
+              <div className="slip-total-net">
+                <span className="slip-net-label">实发工资</span>
+                <span className="slip-net-value">{fmtAmt(detail.netSalary)}</span>
               </div>
             </div>
           </div>

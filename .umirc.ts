@@ -12,7 +12,7 @@ export default defineConfig({
   routes: [
     {
       path: '/',
-      redirect: '/home',
+      component: './Home',
     },
     {
       name: '首页',
