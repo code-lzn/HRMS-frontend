@@ -1,11 +1,18 @@
-// 运行时配置
-
-import { getLoginUserUsingGet } from '@/api/userController';
+import {
+  getLoginUserUsingGet,
+  userLogoutUsingPost,
+} from '@/api/userController';
 import { queryClient } from '@/libs/queryClient';
+import {
+  LogoutOutlined,
+  UserOutlined,
+  UserSwitchOutlined,
+} from '@ant-design/icons';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { useModel, useNavigate } from '@umijs/max';
+import { Avatar, Dropdown, message } from 'antd';
+import { createElement } from 'react';
 
-// 抑制 findDOMNode 弃用警告（来自 @ant-design/pro-components 内部依赖 rc-resize-observer）
-// React 18 开发模式下该警告通过 console.error 输出
 const originalError = console.error;
 console.error = (...args: any[]) => {
   if (
@@ -17,8 +24,6 @@ console.error = (...args: any[]) => {
   originalError.apply(console, args);
 };
 
-// 全局初始化数据配置，用于 Layout 用户信息和权限初始化
-// 更多信息见文档：https://umijs.org/docs/api/runtime-config#getinitialstate
 export async function getInitialState() {
   const initialState = {
     name: '人资管理系统',
@@ -30,10 +35,67 @@ export async function getInitialState() {
       initialState.currentUser = res.data as API.LoginUserVO;
     }
   } catch (error) {
-    // 未登录，保持 currentUser 为空
+    //
   }
+
+  const currentPath = window.location.pathname;
+  const publicPaths = ['/user/login', '/user/register'];
+  if (!publicPaths.includes(currentPath) && !initialState.currentUser) {
+    window.location.href = `/user/login?redirect=${encodeURIComponent(
+      currentPath,
+    )}`;
+  }
+
   return initialState;
 }
+
+const RightContent: React.FC = () => {
+  const { initialState } = useModel('@@initialState');
+  const navigate = useNavigate();
+  const currentUser = initialState?.currentUser;
+
+  const menuItems = [
+    {
+      key: 'profile',
+      icon: <UserSwitchOutlined />,
+      label: '个人中心',
+      onClick: () => navigate('/profile'),
+    },
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: '退出登录',
+      onClick: async () => {
+        try {
+          await userLogoutUsingPost();
+          message.success('退出成功');
+          window.location.href = '/user/login';
+        } catch {
+          message.error('退出失败');
+        }
+      },
+    },
+  ];
+
+  if (!currentUser) return null;
+
+  return (
+    <Dropdown menu={{ items: menuItems }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          cursor: 'pointer',
+          padding: '0 8px',
+        }}
+      >
+        <span style={{ fontSize: 14 }}>{currentUser.userName}</span>
+        <Avatar size={28} icon={<UserOutlined />} />
+      </div>
+    </Dropdown>
+  );
+};
 
 export const layout = () => {
   return {
@@ -42,14 +104,10 @@ export const layout = () => {
     menu: {
       locale: false,
     },
+    rightContentRender: () => <RightContent />,
   };
 };
 
-/**
- * 根容器包裹 QueryClientProvider，使所有页面可使用 TanStack Query
- */
 export function rootContainer(container: any) {
-  return (
-    <QueryClientProvider client={queryClient}>{container}</QueryClientProvider>
-  );
+  return createElement(QueryClientProvider, { client: queryClient }, container);
 }

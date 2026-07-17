@@ -1,131 +1,77 @@
 import { useDepartmentTree } from '@/hooks/useDepartmentTree';
-import {
-  PlusOutlined,
-  ReloadOutlined,
-  SearchOutlined,
-} from '@ant-design/icons';
+import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useAccess } from '@umijs/max';
-import { Button, Empty, Input, Space, Spin, Tree } from 'antd';
+import { Empty, Input, Spin, Tree, Typography } from 'antd';
 import type { DataNode } from 'antd/es/tree';
 import React, { useMemo, useState } from 'react';
+import styles from './TreePanel.less';
 
 interface DepartmentTreeProps {
   selectedId: number | undefined;
   onSelect: (id: number) => void;
   onAddRoot: () => void;
+  onAddChild: (parentId: number) => void;
 }
 
-/**
- * 将 API 部门树节点转换为 antd Tree 的 DataNode 格式
- */
 function convertToTreeData(nodes: API.DepartmentTreeNode[]): DataNode[] {
   return nodes.map((node) => ({
     key: node.id!,
     title: `${node.name} (${node.employeeCount ?? 0})`,
+    code: node.code,
+    managerName: node.managerName,
+    employeeCount: node.employeeCount ?? 0,
     children: node.children ? convertToTreeData(node.children) : undefined,
   }));
 }
 
-/**
- * 递归搜索并高亮匹配的节点
- */
-function searchTreeData(nodes: DataNode[], keyword: string): DataNode[] {
-  if (!keyword) return nodes;
-
-  return nodes
-    .map((node) => {
-      const titleStr = String(node.title);
-      const match = titleStr.includes(keyword);
-      const children = node.children
-        ? searchTreeData(node.children, keyword)
-        : undefined;
-
-      if (match || (children && children.length > 0)) {
-        return {
-          ...node,
-          title: match ? (
-            <span>
-              {titleStr.replace(
-                new RegExp(
-                  `(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`,
-                  'g',
-                ),
-                '<mark>$1</mark>',
-              )}
-            </span>
-          ) : (
-            titleStr
-          ),
-          children,
-        };
-      }
-      return null;
-    })
-    .filter(Boolean) as DataNode[];
-}
-
-/**
- * 左侧部门树面板
- * 节点格式: "{部门名称} ({员工数})"
- * 支持搜索过滤和高亮
- */
 const DepartmentTreePanel: React.FC<DepartmentTreeProps> = ({
   selectedId,
   onSelect,
-  onAddRoot,
+  onAddChild,
 }) => {
-  const { data, isLoading, refetch } = useDepartmentTree();
+  const { data, isLoading } = useDepartmentTree();
   const [keyword, setKeyword] = useState('');
   const access = useAccess();
+  const canManage = access.canManageOrganization;
 
   const treeData = useMemo(() => {
     const nodes = data ?? [];
-    const converted = convertToTreeData(nodes);
-    return searchTreeData(converted, keyword);
+    let converted = convertToTreeData(nodes);
+    if (keyword) {
+      const filter = (list: DataNode[]): DataNode[] =>
+        list
+          .map((n) => {
+            const match = String(n.title).includes(keyword);
+            const children = n.children ? filter(n.children) : undefined;
+            if (match || (children && children.length > 0)) {
+              return { ...n, children };
+            }
+            return null;
+          })
+          .filter(Boolean) as DataNode[];
+      converted = filter(converted);
+    }
+    return converted;
   }, [data, keyword]);
 
   return (
-    <div
-      style={{
-        padding: 16,
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      {/* 工具栏 */}
-      <Space style={{ marginBottom: 12 }} wrap>
-        {access.canManageOrganization && (
-          <Button
-            type="primary"
-            size="small"
-            icon={<PlusOutlined />}
-            onClick={onAddRoot}
-          >
-            新增根部门
-          </Button>
-        )}
-        <Button
-          size="small"
-          icon={<ReloadOutlined />}
-          onClick={() => refetch()}
-        >
-          刷新
-        </Button>
-      </Space>
+    <div className={styles.panel}>
+      <div className={styles.header}>
+        <Typography.Text strong className={styles.title}>
+          部门
+        </Typography.Text>
+      </div>
 
-      {/* 搜索框 */}
       <Input
-        placeholder="请输入部门名称搜索"
+        className={styles.search}
+        placeholder="搜索部门名称或编码"
         prefix={<SearchOutlined />}
         value={keyword}
         onChange={(e) => setKeyword(e.target.value)}
         allowClear
-        style={{ marginBottom: 12 }}
       />
 
-      {/* 部门树 */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div className={styles.treeWrap}>
         {isLoading ? (
           <Spin
             style={{ display: 'block', marginTop: 40, textAlign: 'center' }}
@@ -138,12 +84,51 @@ const DepartmentTreePanel: React.FC<DepartmentTreeProps> = ({
             defaultExpandAll
             selectedKeys={selectedId ? [selectedId] : []}
             onSelect={(keys) => {
-              if (keys.length > 0) {
-                onSelect(keys[0] as number);
-              }
+              if (keys.length > 0) onSelect(keys[0] as number);
             }}
             treeData={treeData}
-            style={{ fontSize: 14 }}
+            titleRender={(node) => {
+              const isSelected = selectedId === node.key;
+              return (
+                <div
+                  className={`${styles.treeItem} ${
+                    isSelected ? styles.treeItemSelected : ''
+                  }`}
+                >
+                  <div className={styles.treeTitle}>
+                    <div className={styles.treeTitleContent}>
+                      <div className={styles.deptNameRow}>
+                        <span className={styles.deptName}>
+                          {String(node.title).split('(')[0].trim()}
+                        </span>
+                        {node.code && (
+                          <span className={styles.deptCode}>{node.code}</span>
+                        )}
+                      </div>
+                      {node.managerName && (
+                        <span className={styles.deptManager}>
+                          {node.managerName}
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <span className={styles.deptCount}>
+                        {(node as any).employeeCount ?? 0}人
+                      </span>
+                      {canManage && (
+                        <PlusOutlined
+                          className={styles.addIcon}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onAddChild(node.key as number);
+                          }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            }}
           />
         )}
       </div>

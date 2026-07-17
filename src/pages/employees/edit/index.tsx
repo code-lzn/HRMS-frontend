@@ -1,20 +1,14 @@
 import { updateEmployeeUsingPut } from '@/api/employeeController';
 import { useEmployeeDetail } from '@/hooks/useEmployeeDetail';
 import { useFieldPermissions } from '@/hooks/useFieldPermissions';
-import { SaveOutlined } from '@ant-design/icons';
-import { PageContainer } from '@ant-design/pro-components';
+import { UserOutlined } from '@ant-design/icons';
 import { history, useAccess, useParams } from '@umijs/max';
-import { Button, Form, message, Modal, Result, Space, Spin } from 'antd';
+import { Avatar, Button, Card, Form, message, Modal, Result, Spin } from 'antd';
 import React, { useMemo } from 'react';
 import PersonalInfoSection from './components/PersonalInfoSection';
 import SalaryContractSection from './components/SalaryContractSection';
 import WorkInfoSection from './components/WorkInfoSection';
-import styles from './index.less';
 
-/**
- * 员工档案编辑页
- * 分组表单 + 字段权限控制 + dirty提交 + 取消确认
- */
 const EmployeeEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const employeeId = Number(id);
@@ -24,7 +18,6 @@ const EmployeeEdit: React.FC = () => {
   const { data: employee, isLoading, isError } = useEmployeeDetail(employeeId);
   const { data: permissions } = useFieldPermissions();
 
-  // 计算初始表单值
   const initialValues = useMemo(() => {
     if (!employee) return {};
     return {
@@ -50,28 +43,23 @@ const EmployeeEdit: React.FC = () => {
     };
   }, [employee]);
 
-  // 可编辑/锁定字段
   const editableFields = permissions?.editableFields ?? [];
   const flowRequiredFields = permissions?.flowRequiredFields ?? [];
-
-  // 是否展示薪资合同区（仅HR）
   const showSalarySection = access.isHR || access.isAdmin;
 
-  // 加载中
   if (isLoading) {
     return (
-      <PageContainer>
-        <div style={{ textAlign: 'center', padding: 120 }}>
-          <Spin size="large" />
-        </div>
-      </PageContainer>
+      <div
+        style={{ padding: '24px 32px', textAlign: 'center', paddingTop: 120 }}
+      >
+        <Spin size="large" />
+      </div>
     );
   }
 
-  // 加载失败
   if (isError || !employee) {
     return (
-      <PageContainer>
+      <div style={{ padding: '24px 32px' }}>
         <Result
           status="error"
           title="加载失败"
@@ -80,19 +68,14 @@ const EmployeeEdit: React.FC = () => {
             <Button onClick={() => history.push('/employees')}>返回列表</Button>
           }
         />
-      </PageContainer>
+      </div>
     );
   }
 
-  /**
-   * 提交表单
-   * 仅提交与原始值不同的 dirty 字段
-   */
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
 
-      // 计算 dirty 字段（仅提交已变更的字段）
       const dirtyFields: Record<string, any> = {};
       const init: Record<string, any> = initialValues;
       Object.keys(values).forEach((key) => {
@@ -100,14 +83,6 @@ const EmployeeEdit: React.FC = () => {
           dirtyFields[key] = values[key] ?? null;
         }
       });
-
-      // 处理日期格式
-      if (dirtyFields.birthday) {
-        // birthday already in correct format
-      }
-      if (dirtyFields.contractExpireDate) {
-        // contractExpireDate already in correct format
-      }
 
       if (Object.keys(dirtyFields).length === 0) {
         message.info('没有需要保存的修改');
@@ -134,10 +109,6 @@ const EmployeeEdit: React.FC = () => {
     }
   };
 
-  /**
-   * 取消操作
-   * 检测是否有未保存的修改
-   */
   const handleCancel = () => {
     if (form.isFieldsTouched()) {
       Modal.confirm({
@@ -153,26 +124,51 @@ const EmployeeEdit: React.FC = () => {
   };
 
   return (
-    <PageContainer
-      header={{
-        title: '编辑员工档案',
-        onBack: handleCancel,
-        breadcrumb: {},
-      }}
-    >
-      <div className={styles.editForm}>
-        <Form
-          form={form}
-          layout="vertical"
-          initialValues={initialValues}
-          scrollToFirstError
+    <div style={{ padding: '24px 32px' }}>
+      <Card style={{ marginBottom: 24, borderRadius: 12, overflow: 'hidden' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
         >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <Avatar
+              size={64}
+              icon={<UserOutlined />}
+              style={{ backgroundColor: '#f0f0f0', color: '#999' }}
+            />
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>
+                  {employee.personalInfo?.name || employee.name} 的档案
+                </h1>
+              </div>
+              <div style={{ fontSize: 14, color: '#666', marginTop: 4 }}>
+                工号 {employee.employeeNo} · 部分字段需通过调岗流程修改
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <Button onClick={handleCancel}>取消</Button>
+            <Button type="primary" onClick={handleSubmit}>
+              保存修改
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      <div style={{ display: 'flex', gap: 24 }}>
+        <div style={{ flex: 1 }}>
           <PersonalInfoSection
             editableFields={editableFields}
             flowRequiredFields={flowRequiredFields}
             initialValues={initialValues}
           />
+        </div>
 
+        <div style={{ flex: 1 }}>
           <WorkInfoSection initialValues={initialValues} />
 
           {showSalarySection && (
@@ -180,25 +176,12 @@ const EmployeeEdit: React.FC = () => {
               editableFields={editableFields}
               flowRequiredFields={flowRequiredFields}
               initialValues={initialValues}
+              form={form}
             />
           )}
-        </Form>
-
-        {/* 底部固定提交栏 */}
-        <div className={styles.footerBar}>
-          <Space>
-            <Button onClick={handleCancel}>取消</Button>
-            <Button
-              type="primary"
-              icon={<SaveOutlined />}
-              onClick={handleSubmit}
-            >
-              保存
-            </Button>
-          </Space>
         </div>
       </div>
-    </PageContainer>
+    </div>
   );
 };
 

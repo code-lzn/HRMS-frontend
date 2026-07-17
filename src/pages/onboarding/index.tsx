@@ -154,21 +154,24 @@ const OnboardingPage: React.FC = () => {
         if (record.status === 'draft') {
           return (
             <Space>
-              <a onClick={handleSubmit}>提交审批</a>
-              <a onClick={handleEdit}>编辑</a>
+              <a onClick={() => handleSubmit()}>提交审批</a>
+              <a onClick={() => handleEdit()}>编辑</a>
             </Space>
           );
         }
         if (record.status === 'approving') {
           return (
-            <a onClick={handleWithdraw} style={{ color: '#fa8c16' }}>
+            <a onClick={() => handleWithdraw()} style={{ color: '#fa8c16' }}>
               撤回
             </a>
           );
         }
         if (record.status === 'approved') {
           return (
-            <a onClick={handleConfirmOnboard} style={{ color: '#1677ff' }}>
+            <a
+              onClick={() => handleConfirmOnboard()}
+              style={{ color: '#1677ff' }}
+            >
               确认入职
             </a>
           );
@@ -177,7 +180,7 @@ const OnboardingPage: React.FC = () => {
           return (
             <Space>
               <a>查看原因</a>
-              <a onClick={handleReapply}>重新发起</a>
+              <a onClick={() => handleReapply()}>重新发起</a>
             </Space>
           );
         }
