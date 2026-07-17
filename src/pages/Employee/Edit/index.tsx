@@ -71,43 +71,24 @@ const EmployeeEditPage: React.FC = () => {
   const [initialValues, setInitialValues] = useState<Record<string, any>>({});
   const [employeeName, setEmployeeName] = useState('');
   const [employeeNo, setEmployeeNo] = useState('');
+  const [probationRatio, setProbationRatio] = useState(0.8);
 
   // 直属上级搜索防抖
   const fetchRef = useRef(0);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const lockedFields = useMemo(() => {
-    // 调岗流程字段（所有人不可直接编辑）
-    const processFields = ['departmentId', 'positionId', 'directReportId', 'workLocation'];
-    // 需HR协助的字段（身份证/手机号唯一性约束）
-    const hrRequiredFields = ['phone', 'idCard'];
-    // 薪资合同字段（仅HR/管理员可编辑）
-    const salaryFields = ['contractType', 'contractExpireDate', 'probationRatio', 'baseSalary', 'bankAccount', 'bankName'];
-
-    // 优先 currentUser.roleId，其次 initialState.dataScope，兜底 5（普通员工）
-    const roleId: number =
-      Number(currentUser?.roleId) ||
-      Number(initialState?.dataScope) ||
-      5;
-
-    // 系统管理员(1)：所有字段可编辑
-    if (roleId === 1) return [];
-    // HR专员(2)：仅调岗流程字段不可直接编辑
-    if (roleId === 2) return processFields;
-    // 部门主管(3) / 财务(4) / 普通员工(5)：全部锁定
     const processFields = ['departmentId', 'positionId', 'directReportId', 'workLocation', 'hireDate'];
-    const alwaysLocked = ['employmentType', 'phone', 'idCard'];
+    const alwaysLocked = ['employmentType'];
     const salaryFields = ['contractType', 'contractExpireDate', 'probationRatio', 'accountSetId', 'baseSalary', 'bankAccount', 'bankName'];
-    const roleId = Number(currentUser?.roleId) || 5;
-    // 所有角色：工作信息 + 手机号 + 身份证号 不可编辑
-    const baseLocked = [...processFields, ...alwaysLocked];
-    if (roleId === 1) return baseLocked;               // 管理员
-    if (roleId === 2) return baseLocked;               // HR
     const personalInfoFields = ['employeeName', 'gender', 'email', 'birthday', 'registeredAddress', 'currentAddress'];
-    const restrictedFields = ['employmentType', 'hireDate'];
-    return [...processFields, ...hrRequiredFields, ...salaryFields, ...personalInfoFields, ...restrictedFields];
-  }, [currentUser, initialState?.dataScope]);
-    return [...baseLocked, ...salaryFields, ...personalInfoFields];
+
+    const roleId = Number(currentUser?.roleId) || 5;
+    const baseLocked = [...processFields, ...alwaysLocked];
+
+    if (roleId === 1) return baseLocked;  // 管理员
+    if (roleId === 2) return baseLocked;  // HR
+    return [...baseLocked, ...salaryFields, ...personalInfoFields]; // 其他角色全部锁定
   }, [currentUser]);
 
   const isLocked = (field: string) => lockedFields.includes(field);
@@ -124,13 +105,18 @@ const EmployeeEditPage: React.FC = () => {
     return build(deptTreeData);
   }, [deptTreeData]);
 
+  // 监听所属部门变化，筛选对应部门的员工
+  const selectedDeptId = Form.useWatch('departmentId', form);
+
   // 搜索员工（直属上级）
-  const searchEmployee = useCallback(async (keyword: string) => {
-    if (!keyword) { setEmployeeOptions([]); return; }
+  const searchEmployee = useCallback(async (keyword: string, deptId?: number) => {
     fetchRef.current += 1;
     const fetchId = fetchRef.current;
     try {
-      const res = await listEmployeesUsingGet({ keyword, page: 1, size: 20 });
+      const params: any = { page: 1, size: 20 };
+      if (keyword) params.keyword = keyword;
+      if (deptId) params.departmentIds = [deptId];
+      const res = await listEmployeesUsingGet(params);
       if (fetchId === fetchRef.current) {
         const data = (res as any)?.data?.records ?? [];
         setEmployeeOptions(data.map((e: any) => ({ value: e.id, label: `${e.employeeName} (${e.employeeNo})` })));
@@ -140,8 +126,13 @@ const EmployeeEditPage: React.FC = () => {
 
   const debouncedSearch = useCallback((kw: string) => {
     clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => searchEmployee(kw), 400);
-  }, [searchEmployee]);
+    debounceTimerRef.current = setTimeout(() => searchEmployee(kw, selectedDeptId), 400);
+  }, [searchEmployee, selectedDeptId]);
+
+  // 部门变化时重新加载直属上级候选
+  useEffect(() => {
+    searchEmployee('', selectedDeptId);
+  }, [selectedDeptId, searchEmployee]);
 
   const loadData = useCallback(async () => {
     if (!employeeId) return;
@@ -188,6 +179,7 @@ const EmployeeEditPage: React.FC = () => {
         if (vals.hireDate) vals.hireDate = dayjs(vals.hireDate);
         form.setFieldsValue(vals);
         setInitialValues(vals);
+        if (vals.probationRatio !== null && vals.probationRatio !== undefined) setProbationRatio(vals.probationRatio);
       }
     } catch (e: any) {
       message.error(e.message ?? '加载员工信息失败');
@@ -229,13 +221,15 @@ const EmployeeEditPage: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
-      await form.validateFields();
-      setSubmitting(true);
       const changedFields = getChangedFields();
-      if (Object.keys(changedFields).length <= 1) {
+      const changedKeys = Object.keys(changedFields).filter((k) => k !== 'id');
+      if (changedKeys.length === 0) {
         message.info('没有修改任何内容');
         return;
       }
+      // 只校验有变更的字段
+      await form.validateFields(changedKeys);
+      setSubmitting(true);
       await updateEmployeeUsingPut(changedFields);
       message.success('保存成功');
       setHasChanges(false);
@@ -306,7 +300,7 @@ const EmployeeEditPage: React.FC = () => {
               <Select placeholder="请选择" disabled={isLocked('gender')}
                 options={[{ value: 1, label: '男' }, { value: 0, label: '女' }]} style={inputStyle} />
             </Form.Item>
-            <Form.Item name="phone" label={lockedLabel('手机号', 'phone', '需调岗流程修改')}
+            <Form.Item name="phone" label={lockedLabel('手机号', 'phone', '')}
               rules={isLocked('phone') ? [] : [{ required: true, message: '请输入手机号' }, { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确' }]}>
               <Input placeholder="请输入手机号" maxLength={11} style={isLocked('phone') ? disabledInputStyle : inputStyle} disabled={isLocked('phone')} />
             </Form.Item>
@@ -314,7 +308,7 @@ const EmployeeEditPage: React.FC = () => {
               rules={[{ type: 'email', message: '邮箱格式不正确' }]}>
               <Input placeholder="请输入邮箱" style={isLocked('email') ? disabledInputStyle : inputStyle} disabled={isLocked('email')} />
             </Form.Item>
-            <Form.Item name="idCard" label={lockedLabel('身份证号', 'idCard', '需调岗流程修改')}
+            <Form.Item name="idCard" label={lockedLabel('身份证号', 'idCard', '')}
               rules={isLocked('idCard') ? [] : [{ required: true, message: '请输入身份证号' }, { pattern: /^\d{17}[\dXx]$/, message: '身份证号格式不正确' }]}>
               <Input placeholder="请输入身份证号" maxLength={18} style={isLocked('idCard') ? disabledInputStyle : inputStyle} disabled={isLocked('idCard')} />
             </Form.Item>
@@ -360,9 +354,9 @@ const EmployeeEditPage: React.FC = () => {
                 rules={[{ max: 64 }]}>
                 <Input placeholder="请输入工作地点" maxLength={64} style={isLocked('workLocation') ? disabledInputStyle : inputStyle} disabled={isLocked('workLocation')} />
               </Form.Item>
-              <Form.Item name="hireDate" label="入职日期"
+              <Form.Item name="hireDate" label={lockedLabel('入职日期', 'hireDate', '需调岗流程修改')}
                 rules={[{ required: true, message: '请选择入职日期' }]}>
-                <DatePicker style={{ width: '100%', ...inputStyle }} />
+                <DatePicker style={{ width: '100%', ...inputStyle }} disabled={isLocked('hireDate')} />
               </Form.Item>
               <Form.Item name="employmentType" label={lockedLabel('录用类型', 'employmentType', '录用类型不可修改')}
                 rules={[{ required: true, message: '请选择录用类型' }]}>
@@ -405,13 +399,13 @@ const EmployeeEditPage: React.FC = () => {
                 </Form.Item>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                   <Slider min={0.6} max={1} step={0.05}
-                    defaultValue={0.8}
-                    onChange={(val) => { form.setFieldValue('probationRatio', val); }}
+                    value={probationRatio}
+                    onChange={(val) => { setProbationRatio(val); form.setFieldValue('probationRatio', val); }}
                     style={{ flex: 1 }}
                     tooltip={{ formatter: (v) => `${((v ?? 0.8) * 100).toFixed(0)}%` }}
                   />
                   <span style={{ fontSize: 18, fontWeight: 700, color: '#1677ff', minWidth: 48, textAlign: 'right' }}>
-                    {(form.getFieldValue('probationRatio') != null ? (form.getFieldValue('probationRatio') * 100).toFixed(0) : '80')}%
+                    {(probationRatio * 100).toFixed(0)}%
                   </span>
                 </div>
                 <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>范围：60% ~ 100%，步长 5%</div>

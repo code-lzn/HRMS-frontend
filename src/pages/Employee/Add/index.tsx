@@ -62,13 +62,18 @@ const EmployeeAddPage: React.FC = () => {
     return build(deptTreeData);
   }, [deptTreeData]);
 
+  // 监听所属部门变化，筛选对应部门的员工
+  const selectedDeptId = Form.useWatch('departmentId', form);
+
   // 搜索员工（直属上级）
-  const searchEmployee = useCallback(async (keyword: string) => {
-    if (!keyword) return;
+  const searchEmployee = useCallback(async (keyword: string, deptId?: number) => {
     fetchRef.current += 1;
     const fetchId = fetchRef.current;
     try {
-      const res = await listEmployeesUsingGet({ keyword, page: 1, size: 20 });
+      const params: any = { page: 1, size: 20 };
+      if (keyword) params.keyword = keyword;
+      if (deptId) params.departmentIds = [deptId];
+      const res = await listEmployeesUsingGet(params);
       if (fetchId === fetchRef.current) {
         const records = (res as any)?.data?.records ?? [];
         setEmployeeOptions(records.map((e: any) => ({ value: e.id, label: `${e.employeeName} (${e.employeeNo})` })));
@@ -78,8 +83,13 @@ const EmployeeAddPage: React.FC = () => {
 
   const debouncedSearch = useCallback((kw: string) => {
     clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => searchEmployee(kw), 400);
-  }, [searchEmployee]);
+    debounceTimerRef.current = setTimeout(() => searchEmployee(kw, selectedDeptId), 400);
+  }, [searchEmployee, selectedDeptId]);
+
+  // 部门变化时重新加载员工
+  useEffect(() => {
+    searchEmployee('', selectedDeptId);
+  }, [selectedDeptId, searchEmployee]);
 
   // 加载初始数据
   const loadData = useCallback(async () => {
