@@ -79,6 +79,55 @@ export async function confirmUsingPost(
   });
 }
 
+/** deptManagerApprove POST /api/onboarding/dept-manager/approve */
+export async function deptManagerApproveUsingPost(
+  body: API.ApprovalActionRequest,
+  options?: { [key: string]: any },
+) {
+  return request<API.BaseResponseBoolean_>(
+    '/api/onboarding/dept-manager/approve',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: body,
+      ...(options || {}),
+    },
+  );
+}
+
+/** getDeptManagerPendingList GET /api/onboarding/dept-manager/pending */
+export async function getDeptManagerPendingListUsingGet(options?: {
+  [key: string]: any;
+}) {
+  return request<API.BaseResponseListApprovalPendingVO_>(
+    '/api/onboarding/dept-manager/pending',
+    {
+      method: 'GET',
+      ...(options || {}),
+    },
+  );
+}
+
+/** deptManagerReject POST /api/onboarding/dept-manager/reject */
+export async function deptManagerRejectUsingPost(
+  body: API.ApprovalActionRequest,
+  options?: { [key: string]: any },
+) {
+  return request<API.BaseResponseBoolean_>(
+    '/api/onboarding/dept-manager/reject',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: body,
+      ...(options || {}),
+    },
+  );
+}
+
 /** detail GET /api/onboarding/detail */
 export async function detailUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
