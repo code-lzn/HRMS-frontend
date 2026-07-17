@@ -77,6 +77,24 @@ const EmployeeEditPage: React.FC = () => {
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const lockedFields = useMemo(() => {
+    // 调岗流程字段（所有人不可直接编辑）
+    const processFields = ['departmentId', 'positionId', 'directReportId', 'workLocation'];
+    // 需HR协助的字段（身份证/手机号唯一性约束）
+    const hrRequiredFields = ['phone', 'idCard'];
+    // 薪资合同字段（仅HR/管理员可编辑）
+    const salaryFields = ['contractType', 'contractExpireDate', 'probationRatio', 'baseSalary', 'bankAccount', 'bankName'];
+
+    // 优先 currentUser.roleId，其次 initialState.dataScope，兜底 5（普通员工）
+    const roleId: number =
+      Number(currentUser?.roleId) ||
+      Number(initialState?.dataScope) ||
+      5;
+
+    // 系统管理员(1)：所有字段可编辑
+    if (roleId === 1) return [];
+    // HR专员(2)：仅调岗流程字段不可直接编辑
+    if (roleId === 2) return processFields;
+    // 部门主管(3) / 财务(4) / 普通员工(5)：全部锁定
     const processFields = ['departmentId', 'positionId', 'directReportId', 'workLocation', 'hireDate'];
     const alwaysLocked = ['employmentType', 'phone', 'idCard'];
     const salaryFields = ['contractType', 'contractExpireDate', 'probationRatio', 'accountSetId', 'baseSalary', 'bankAccount', 'bankName'];
@@ -86,6 +104,9 @@ const EmployeeEditPage: React.FC = () => {
     if (roleId === 1) return baseLocked;               // 管理员
     if (roleId === 2) return baseLocked;               // HR
     const personalInfoFields = ['employeeName', 'gender', 'email', 'birthday', 'registeredAddress', 'currentAddress'];
+    const restrictedFields = ['employmentType', 'hireDate'];
+    return [...processFields, ...hrRequiredFields, ...salaryFields, ...personalInfoFields, ...restrictedFields];
+  }, [currentUser, initialState?.dataScope]);
     return [...baseLocked, ...salaryFields, ...personalInfoFields];
   }, [currentUser]);
 

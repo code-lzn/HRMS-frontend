@@ -30,11 +30,8 @@ myAxios.interceptors.response.use(
     const { data } = response;
     // 未登录
     if (data.code === 40100) {
-      // 不是获取用户信息接口，或者不是登录页面，则跳转到登录页面
-      if (
-        !response.request.responseURL.includes('user/get/login') &&
-        !window.location.pathname.includes('/user/login')
-      ) {
+      // 不在登录页面则跳转到登录页
+      if (!window.location.pathname.includes('/user/login')) {
         const redirect = window.location.pathname + window.location.search;
         window.location.href = `/user/login?redirect=${encodeURIComponent(redirect)}`;
       }
