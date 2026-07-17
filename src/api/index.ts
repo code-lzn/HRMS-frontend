@@ -6,6 +6,8 @@ import * as accountSecurityController from './accountSecurityController';
 import * as analyticsController from './analyticsController';
 import * as approvalController from './approvalController';
 import * as attendanceController from './attendanceController';
+import * as attendanceRuleController from './attendanceRuleController';
+import * as attendanceStatsController from './attendanceStatsController';
 import * as dashboardController from './dashboardController';
 import * as departmentController from './departmentController';
 import * as employeeController from './employeeController';
@@ -32,6 +34,8 @@ export default {
   attendanceController,
   leaveController,
   makeupPunchController,
+  attendanceRuleController,
+  attendanceStatsController,
   dashboardController,
   departmentController,
   employeeController,

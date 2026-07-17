@@ -97,6 +97,11 @@ declare namespace API {
     id: number;
   };
 
+  type assignEmployeesUsingPOSTParams = {
+    /** groupId */
+    groupId: number;
+  };
+
   type AttendanceCalendarVO = {
     dailyStatus?: Record<string, any>;
     lateDays?: number;
@@ -105,6 +110,65 @@ declare namespace API {
     missingDays?: number;
     month?: string;
     normalDays?: number;
+  };
+
+  type AttendanceGroupDTO = {
+    description?: string;
+    earlyThreshold?: number;
+    employeeIds?: number[];
+    flexibleEnd?: string;
+    flexibleStart?: string;
+    groupName?: string;
+    id?: number;
+    lateThreshold?: number;
+    lunchEndTime?: string;
+    lunchStartTime?: string;
+    shiftType?: number;
+    status?: number;
+    workEndTime?: string;
+    workStartTime?: string;
+  };
+
+  type AttendanceGroupVO = {
+    createTime?: string;
+    description?: string;
+    earlyThreshold?: number;
+    employeeCount?: number;
+    employeeIds?: number[];
+    flexibleEnd?: string;
+    flexibleStart?: string;
+    groupName?: string;
+    id?: number;
+    lateThreshold?: number;
+    lunchEndTime?: string;
+    lunchStartTime?: string;
+    shiftType?: number;
+    shiftTypeText?: string;
+    status?: number;
+    statusText?: string;
+    updateTime?: string;
+    workEndTime?: string;
+    workStartTime?: string;
+  };
+
+  type AttendanceStatsVO = {
+    absentDays?: number;
+    attendanceRate?: number;
+    departmentName?: string;
+    earlyDays?: number;
+    employeeId?: number;
+    employeeName?: string;
+    lateDays?: number;
+    leaveDays?: number;
+    missingDays?: number;
+    normalDays?: number;
+    positionName?: string;
+    totalDays?: number;
+  };
+
+  type AttendanceTrendVO = {
+    months?: string[];
+    rates?: number[];
   };
 
   type AttendanceVO = {
@@ -134,6 +198,24 @@ declare namespace API {
   type BaseResponseAttendanceCalendarVO_ = {
     code?: number;
     data?: AttendanceCalendarVO;
+    message?: string;
+  };
+
+  type BaseResponseAttendanceGroupVO_ = {
+    code?: number;
+    data?: AttendanceGroupVO;
+    message?: string;
+  };
+
+  type BaseResponseAttendanceStatsVO_ = {
+    code?: number;
+    data?: AttendanceStatsVO;
+    message?: string;
+  };
+
+  type BaseResponseAttendanceTrendVO_ = {
+    code?: number;
+    data?: AttendanceTrendVO;
     message?: string;
   };
 
@@ -185,6 +267,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseHolidayConfigVO_ = {
+    code?: number;
+    data?: HolidayConfigVO;
+    message?: string;
+  };
+
   type BaseResponseHRAttendanceVO_ = {
     code?: number;
     data?: HRAttendanceVO;
@@ -227,6 +315,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseLeaveTypeDistributionVO_ = {
+    code?: number;
+    data?: LeaveTypeDistributionVO;
+    message?: string;
+  };
+
   type BaseResponseLeaveVO_ = {
     code?: number;
     data?: LeaveVO;
@@ -245,6 +339,18 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseListAttendanceGroupVO_ = {
+    code?: number;
+    data?: AttendanceGroupVO[];
+    message?: string;
+  };
+
+  type BaseResponseListAttendanceStatsVO_ = {
+    code?: number;
+    data?: AttendanceStatsVO[];
+    message?: string;
+  };
+
   type BaseResponseListAttendanceVO_ = {
     code?: number;
     data?: AttendanceVO[];
@@ -257,6 +363,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseListDepartmentAttendanceStatsVO_ = {
+    code?: number;
+    data?: DepartmentAttendanceStatsVO[];
+    message?: string;
+  };
+
   type BaseResponseListDepartmentTreeVO_ = {
     code?: number;
     data?: DepartmentTreeVO[];
@@ -266,6 +378,12 @@ declare namespace API {
   type BaseResponseListGrowthTrendVO_ = {
     code?: number;
     data?: GrowthTrendVO[];
+    message?: string;
+  };
+
+  type BaseResponseListHolidayConfigVO_ = {
+    code?: number;
+    data?: HolidayConfigVO[];
     message?: string;
   };
 
@@ -633,6 +751,16 @@ declare namespace API {
     id: number;
   };
 
+  type deleteGroupUsingDELETEParams = {
+    /** id */
+    id: number;
+  };
+
+  type deleteHolidayUsingDELETEParams = {
+    /** id */
+    id: number;
+  };
+
   type deleteItemUsingDELETEParams = {
     /** itemId */
     itemId: number;
@@ -674,6 +802,21 @@ declare namespace API {
     name?: string;
     parentId?: number;
     sortOrder?: number;
+  };
+
+  type DepartmentAttendanceStatsVO = {
+    absentDays?: number;
+    actualAttendanceDays?: number;
+    attendanceRate?: number;
+    departmentId?: number;
+    departmentName?: string;
+    earlyCount?: number;
+    employeeCount?: number;
+    lateCount?: number;
+    lateRate?: number;
+    leaveDays?: number;
+    leaveRate?: number;
+    totalWorkDays?: number;
   };
 
   type DepartmentMergeRequest = {
@@ -942,6 +1085,13 @@ declare namespace API {
     id: number;
   };
 
+  type getAttendanceTrendUsingGETParams = {
+    /** departmentId */
+    departmentId: number;
+    /** months */
+    months?: number;
+  };
+
   type getBatchDetailUsingGETParams = {
     /** id */
     id: number;
@@ -980,6 +1130,11 @@ declare namespace API {
     id: number;
   };
 
+  type getDepartmentStatsUsingGETParams = {
+    /** month */
+    month: string;
+  };
+
   type getDetailUsingGET1Params = {
     /** id */
     id: number;
@@ -1000,9 +1155,34 @@ declare namespace API {
     employeeId: number;
   };
 
+  type getGroupDetailUsingGETParams = {
+    /** id */
+    id: number;
+  };
+
   type getGrowthTrendUsingGETParams = {
     /** range */
     range?: string;
+  };
+
+  type getHolidayDetailUsingGETParams = {
+    /** id */
+    id: number;
+  };
+
+  type getHolidaysByYearUsingGETParams = {
+    /** year */
+    year: number;
+  };
+
+  type getLateEarlyRankingUsingGETParams = {
+    /** month */
+    month: string;
+  };
+
+  type getLeaveTypeDistributionUsingGETParams = {
+    /** month */
+    month: string;
   };
 
   type getMonthRecordsUsingGETParams = {
@@ -1013,6 +1193,11 @@ declare namespace API {
   type getMyProfileUsingGET1Params = {
     /** employeeId */
     employeeId?: number;
+  };
+
+  type getPersonalStatsUsingGETParams = {
+    /** month */
+    month: string;
   };
 
   type getRoleByIdUsingGETParams = {
@@ -1049,6 +1234,27 @@ declare namespace API {
     date?: string;
     revenue?: number;
     userCount?: number;
+  };
+
+  type HolidayConfig = {
+    createTime?: string;
+    description?: string;
+    holidayDate?: string;
+    holidayName?: string;
+    holidayType?: number;
+    id?: number;
+    updateTime?: string;
+  };
+
+  type HolidayConfigVO = {
+    createTime?: string;
+    description?: string;
+    holidayDate?: string;
+    holidayName?: string;
+    holidayType?: number;
+    holidayTypeText?: string;
+    id?: number;
+    updateTime?: string;
   };
 
   type HRAttendanceDTO = {
@@ -1179,6 +1385,12 @@ declare namespace API {
   type LeaveProgressVO = {
     leave?: LeaveVO;
     progressNodes?: ProgressNode[];
+  };
+
+  type LeaveTypeDistributionVO = {
+    counts?: number[];
+    leaveTypes?: string[];
+    percentages?: number[];
   };
 
   type LeaveVO = {
@@ -1695,6 +1907,11 @@ declare namespace API {
   type rejectBatchUsingPOSTParams = {
     /** id */
     id: number;
+  };
+
+  type removeEmployeesUsingDELETEParams = {
+    /** groupId */
+    groupId: number;
   };
 
   type ResignationAddRequest = {
