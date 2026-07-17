@@ -16,6 +16,16 @@ export async function updateMyProfileUsingPost(body: API.EmpProfileUpdateRequest
   });
 }
 
+// ========== 兼容旧版调用（审批中心等页面使用） ==========
+
+/** 查询员工列表（简单参数版，兼容审批中心等旧调用） */
+export async function getEmployeeList(
+  params: { current?: number; pageSize?: number; name?: string },
+  options?: { [key: string]: any },
+) {
+  return request<API.BaseResponsePageEmployeeListVO_>('/api/v1/employees', { method: 'GET', params, ...(options || {}) });
+}
+
 // ========== 员工 CRUD（自动生成） ==========
 
 /** getEmployeeList GET /api/api/v1/employees */

@@ -608,7 +608,24 @@ declare namespace API {
   type BaseResponseApprovalDelegateVO_ = { code?: number; data?: ApprovalDelegateVO; message?: string };
   type BaseResponseMyDelegatesVO_ = { code?: number; data?: MyDelegatesVO; message?: string };
   type BaseResponsePendingCountVO_ = { code?: number; data?: PendingCountVO; message?: string };
-  type EmployeeListVO = { id?: number; employeeNo?: string; name?: string; departmentName?: string; positionName?: string };
-  type PageEmployeeListVO_ = { records?: EmployeeListVO[]; total?: number };
-  type BaseResponsePageEmployeeListVO_ = { code?: number; data?: PageEmployeeListVO_; message?: string };
+  // ============ 员工 Profile（兼容旧版） ============
+  type EmpProfileVO = {
+    id?: number;
+    name?: string;
+    phone?: string;
+    email?: string;
+    idCard?: string;
+    gender?: number;
+    userAvatar?: string;
+    departmentName?: string;
+    positionName?: string;
+  };
+  type BaseResponseEmpProfileVO_ = { code?: number; data?: EmpProfileVO; message?: string };
+  type EmpProfileUpdateRequest = {
+    name?: string;
+    phone?: string;
+    email?: string;
+    gender?: number;
+    userAvatar?: string;
+  };
 }
