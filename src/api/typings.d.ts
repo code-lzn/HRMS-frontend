@@ -1,136 +1,677 @@
 declare namespace API {
-  type BaseResponseBoolean_ = {
+  type abandonUsingPOSTParams = {
+    /** id */
+    id: number;
+  };
+
+  type addItemUsingPOSTParams = {
+    /** id */
+    id: number;
+  };
+
+  type adjustDetailUsingPUTParams = {
+    /** detailId */
+    detailId: number;
+  };
+
+  type ApprovalActionDTO = {
+    comment?: string;
+    toApproverId?: number;
+  };
+
+  type ApprovalDelegate = {
+    createTime?: string;
+    delegateId?: number;
+    delegatorId?: number;
+    enabled?: number;
+    endTime?: string;
+    id?: number;
+    startTime?: string;
+    updateTime?: string;
+  };
+
+  type ApprovalInstanceVO = {
+    applicantId?: number;
+    applicantName?: string;
+    bizType?: string;
+    bizTypeDesc?: string;
+    createTime?: string;
+    currentNodeOrder?: number;
+    instanceId?: number;
+    nodes?: ApprovalNodeVO[];
+    status?: number;
+    statusDesc?: string;
+    title?: string;
+  };
+
+  type ApprovalNodeVO = {
+    approverId?: number;
+    approverName?: string;
+    comment?: string;
+    nodeId?: number;
+    nodeName?: string;
+    nodeOrder?: number;
+    operateTime?: string;
+    originalApproverId?: number;
+    originalApproverName?: string;
+    status?: number;
+    statusDesc?: string;
+  };
+
+  type approveUsingPOSTParams = {
+    /** nodeId */
+    nodeId: number;
+  };
+
+  type AttendanceCalendarVO = {
+    days?: DayItem[];
+    month?: number;
+    summary?: Summary;
+    year?: number;
+  };
+
+  type AttendanceGroupCreateRequest = {
+    coreEndTime?: string;
+    coreStartTime?: string;
+    earlyLeaveThreshold?: number;
+    endTime?: string;
+    flexEndTime?: string;
+    flexStartTime?: string;
+    ipWhitelist?: string;
+    lateThreshold?: number;
+    name?: string;
+    restEndTime?: string;
+    restStartTime?: string;
+    rules?: RuleDTO[];
+    shiftType?: number;
+    startTime?: string;
+  };
+
+  type AttendanceGroupListVO = {
+    createTime?: string;
+    earlyLeaveThreshold?: number;
+    endTime?: string;
+    id?: number;
+    lateThreshold?: number;
+    name?: string;
+    ruleSummary?: string;
+    shiftType?: number;
+    shiftTypeDesc?: string;
+    startTime?: string;
+  };
+
+  type AttendanceGroupUpdateRequest = {
+    coreEndTime?: string;
+    coreStartTime?: string;
+    earlyLeaveThreshold?: number;
+    endTime?: string;
+    flexEndTime?: string;
+    flexStartTime?: string;
+    ipWhitelist?: string;
+    lateThreshold?: number;
+    name?: string;
+    restEndTime?: string;
+    restStartTime?: string;
+    rules?: RuleDTO[];
+    shiftType?: number;
+    startTime?: string;
+  };
+
+  type AttendanceGroupVO = {
+    coreEndTime?: string;
+    coreStartTime?: string;
+    createTime?: string;
+    earlyLeaveThreshold?: number;
+    endTime?: string;
+    flexEndTime?: string;
+    flexStartTime?: string;
+    id?: number;
+    ipWhitelist?: string;
+    lateThreshold?: number;
+    name?: string;
+    restEndTime?: string;
+    restStartTime?: string;
+    rules?: RuleDTO[];
+    shiftType?: number;
+    shiftTypeDesc?: string;
+    startTime?: string;
+    updateTime?: string;
+  };
+
+  type AttendanceRateChartVO = {
+    months?: string[];
+    series?: SeriesItem[];
+  };
+
+  type AttendanceRecordVO = {
+    actualEndTime?: string;
+    actualStartTime?: string;
+    attendanceDate?: string;
+    departmentName?: string;
+    employeeId?: number;
+    employeeName?: string;
+    endStatus?: number;
+    endStatusDesc?: string;
+    id?: number;
+    scheduledEndTime?: string;
+    scheduledStartTime?: string;
+    startStatus?: number;
+    startStatusDesc?: string;
+  };
+
+  type BalanceItem = {
+    leaveType?: number;
+    leaveTypeDesc?: string;
+    remainingDays?: number;
+    totalDays?: number;
+    usedDays?: number;
+  };
+
+  type BaseResponseOfApprovalDelegate = {
+    code?: number;
+    data?: ApprovalDelegate;
+    message?: string;
+  };
+
+  type BaseResponseOfApprovalInstanceVO = {
+    code?: number;
+    data?: ApprovalInstanceVO;
+    message?: string;
+  };
+
+  type BaseResponseOfAttendanceCalendarVO = {
+    code?: number;
+    data?: AttendanceCalendarVO;
+    message?: string;
+  };
+
+  type BaseResponseOfAttendanceGroupVO = {
+    code?: number;
+    data?: AttendanceGroupVO;
+    message?: string;
+  };
+
+  type BaseResponseOfAttendanceRateChartVO = {
+    code?: number;
+    data?: AttendanceRateChartVO;
+    message?: string;
+  };
+
+  type BaseResponseOfboolean = {
     code?: number;
     data?: boolean;
     message?: string;
   };
 
-  type BaseResponseDepartment_ = {
+  type BaseResponseOfClockResultVO = {
+    code?: number;
+    data?: ClockResultVO;
+    message?: string;
+  };
+
+  type BaseResponseOfDepartment = {
     code?: number;
     data?: Department;
     message?: string;
   };
 
-  type BaseResponseDepartmentVO_ = {
+  type BaseResponseOfDepartmentVO = {
     code?: number;
     data?: DepartmentVO;
     message?: string;
   };
 
-  type BaseResponseEmployeeCreateVO_ = {
+  type BaseResponseOfEmployeeCreateVO = {
     code?: number;
     data?: EmployeeCreateVO;
     message?: string;
   };
 
-  type BaseResponseEmployeeDetailVO_ = {
+  type BaseResponseOfEmployeeDetailVO = {
     code?: number;
     data?: EmployeeDetailVO;
     message?: string;
   };
 
-  type BaseResponseEmployeeUpdateVO_ = {
+  type BaseResponseOfEmployeeSalaryVO = {
+    code?: number;
+    data?: EmployeeSalaryVO;
+    message?: string;
+  };
+
+  type BaseResponseOfEmployeeUpdateVO = {
     code?: number;
     data?: EmployeeUpdateVO;
     message?: string;
   };
 
-  type BaseResponseFieldPermissionsVO_ = {
+  type BaseResponseOfFieldPermissionsVO = {
     code?: number;
     data?: FieldPermissionsVO;
     message?: string;
   };
 
-  type BaseResponseListDepartmentTreeNode_ = {
+  type BaseResponseOfLeaveBalanceVO = {
+    code?: number;
+    data?: LeaveBalanceVO;
+    message?: string;
+  };
+
+  type BaseResponseOfLeaveRequestVO = {
+    code?: number;
+    data?: LeaveRequestVO;
+    message?: string;
+  };
+
+  type BaseResponseOfListOfDepartmentTreeNode = {
     code?: number;
     data?: DepartmentTreeNode[];
     message?: string;
   };
 
-  type BaseResponseListMapStringObject_ = {
+  type BaseResponseOfListOfLeaveDistributionVO = {
     code?: number;
-    data?: MapStringObject_[];
+    data?: LeaveDistributionVO[];
     message?: string;
   };
 
-  type BaseResponseLoginUserVO_ = {
+  type BaseResponseOfListOfLeaveEarlyRankingVO = {
+    code?: number;
+    data?: LeaveEarlyRankingVO[];
+    message?: string;
+  };
+
+  type BaseResponseOfListOfMapOfstringAndobject = {
+    code?: number;
+    data?: MapOfstringAndobject[];
+    message?: string;
+  };
+
+  type BaseResponseOfListOfPayslipVO = {
+    code?: number;
+    data?: PayslipVO[];
+    message?: string;
+  };
+
+  type BaseResponseOfListOfPendingEmployeeVO = {
+    code?: number;
+    data?: PendingEmployeeVO[];
+    message?: string;
+  };
+
+  type BaseResponseOfListOfSalaryAccountVO = {
+    code?: number;
+    data?: SalaryAccountVO[];
+    message?: string;
+  };
+
+  type BaseResponseOfListOfSalaryChangeHistoryVO = {
+    code?: number;
+    data?: SalaryChangeHistoryVO[];
+    message?: string;
+  };
+
+  type BaseResponseOfListOfSalaryItemVO = {
+    code?: number;
+    data?: SalaryItemVO[];
+    message?: string;
+  };
+
+  type BaseResponseOfLoginUserVO = {
     code?: number;
     data?: LoginUserVO;
     message?: string;
   };
 
-  type BaseResponseLong_ = {
+  type BaseResponseOflong = {
     code?: number;
     data?: number;
     message?: string;
   };
 
-  type BaseResponsePageDepartmentVO_ = {
+  type BaseResponseOfMapOfstringAndListOfApprovalDelegate = {
     code?: number;
-    data?: PageDepartmentVO_;
+    data?: Record<string, any>;
     message?: string;
   };
 
-  type BaseResponsePageEmployeeListVO_ = {
+  type BaseResponseOfMapOfstringAndlong = {
     code?: number;
-    data?: PageEmployeeListVO_;
+    data?: Record<string, any>;
     message?: string;
   };
 
-  type BaseResponsePagePositionVO_ = {
+  type BaseResponseOfMapOfstringAndobject = {
     code?: number;
-    data?: PagePositionVO_;
+    data?: Record<string, any>;
     message?: string;
   };
 
-  type BaseResponsePageUser_ = {
+  type BaseResponseOfMapOfstringAndstring = {
     code?: number;
-    data?: PageUser_;
+    data?: Record<string, any>;
     message?: string;
   };
 
-  type BaseResponsePageUserVO_ = {
+  type BaseResponseOfobject = {
     code?: number;
-    data?: PageUserVO_;
+    data?: Record<string, any>;
     message?: string;
   };
 
-  type BaseResponsePosition_ = {
+  type BaseResponseOfOnboardingDetailVO = {
+    code?: number;
+    data?: OnboardingDetailVO;
+    message?: string;
+  };
+
+  type BaseResponseOfOvertimeRecordVO = {
+    code?: number;
+    data?: OvertimeRecordVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPageOfAttendanceGroupListVO = {
+    code?: number;
+    data?: PageOfAttendanceGroupListVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPageOfAttendanceRecordVO = {
+    code?: number;
+    data?: PageOfAttendanceRecordVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPageOfEmployeeListVO = {
+    code?: number;
+    data?: PageOfEmployeeListVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPageOfLeaveRequestVO = {
+    code?: number;
+    data?: PageOfLeaveRequestVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPageOfOnboardingListVO = {
+    code?: number;
+    data?: PageOfOnboardingListVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPageOfOvertimeRecordListVO = {
+    code?: number;
+    data?: PageOfOvertimeRecordListVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPageOfPendingItemVO = {
+    code?: number;
+    data?: PageOfPendingItemVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPageOfPositionVO = {
+    code?: number;
+    data?: PageOfPositionVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPageOfProbationListVO = {
+    code?: number;
+    data?: PageOfProbationListVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPageOfProcessedItemVO = {
+    code?: number;
+    data?: PageOfProcessedItemVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPageOfResignationListVO = {
+    code?: number;
+    data?: PageOfResignationListVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPageOfSalaryBatchVO = {
+    code?: number;
+    data?: PageOfSalaryBatchVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPageOfSalaryDetailVO = {
+    code?: number;
+    data?: PageOfSalaryDetailVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPageOfSupplementCardListVO = {
+    code?: number;
+    data?: PageOfSupplementCardListVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPageOfTransferHistoryVO = {
+    code?: number;
+    data?: PageOfTransferHistoryVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPageOfTransferListVO = {
+    code?: number;
+    data?: PageOfTransferListVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPageOfUser = {
+    code?: number;
+    data?: PageOfUser;
+    message?: string;
+  };
+
+  type BaseResponseOfPageOfUserVO = {
+    code?: number;
+    data?: PageOfUserVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPayslipVO = {
+    code?: number;
+    data?: PayslipVO;
+    message?: string;
+  };
+
+  type BaseResponseOfPosition = {
     code?: number;
     data?: Position;
     message?: string;
   };
 
-  type BaseResponsePositionVO_ = {
+  type BaseResponseOfPositionVO = {
     code?: number;
     data?: PositionVO;
     message?: string;
   };
 
-  type BaseResponseString_ = {
+  type BaseResponseOfProbationDetailVO = {
+    code?: number;
+    data?: ProbationDetailVO;
+    message?: string;
+  };
+
+  type BaseResponseOfResignationDetailVO = {
+    code?: number;
+    data?: ResignationDetailVO;
+    message?: string;
+  };
+
+  type BaseResponseOfSalaryAccountVO = {
+    code?: number;
+    data?: SalaryAccountVO;
+    message?: string;
+  };
+
+  type BaseResponseOfSalaryBatchVO = {
+    code?: number;
+    data?: SalaryBatchVO;
+    message?: string;
+  };
+
+  type BaseResponseOfstring = {
     code?: number;
     data?: string;
     message?: string;
   };
 
-  type BaseResponseUser_ = {
+  type BaseResponseOfSupplementCardVO = {
+    code?: number;
+    data?: SupplementCardVO;
+    message?: string;
+  };
+
+  type BaseResponseOfTransferDetailVO = {
+    code?: number;
+    data?: TransferDetailVO;
+    message?: string;
+  };
+
+  type BaseResponseOfUser = {
     code?: number;
     data?: User;
     message?: string;
   };
 
-  type BaseResponseUserVO_ = {
+  type BaseResponseOfUserVO = {
     code?: number;
     data?: UserVO;
     message?: string;
   };
 
-  type BaseResponseVoid_ = {
+  type BaseResponseOfVoid = {
     code?: number;
     message?: string;
   };
 
+  type cancelDelegateUsingDELETEParams = {
+    /** id */
+    id: number;
+  };
+
+  type cancelUsingPOST1Params = {
+    /** id */
+    id: number;
+  };
+
+  type cancelUsingPOST2Params = {
+    /** id */
+    id: number;
+  };
+
+  type cancelUsingPOST3Params = {
+    /** id */
+    id: number;
+  };
+
+  type cancelUsingPOST4Params = {
+    /** id */
+    id: number;
+  };
+
+  type cancelUsingPOSTParams = {
+    /** instanceId */
+    instanceId: number;
+  };
+
+  type checkPhoneUsingGETParams = {
+    /** excludeId */
+    excludeId?: number;
+    /** phone */
+    phone: string;
+  };
+
+  type ClockRequest = {
+    clockType?: number;
+  };
+
+  type ClockResultVO = {
+    actualTime?: string;
+    attendanceDate?: string;
+    clockType?: number;
+    clockTypeDesc?: string;
+    scheduledTime?: string;
+    status?: number;
+    statusDesc?: string;
+  };
+
+  type confirmJoinUsingPOSTParams = {
+    /** actualHireDate */
+    actualHireDate: string;
+    /** id */
+    id: number;
+  };
+
+  type DayItem = {
+    date?: string;
+    dayType?: number;
+    dayTypeDesc?: string;
+    endStatus?: number;
+    endStatusDesc?: string;
+    hasLeave?: boolean;
+    startStatus?: number;
+    startStatusDesc?: string;
+  };
+
+  type DelegateSettingDTO = {
+    delegateId?: number;
+    endTime?: string;
+    startTime?: string;
+  };
+
+  type deleteAccountUsingDELETEParams = {
+    /** id */
+    id: number;
+  };
+
+  type deleteAttendanceGroupUsingDELETEParams = {
+    /** id */
+    id: number;
+  };
+
   type deleteDepartmentUsingDELETEParams = {
+    /** id */
+    id: number;
+  };
+
+  type deleteDraftUsingDELETE1Params = {
+    /** id */
+    id: number;
+  };
+
+  type deleteDraftUsingDELETE2Params = {
+    /** id */
+    id: number;
+  };
+
+  type deleteDraftUsingDELETE3Params = {
+    /** id */
+    id: number;
+  };
+
+  type deleteDraftUsingDELETEParams = {
+    /** id */
+    id: number;
+  };
+
+  type deleteItemUsingDELETEParams = {
+    /** itemId */
+    itemId: number;
+  };
+
+  type deleteOvertimeRecordUsingDELETEParams = {
     /** id */
     id: number;
   };
@@ -150,6 +691,7 @@ declare namespace API {
     description?: string;
     id?: number;
     isDeleted?: number;
+    level?: number;
     managerId?: number;
     name?: string;
     parentId?: number;
@@ -172,6 +714,7 @@ declare namespace API {
     description?: string;
     employeeCount?: number;
     id?: number;
+    level?: number;
     managerId?: number;
     managerName?: string;
     name?: string;
@@ -262,9 +805,48 @@ declare namespace API {
     statusDesc?: string;
   };
 
+  type EmployeeSalaryUpdateRequest = {
+    /** 薪资账套 ID */
+    accountId?: number;
+    /** 津贴补贴基数 */
+    allowanceBase?: number;
+    /** 月基本工资 */
+    baseSalary?: number;
+    /** 生效日期 */
+    effectiveDate?: string;
+    /** 公积金缴费基数 */
+    housingFundBase?: number;
+    /** 绩效工资基数 */
+    performanceBase?: number;
+    /** 变更备注 */
+    remark?: string;
+    /** 社保缴费基数 */
+    socialSecurityBase?: number;
+  };
+
+  type EmployeeSalaryVO = {
+    accountId?: number;
+    accountName?: string;
+    allowanceBase?: number;
+    baseSalary?: number;
+    createTime?: string;
+    effectiveDate?: string;
+    employeeId?: number;
+    housingFundBase?: number;
+    id?: number;
+    performanceBase?: number;
+    socialSecurityBase?: number;
+    updateTime?: string;
+  };
+
   type EmployeeUpdateVO = {
     flowRequiredFields?: string[];
     updatedFields?: string[];
+  };
+
+  type executeCalculateUsingPOSTParams = {
+    /** id */
+    id: number;
   };
 
   type FieldPermissionsVO = {
@@ -273,18 +855,72 @@ declare namespace API {
     viewableFields?: string[];
   };
 
+  type getAccountUsingGETParams = {
+    /** id */
+    id: number;
+  };
+
+  type getAttendanceRateUsingGETParams = {
+    /** departmentIds */
+    departmentIds?: number[];
+    /** months */
+    months?: number;
+  };
+
+  type getBalancesUsingGETParams = {
+    /** employeeId */
+    employeeId?: number;
+    /** year */
+    year?: number;
+  };
+
+  type getBatchDetailUsingGETParams = {
+    /** id */
+    id: number;
+  };
+
+  type getCalendarUsingGETParams = {
+    /** employeeId */
+    employeeId?: number;
+    /** month */
+    month: number;
+    /** year */
+    year: number;
+  };
+
   type getDepartmentDetailUsingGETParams = {
     /** id */
     id: number;
   };
 
   type getDepartmentListUsingGETParams = {
-    current?: number;
+    /** keyword */
     keyword?: string;
-    pageSize?: number;
-    parentId?: number;
-    sortField?: string;
-    sortOrder?: string;
+  };
+
+  type getDetailUsingGET1Params = {
+    /** id */
+    id: number;
+  };
+
+  type getDetailUsingGET2Params = {
+    /** id */
+    id: number;
+  };
+
+  type getDetailUsingGET3Params = {
+    /** id */
+    id: number;
+  };
+
+  type getDetailUsingGET4Params = {
+    /** id */
+    id: number;
+  };
+
+  type getDetailUsingGETParams = {
+    /** instanceId */
+    instanceId: number;
   };
 
   type getEmployeeDetailUsingGETParams = {
@@ -306,6 +942,54 @@ declare namespace API {
     statuses?: number[];
   };
 
+  type getEmployeeSalaryUsingGETParams = {
+    /** employeeId */
+    employeeId: number;
+  };
+
+  type getHistoryUsingGETParams = {
+    current?: number;
+    pageSize?: number;
+    sortField?: string;
+    sortOrder?: string;
+    /** employeeId */
+    employeeId: number;
+  };
+
+  type getLateEarlyRankingUsingGETParams = {
+    /** month */
+    month: number;
+    /** topN */
+    topN?: number;
+    /** year */
+    year: number;
+  };
+
+  type getLeaveDistributionUsingGETParams = {
+    /** month */
+    month: number;
+    /** year */
+    year: number;
+  };
+
+  type getPayslipDetailUsingGETParams = {
+    /** id */
+    id: number;
+  };
+
+  type getPendingEmployeesUsingGETParams = {
+    /** days */
+    days?: number;
+  };
+
+  type getPendingListUsingGETParams = {
+    bizType?: string;
+    current?: number;
+    pageSize?: number;
+    sortField?: string;
+    sortOrder?: string;
+  };
+
   type getPositionDetailUsingGETParams = {
     /** id */
     id: number;
@@ -321,6 +1005,24 @@ declare namespace API {
     sortOrder?: string;
   };
 
+  type getProcessedListUsingGETParams = {
+    bizType?: string;
+    current?: number;
+    pageSize?: number;
+    sortField?: string;
+    sortOrder?: string;
+  };
+
+  type getRequestDetailUsingGETParams = {
+    /** id */
+    id: number;
+  };
+
+  type getSalaryHistoryUsingGETParams = {
+    /** employeeId */
+    employeeId: number;
+  };
+
   type getUserByIdUsingGETParams = {
     /** id */
     id?: number;
@@ -329,6 +1031,140 @@ declare namespace API {
   type getUserVOByIdUsingGETParams = {
     /** id */
     id?: number;
+  };
+
+  type handleResultUsingPOSTParams = {
+    /** id */
+    id: number;
+  };
+
+  type LeaveBalanceVO = {
+    balances?: BalanceItem[];
+    employeeId?: number;
+  };
+
+  type LeaveDistributionVO = {
+    days?: number;
+    leaveTypeDesc?: string;
+    percentage?: number;
+  };
+
+  type LeaveEarlyRankingVO = {
+    departmentName?: string;
+    earlyLeaveCount?: number;
+    lateCount?: number;
+  };
+
+  type LeaveRequestSubmitDTO = {
+    attachmentUrl?: string;
+    endTime?: string;
+    handoverEmployeeId?: number;
+    leaveType?: number;
+    reason?: string;
+    startTime?: string;
+  };
+
+  type LeaveRequestVO = {
+    attachmentUrl?: string;
+    createTime?: string;
+    departmentName?: string;
+    employeeId?: number;
+    employeeName?: string;
+    endTime?: string;
+    handoverEmployeeId?: number;
+    id?: number;
+    leaveDays?: number;
+    leaveType?: number;
+    leaveTypeDesc?: string;
+    reason?: string;
+    startTime?: string;
+    status?: number;
+    statusDesc?: string;
+    updateTime?: string;
+  };
+
+  type List = Record<string, any>;
+
+  type listAccountsUsingGETParams = {
+    /** 账套名称（模糊搜索） */
+    name?: string;
+    /** 适用范围类型：1=部门, 2=职位, 3=职级 */
+    scopeType?: number;
+    current?: number;
+    pageSize?: number;
+    sortField?: string;
+    sortOrder?: string;
+  };
+
+  type listBatchesUsingGETParams = {
+    /** 薪资月份 */
+    salaryMonth?: string;
+    /** 批次状态 */
+    status?: number;
+    current?: number;
+    pageSize?: number;
+    sortField?: string;
+    sortOrder?: string;
+  };
+
+  type listDetailsUsingGETParams = {
+    /** 批次 ID */
+    batchId?: number;
+    /** 员工 ID */
+    employeeId?: number;
+    /** 异常级别 */
+    isAbnormal?: number;
+    current?: number;
+    pageSize?: number;
+    sortField?: string;
+    sortOrder?: string;
+    /** id */
+    id: number;
+  };
+
+  type listItemsUsingGETParams = {
+    /** id */
+    id: number;
+  };
+
+  type listUsingGET1Params = {
+    current?: number;
+    departmentId?: number;
+    employeeId?: number;
+    pageSize?: number;
+    sortField?: string;
+    sortOrder?: string;
+    status?: number;
+  };
+
+  type listUsingGET2Params = {
+    current?: number;
+    employeeId?: number;
+    pageSize?: number;
+    sortField?: string;
+    sortOrder?: string;
+    status?: number;
+  };
+
+  type listUsingGET3Params = {
+    current?: number;
+    employeeId?: number;
+    pageSize?: number;
+    sortField?: string;
+    sortOrder?: string;
+    status?: number;
+  };
+
+  type listUsingGETParams = {
+    current?: number;
+    departmentId?: number;
+    hireDateEnd?: string;
+    hireDateStart?: string;
+    keyword?: string;
+    pageSize?: number;
+    sortField?: string;
+    sortOrder?: string;
+    status?: number;
   };
 
   type LoginUserVO = {
@@ -341,29 +1177,177 @@ declare namespace API {
     userRole?: string;
   };
 
-  type MapStringObject_ = true;
+  type MapOfstringAndListOfApprovalDelegate = true;
 
-  type MapStringObject_1 = true;
+  type MapOfstringAndlong = true;
+
+  type MapOfstringAndobject = true;
+
+  type MapOfstringAndobject1 = true;
+
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  };
+
+  type OnboardingCreateDTO = {
+    defaultProbationMonths?: number;
+    departmentId?: number;
+    directReportId?: number;
+    email?: string;
+    expectedHireDate?: string;
+    gender?: number;
+    hireType?: number;
+    idCard?: string;
+    name?: string;
+    phone?: string;
+    positionId?: number;
+    probationRatio?: number;
+    submitDirectly?: boolean;
+  };
+
+  type OnboardingDetailVO = {
+    applicantId?: number;
+    applicantName?: string;
+    approvalInstanceId?: number;
+    approvalProgress?: ApprovalInstanceVO;
+    createTime?: string;
+    defaultProbationMonths?: number;
+    departmentId?: number;
+    departmentName?: string;
+    directReportId?: number;
+    directReportName?: string;
+    email?: string;
+    employeeId?: number;
+    expectedHireDate?: string;
+    gender?: number;
+    genderDesc?: string;
+    hireType?: number;
+    hireTypeDesc?: string;
+    id?: number;
+    idCard?: string;
+    name?: string;
+    phone?: string;
+    positionId?: number;
+    positionName?: string;
+    probationRatio?: number;
+    status?: number;
+    statusDesc?: string;
+    updateTime?: string;
+  };
+
+  type OnboardingListVO = {
+    applicantName?: string;
+    createTime?: string;
+    departmentName?: string;
+    expectedHireDate?: string;
+    id?: number;
+    name?: string;
+    phone?: string;
+    positionName?: string;
+    status?: number;
+    statusDesc?: string;
+  };
+
+  type OnboardingUpdateDTO = {
+    defaultProbationMonths?: number;
+    departmentId?: number;
+    directReportId?: number;
+    email?: string;
+    expectedHireDate?: string;
+    gender?: number;
+    hireType?: number;
+    idCard?: string;
+    name?: string;
+    phone?: string;
+    positionId?: number;
+    probationRatio?: number;
+  };
 
   type OrderItem = {
     asc?: boolean;
     column?: string;
   };
 
-  type PageDepartmentVO_ = {
+  type OvertimeRecordCreateDTO = {
+    employeeId?: number;
+    endTime?: string;
+    hours?: number;
+    overtimeDate?: string;
+    startTime?: string;
+  };
+
+  type OvertimeRecordListVO = {
+    createTime?: string;
+    departmentName?: string;
+    employeeId?: number;
+    employeeName?: string;
+    endTime?: string;
+    expireDate?: string;
+    hours?: number;
+    id?: number;
+    isUsed?: number;
+    isUsedDesc?: string;
+    overtimeDate?: string;
+    startTime?: string;
+  };
+
+  type OvertimeRecordUpdateDTO = {
+    endTime?: string;
+    hours?: number;
+    overtimeDate?: string;
+    startTime?: string;
+  };
+
+  type OvertimeRecordVO = {
+    compTimeAdded?: number;
+    createTime?: string;
+    employeeId?: number;
+    endTime?: string;
+    expireDate?: string;
+    hours?: number;
+    id?: number;
+    overtimeDate?: string;
+    startTime?: string;
+  };
+
+  type PageOfAttendanceGroupListVO = {
     countId?: string;
     current?: number;
     maxLimit?: number;
     optimizeCountSql?: boolean;
     orders?: OrderItem[];
     pages?: number;
-    records?: DepartmentVO[];
+    records?: AttendanceGroupListVO[];
     searchCount?: boolean;
     size?: number;
     total?: number;
   };
 
-  type PageEmployeeListVO_ = {
+  type PageOfAttendanceRecordVO = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: AttendanceRecordVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
+  type PageOfEmployeeListVO = {
     countId?: string;
     current?: number;
     maxLimit?: number;
@@ -376,7 +1360,59 @@ declare namespace API {
     total?: number;
   };
 
-  type PagePositionVO_ = {
+  type PageOfLeaveRequestVO = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: LeaveRequestVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
+  type PageOfOnboardingListVO = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: OnboardingListVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
+  type PageOfOvertimeRecordListVO = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: OvertimeRecordListVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
+  type PageOfPendingItemVO = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: PendingItemVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
+  type PageOfPositionVO = {
     countId?: string;
     current?: number;
     maxLimit?: number;
@@ -389,7 +1425,111 @@ declare namespace API {
     total?: number;
   };
 
-  type PageUser_ = {
+  type PageOfProbationListVO = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: ProbationListVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
+  type PageOfProcessedItemVO = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: ProcessedItemVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
+  type PageOfResignationListVO = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: ResignationListVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
+  type PageOfSalaryBatchVO = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: SalaryBatchVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
+  type PageOfSalaryDetailVO = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: SalaryDetailVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
+  type PageOfSupplementCardListVO = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: SupplementCardListVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
+  type PageOfTransferHistoryVO = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: TransferHistoryVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
+  type PageOfTransferListVO = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: TransferListVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  };
+
+  type PageOfUser = {
     countId?: string;
     current?: number;
     maxLimit?: number;
@@ -402,7 +1542,7 @@ declare namespace API {
     total?: number;
   };
 
-  type PageUserVO_ = {
+  type PageOfUserVO = {
     countId?: string;
     current?: number;
     maxLimit?: number;
@@ -413,6 +1553,56 @@ declare namespace API {
     searchCount?: boolean;
     size?: number;
     total?: number;
+  };
+
+  type PayslipVerifyRequest = {
+    /** 验证码或密码 */
+    verifyCode?: string;
+    /** 验证类型：1=短信验证码, 2=登录密码 */
+    verifyType?: number;
+  };
+
+  type PayslipVO = {
+    batchNo?: string;
+    createTime?: string;
+    deductionItems?: SalaryItemDetailVO[];
+    departmentName?: string;
+    employeeName?: string;
+    employeeNo?: string;
+    grossPay?: number;
+    id?: number;
+    incomeItems?: SalaryItemDetailVO[];
+    netPay?: number;
+    payslipViewed?: number;
+    salaryMonth?: string;
+    totalDeductions?: number;
+  };
+
+  type PendingEmployeeVO = {
+    daysRemaining?: number;
+    departmentName?: string;
+    employeeId?: number;
+    employeeName?: string;
+    employeeNo?: string;
+    hasPendingApplication?: boolean;
+    hireDate?: string;
+    positionName?: string;
+    probationEndDate?: string;
+  };
+
+  type PendingItemVO = {
+    applicantId?: number;
+    applicantName?: string;
+    bizType?: string;
+    bizTypeDesc?: string;
+    createTime?: string;
+    deadLine?: string;
+    delegatorName?: string;
+    instanceId?: number;
+    nodeId?: number;
+    nodeName?: string;
+    nodeOrder?: number;
+    title?: string;
   };
 
   type PersonalInfoVO = {
@@ -479,6 +1669,322 @@ declare namespace API {
     updateTime?: string;
   };
 
+  type previewEmployeeNoUsingPOSTParams = {
+    /** departmentId */
+    departmentId: number;
+  };
+
+  type ProbationCreateDTO = {
+    employeeId?: number;
+    performanceReview?: string;
+    remark?: string;
+    salaryAdjustment?: number;
+    submitDirectly?: boolean;
+  };
+
+  type ProbationDetailVO = {
+    applicantId?: number;
+    applicantName?: string;
+    approvalInstanceId?: number;
+    approvalProgress?: ApprovalInstanceVO;
+    createTime?: string;
+    departmentName?: string;
+    employeeId?: number;
+    employeeName?: string;
+    employeeNo?: string;
+    extendedEndDate?: string;
+    id?: number;
+    jobLevel?: string;
+    performanceReview?: string;
+    positionName?: string;
+    probationEndDate?: string;
+    probationStartDate?: string;
+    remark?: string;
+    result?: number;
+    resultDesc?: string;
+    salaryAdjustment?: number;
+    status?: number;
+    statusDesc?: string;
+    updateTime?: string;
+  };
+
+  type ProbationHandleResultDTO = {
+    extendedEndDate?: string;
+    result?: number;
+  };
+
+  type ProbationListVO = {
+    applicantName?: string;
+    createTime?: string;
+    departmentName?: string;
+    employeeId?: number;
+    employeeName?: string;
+    employeeNo?: string;
+    id?: number;
+    positionName?: string;
+    probationEndDate?: string;
+    probationStartDate?: string;
+    salaryAdjustment?: number;
+    status?: number;
+    statusDesc?: string;
+  };
+
+  type ProbationUpdateDTO = {
+    performanceReview?: string;
+    remark?: string;
+    salaryAdjustment?: number;
+  };
+
+  type ProcessedItemVO = {
+    applicantName?: string;
+    bizType?: string;
+    bizTypeDesc?: string;
+    comment?: string;
+    instanceId?: number;
+    nodeId?: number;
+    nodeName?: string;
+    nodeStatus?: number;
+    nodeStatusDesc?: string;
+    operateTime?: string;
+    title?: string;
+  };
+
+  type queryAttendanceGroupsUsingGETParams = {
+    /** keyword */
+    keyword?: string;
+    /** page */
+    page?: number;
+    /** shiftType */
+    shiftType?: number;
+    /** size */
+    size?: number;
+  };
+
+  type queryRecordsUsingGET1Params = {
+    /** employeeId */
+    employeeId?: number;
+    /** endDate */
+    endDate?: string;
+    /** isUsed */
+    isUsed?: number;
+    /** page */
+    page?: number;
+    /** size */
+    size?: number;
+    /** startDate */
+    startDate?: string;
+  };
+
+  type queryRecordsUsingGETParams = {
+    current?: number;
+    departmentId?: number;
+    employeeId?: number;
+    endDate?: string;
+    endStatus?: number;
+    pageSize?: number;
+    sortField?: string;
+    sortOrder?: string;
+    startDate?: string;
+    startStatus?: number;
+  };
+
+  type queryRequestsUsingGETParams = {
+    /** employeeId */
+    employeeId?: number;
+    /** endDate */
+    endDate?: string;
+    /** leaveType */
+    leaveType?: number;
+    /** page */
+    page?: number;
+    /** size */
+    size?: number;
+    /** startDate */
+    startDate?: string;
+    /** status */
+    status?: number;
+  };
+
+  type querySupplementCardsUsingGETParams = {
+    /** employeeId */
+    employeeId?: number;
+    /** endDate */
+    endDate?: string;
+    /** page */
+    page?: number;
+    /** size */
+    size?: number;
+    /** startDate */
+    startDate?: string;
+    /** status */
+    status?: number;
+  };
+
+  type rejectUsingPOSTParams = {
+    /** nodeId */
+    nodeId: number;
+  };
+
+  type ResignationCreateDTO = {
+    employeeId?: number;
+    handoverToId?: number;
+    reason?: string;
+    remark?: string;
+    resignationDate?: string;
+    resignationType?: number;
+    submitDirectly?: boolean;
+  };
+
+  type ResignationDetailVO = {
+    actualResignationDate?: string;
+    applicantId?: number;
+    applicantName?: string;
+    approvalInstanceId?: number;
+    approvalProgress?: ApprovalInstanceVO;
+    createTime?: string;
+    departmentName?: string;
+    employeeId?: number;
+    employeeName?: string;
+    employeeNo?: string;
+    handoverToId?: number;
+    handoverToName?: string;
+    id?: number;
+    positionName?: string;
+    reason?: string;
+    remark?: string;
+    resignationDate?: string;
+    resignationType?: number;
+    resignationTypeDesc?: string;
+    status?: number;
+    statusDesc?: string;
+    updateTime?: string;
+  };
+
+  type ResignationListVO = {
+    applicantName?: string;
+    createTime?: string;
+    departmentName?: string;
+    employeeId?: number;
+    employeeName?: string;
+    employeeNo?: string;
+    id?: number;
+    resignationDate?: string;
+    resignationType?: number;
+    resignationTypeDesc?: string;
+    status?: number;
+    statusDesc?: string;
+  };
+
+  type ResignationUpdateDTO = {
+    handoverToId?: number;
+    reason?: string;
+    remark?: string;
+    resignationDate?: string;
+    resignationType?: number;
+  };
+
+  type RuleDTO = {
+    ruleType?: number;
+    targetId?: number;
+  };
+
+  type SalaryAccountAddRequest = {
+    /** 生效日期 */
+    effectiveDate?: string;
+    /** 工资项目列表（可选，创建时同步添加） */
+    items?: SalaryItemAddRequest[];
+    /** 账套名称 */
+    name?: string;
+    /** 适用范围 ID 列表 */
+    scopeIds?: number[];
+    /** 适用范围类型：1=部门, 2=职位, 3=职级 */
+    scopeType?: number;
+  };
+
+  type SalaryAccountUpdateRequest = {
+    /** 生效日期 */
+    effectiveDate?: string;
+    /** 账套 ID */
+    id?: number;
+    /** 账套名称 */
+    name?: string;
+    /** 适用范围 ID 列表 */
+    scopeIds?: number[];
+    /** 适用范围类型：1=部门, 2=职位, 3=职级 */
+    scopeType?: number;
+  };
+
+  type SalaryAccountVO = {
+    createTime?: string;
+    effectiveDate?: string;
+    id?: number;
+    items?: SalaryItemVO[];
+    name?: string;
+    scopeIds?: string;
+    scopeType?: number;
+    scopeTypeLabel?: string;
+    updateTime?: string;
+  };
+
+  type SalaryBatchCreateRequest = {
+    /** 薪资月份，格式 yyyy-MM */
+    salaryMonth?: string;
+  };
+
+  type SalaryBatchVO = {
+    batchNo?: string;
+    createBy?: number;
+    createTime?: string;
+    id?: number;
+    salaryMonth?: string;
+    status?: number;
+    statusLabel?: string;
+    totalEmployees?: number;
+    totalGrossPay?: number;
+    totalNetPay?: number;
+    totalTax?: number;
+    updateTime?: string;
+  };
+
+  type SalaryChangeHistoryVO = {
+    changeType?: number;
+    changeTypeLabel?: string;
+    createTime?: string;
+    effectiveDate?: string;
+    employeeId?: number;
+    id?: number;
+    newValue?: string;
+    oldValue?: string;
+    operatorId?: number;
+    remark?: string;
+  };
+
+  type SalaryDetailAdjustRequest = {
+    /** 调整金额（正=补发, 负=扣回） */
+    adjustment?: number;
+    /** 调整原因 */
+    reason?: string;
+  };
+
+  type SalaryDetailVO = {
+    abnormalLabel?: string;
+    abnormalReason?: string;
+    adjustmentReason?: string;
+    batchId?: number;
+    createTime?: string;
+    employeeId?: number;
+    grossPay?: number;
+    housingFund?: number;
+    id?: number;
+    incomeTax?: number;
+    isAbnormal?: number;
+    manualAdjustment?: number;
+    netPay?: number;
+    salaryItems?: SalaryItemDetailVO[];
+    socialSecurity?: number;
+    totalDeductions?: number;
+  };
+
   type SalaryInfoVO = {
     bankAccount?: string;
     bankName?: string;
@@ -491,12 +1997,271 @@ declare namespace API {
     salaryAccountName?: string;
   };
 
+  type SalaryItemAddRequest = {
+    /** 计算公式 */
+    formula?: string;
+    /** 是否计入应纳税所得额：1=是, 0=否 */
+    isTaxable?: number;
+    /** 项目类型：1=固定收入, 2=变动收入, 3=考勤扣款, 4=社保扣除, 5=公积金扣除, 6=个税 */
+    itemType?: number;
+    /** 项目名称 */
+    name?: string;
+    /** 排序号 */
+    sortOrder?: number;
+  };
+
+  type SalaryItemDetailVO = {
+    amount?: number;
+    name?: string;
+    type?: number;
+  };
+
+  type SalaryItemSortRequest = {
+    /** 按顺序排列的项目 ID 列表 */
+    itemIds?: number[];
+  };
+
+  type SalaryItemUpdateRequest = {
+    /** 计算公式 */
+    formula?: string;
+    /** 项目 ID */
+    id?: number;
+    /** 是否计入应纳税所得额 */
+    isTaxable?: number;
+    /** 项目类型 */
+    itemType?: number;
+    /** 项目名称 */
+    name?: string;
+    /** 排序号 */
+    sortOrder?: number;
+  };
+
+  type SalaryItemVO = {
+    accountId?: number;
+    createTime?: string;
+    formula?: string;
+    id?: number;
+    isTaxable?: number;
+    itemType?: number;
+    itemTypeLabel?: string;
+    name?: string;
+    sortOrder?: number;
+    updateTime?: string;
+  };
+
+  type SeriesItem = {
+    departmentName?: string;
+    rates?: number[];
+  };
+
+  type sortItemsUsingPUTParams = {
+    /** id */
+    id: number;
+  };
+
+  type submitForApprovalUsingPUTParams = {
+    /** id */
+    id: number;
+  };
+
+  type submitToApprovalUsingPOST1Params = {
+    /** id */
+    id: number;
+  };
+
+  type submitToApprovalUsingPOST2Params = {
+    /** id */
+    id: number;
+  };
+
+  type submitToApprovalUsingPOST3Params = {
+    /** id */
+    id: number;
+  };
+
+  type submitToApprovalUsingPOSTParams = {
+    /** id */
+    id: number;
+  };
+
+  type Summary = {
+    absentDays?: number;
+    cardMissingDays?: number;
+    earlyLeaveDays?: number;
+    lateDays?: number;
+    leaveDays?: number;
+    normalDays?: number;
+  };
+
+  type SupplementCardListVO = {
+    attendanceDate?: string;
+    cardType?: number;
+    cardTypeDesc?: string;
+    createTime?: string;
+    departmentName?: string;
+    employeeId?: number;
+    employeeName?: string;
+    id?: number;
+    reason?: string;
+    status?: number;
+    statusDesc?: string;
+  };
+
+  type SupplementCardSubmitDTO = {
+    attendanceDate?: string;
+    cardType?: number;
+    reason?: string;
+  };
+
+  type SupplementCardVO = {
+    attendanceDate?: string;
+    cardType?: number;
+    cardTypeDesc?: string;
+    createTime?: string;
+    employeeId?: number;
+    id?: number;
+    monthlyCount?: number;
+    monthlyLimit?: number;
+    reason?: string;
+    status?: number;
+    statusDesc?: string;
+  };
+
+  type TransferCreateDTO = {
+    employeeId?: number;
+    reason?: string;
+    salaryAdjustment?: number;
+    submitDirectly?: boolean;
+    toDepartmentId?: number;
+    toDirectReportId?: number;
+    toJobLevel?: string;
+    toPositionId?: number;
+  };
+
+  type TransferDetailVO = {
+    applicantId?: number;
+    applicantName?: string;
+    approvalInstanceId?: number;
+    approvalProgress?: ApprovalInstanceVO;
+    createTime?: string;
+    employeeId?: number;
+    employeeName?: string;
+    employeeNo?: string;
+    fromDepartmentId?: number;
+    fromDepartmentName?: string;
+    fromDirectReportId?: number;
+    fromDirectReportName?: string;
+    fromJobLevel?: string;
+    fromPositionId?: number;
+    fromPositionName?: string;
+    id?: number;
+    reason?: string;
+    salaryAdjustment?: number;
+    status?: number;
+    statusDesc?: string;
+    toDepartmentId?: number;
+    toDepartmentName?: string;
+    toDirectReportId?: number;
+    toDirectReportName?: string;
+    toJobLevel?: string;
+    toPositionId?: number;
+    toPositionName?: string;
+    updateTime?: string;
+  };
+
+  type TransferHistoryVO = {
+    employeeId?: number;
+    fromDepartmentName?: string;
+    fromJobLevel?: string;
+    fromPositionName?: string;
+    id?: number;
+    reason?: string;
+    toDepartmentName?: string;
+    toJobLevel?: string;
+    toPositionName?: string;
+    transferDate?: string;
+  };
+
+  type TransferListVO = {
+    applicantName?: string;
+    createTime?: string;
+    employeeId?: number;
+    employeeName?: string;
+    employeeNo?: string;
+    fromDepartmentName?: string;
+    fromPositionName?: string;
+    id?: number;
+    status?: number;
+    statusDesc?: string;
+    toDepartmentName?: string;
+    toPositionName?: string;
+  };
+
+  type TransferUpdateDTO = {
+    reason?: string;
+    salaryAdjustment?: number;
+    toDepartmentId?: number;
+    toDirectReportId?: number;
+    toJobLevel?: string;
+    toPositionId?: number;
+  };
+
+  type transferUsingPOSTParams = {
+    /** nodeId */
+    nodeId: number;
+  };
+
+  type updateAccountUsingPUTParams = {
+    /** id */
+    id: number;
+  };
+
+  type updateAttendanceGroupUsingPUTParams = {
+    /** id */
+    id: number;
+  };
+
   type updateDepartmentUsingPUTParams = {
     /** id */
     id: number;
   };
 
+  type updateDraftUsingPUT1Params = {
+    /** id */
+    id: number;
+  };
+
+  type updateDraftUsingPUT2Params = {
+    /** id */
+    id: number;
+  };
+
+  type updateDraftUsingPUT3Params = {
+    /** id */
+    id: number;
+  };
+
+  type updateDraftUsingPUTParams = {
+    /** id */
+    id: number;
+  };
+
+  type updateEmployeeSalaryUsingPUTParams = {
+    /** employeeId */
+    employeeId: number;
+  };
+
   type updateEmployeeUsingPUTParams = {
+    /** id */
+    id: number;
+  };
+
+  type updateItemUsingPUTParams = {
+    /** itemId */
+    itemId: number;
+  };
+
+  type updateOvertimeRecordUsingPUTParams = {
     /** id */
     id: number;
   };
@@ -579,6 +2344,11 @@ declare namespace API {
     userRole?: string;
   };
 
+  type verifyPayslipUsingPOSTParams = {
+    /** id */
+    id: number;
+  };
+
   type WorkInfoVO = {
     departmentId?: number;
     departmentName?: string;
@@ -589,26 +2359,205 @@ declare namespace API {
     positionName?: string;
     workLocation?: string;
   };
-  // ============ 审批中心 ============
-  type PendingItemVO = { instanceId?: number; nodeId?: number; bizType?: string; bizTypeDesc?: string; title?: string; applicantId?: number; applicantName?: string; nodeName?: string; nodeOrder?: number; delegatorName?: string; createTime?: string; deadLine?: string; status?: number; statusDesc?: string };
-  type ProcessedItemVO = { instanceId?: number; nodeId?: number; bizType?: string; bizTypeDesc?: string; title?: string; applicantName?: string; nodeName?: string; nodeStatus?: number; nodeStatusDesc?: string; comment?: string; operateTime?: string };
-  type ApprovalNodeVO = { nodeId?: number; nodeName?: string; nodeOrder?: number; approverId?: number; approverName?: string; originalApproverId?: number; originalApproverName?: string; status?: number; statusDesc?: string; comment?: string; operateTime?: string };
-  type ApprovalInstanceVO = { instanceId?: number; bizType?: string; bizTypeDesc?: string; title?: string; status?: number; statusDesc?: string; applicantId?: number; applicantName?: string; currentNodeOrder?: number; nodes?: ApprovalNodeVO[]; createTime?: string };
-  type ApprovalDelegateVO = { id?: number; delegatorId?: number; delegatorName?: string; delegateId?: number; delegateName?: string; startTime?: string; endTime?: string; enabled?: number };
-  type ApprovalActionRequest = { comment?: string; toApproverId?: number };
-  type DelegateSettingRequest = { delegateId?: number; startTime?: string; endTime?: string };
-  type PagePendingItemVO_ = { records?: PendingItemVO[]; total?: number };
-  type PageProcessedItemVO_ = { records?: ProcessedItemVO[]; total?: number };
-  type MyDelegatesVO = { asDelegator?: ApprovalDelegateVO[]; asDelegate?: ApprovalDelegateVO[] };
-  type PendingCountVO = { count?: number };
-  type BaseResponsePagePendingItemVO_ = { code?: number; data?: PagePendingItemVO_; message?: string };
-  type BaseResponsePageProcessedItemVO_ = { code?: number; data?: PageProcessedItemVO_; message?: string };
-  type BaseResponseApprovalInstanceVO_ = { code?: number; data?: ApprovalInstanceVO; message?: string };
-  type BaseResponseApprovalActionVO_ = { code?: number; data?: Record<string, any>; message?: string };
-  type BaseResponseApprovalDelegateVO_ = { code?: number; data?: ApprovalDelegateVO; message?: string };
-  type BaseResponseMyDelegatesVO_ = { code?: number; data?: MyDelegatesVO; message?: string };
-  type BaseResponsePendingCountVO_ = { code?: number; data?: PendingCountVO; message?: string };
-  // ============ 员工 Profile（兼容旧版） ============
+
+  // === 手写扩展类型 ===
+  type BaseResponseBoolean_ = {
+    code?: number;
+    data?: boolean;
+    message?: string;
+  }
+  type BaseResponseDepartment_ = {
+    code?: number;
+    data?: Department;
+    message?: string;
+  }
+  type BaseResponseDepartmentVO_ = {
+    code?: number;
+    data?: DepartmentVO;
+    message?: string;
+  }
+  type BaseResponseEmployeeCreateVO_ = {
+    code?: number;
+    data?: EmployeeCreateVO;
+    message?: string;
+  }
+  type BaseResponseEmployeeDetailVO_ = {
+    code?: number;
+    data?: EmployeeDetailVO;
+    message?: string;
+  }
+  type BaseResponseEmployeeUpdateVO_ = {
+    code?: number;
+    data?: EmployeeUpdateVO;
+    message?: string;
+  }
+  type BaseResponseFieldPermissionsVO_ = {
+    code?: number;
+    data?: FieldPermissionsVO;
+    message?: string;
+  }
+  type BaseResponseListDepartmentTreeNode_ = {
+    code?: number;
+    data?: DepartmentTreeNode[];
+    message?: string;
+  }
+  type BaseResponseListMapStringObject_ = {
+    code?: number;
+    data?: MapStringObject_[];
+    message?: string;
+  }
+  type BaseResponseLoginUserVO_ = {
+    code?: number;
+    data?: LoginUserVO;
+    message?: string;
+  }
+  type BaseResponseLong_ = {
+    code?: number;
+    data?: number;
+    message?: string;
+  }
+  type BaseResponsePageDepartmentVO_ = {
+    code?: number;
+    data?: PageDepartmentVO_;
+    message?: string;
+  }
+  type BaseResponsePageEmployeeListVO_ = {
+    code?: number;
+    data?: PageEmployeeListVO_;
+    message?: string;
+  }
+  type BaseResponsePagePositionVO_ = {
+    code?: number;
+    data?: PagePositionVO_;
+    message?: string;
+  }
+  type BaseResponsePageUser_ = {
+    code?: number;
+    data?: PageUser_;
+    message?: string;
+  }
+  type BaseResponsePageUserVO_ = {
+    code?: number;
+    data?: PageUserVO_;
+    message?: string;
+  }
+  type BaseResponsePosition_ = {
+    code?: number;
+    data?: Position;
+    message?: string;
+  }
+  type BaseResponsePositionVO_ = {
+    code?: number;
+    data?: PositionVO;
+    message?: string;
+  }
+  type BaseResponseString_ = {
+    code?: number;
+    data?: string;
+    message?: string;
+  }
+  type BaseResponseUser_ = {
+    code?: number;
+    data?: User;
+    message?: string;
+  }
+  type BaseResponseUserVO_ = {
+    code?: number;
+    data?: UserVO;
+    message?: string;
+  }
+  type BaseResponseVoid_ = {
+    code?: number;
+    message?: string;
+  }
+  type MapStringObject_ = true;
+
+  type MapStringObject_1 = true;
+
+  type OrderItem = {
+    asc?: boolean;
+    column?: string;
+  }
+  type MapStringObject_1 = true;
+
+  type OrderItem = {
+    asc?: boolean;
+    column?: string;
+  }
+  type PageDepartmentVO_ = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: DepartmentVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  }
+  type PageEmployeeListVO_ = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: EmployeeListVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  }
+  type PagePositionVO_ = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: PositionVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  }
+  type PageUser_ = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: User[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  }
+  type PageUserVO_ = {
+    countId?: string;
+    current?: number;
+    maxLimit?: number;
+    optimizeCountSql?: boolean;
+    orders?: OrderItem[];
+    pages?: number;
+    records?: UserVO[];
+    searchCount?: boolean;
+    size?: number;
+    total?: number;
+  }
+  type ApprovalDelegateVO = { id?: number; delegatorId?: number; delegatorName?: string; delegateId?: number; delegateName?: string; startTime?: string; endTime?: string; enabled?: number }
+  type ApprovalActionRequest = { comment?: string; toApproverId?: number }
+  type DelegateSettingRequest = { delegateId?: number; startTime?: string; endTime?: string }
+  type PagePendingItemVO_ = { records?: PendingItemVO[]; total?: number }
+  type PageProcessedItemVO_ = { records?: ProcessedItemVO[]; total?: number }
+  type MyDelegatesVO = { asDelegator?: ApprovalDelegateVO[]; asDelegate?: ApprovalDelegateVO[] }
+  type PendingCountVO = { count?: number }
+  type BaseResponsePagePendingItemVO_ = { code?: number; data?: PagePendingItemVO_; message?: string }
+  type BaseResponsePageProcessedItemVO_ = { code?: number; data?: PageProcessedItemVO_; message?: string }
+  type BaseResponseApprovalInstanceVO_ = { code?: number; data?: ApprovalInstanceVO; message?: string }
+  type BaseResponseApprovalActionVO_ = { code?: number; data?: Record<string, any>; message?: string }
+  type BaseResponseApprovalDelegateVO_ = { code?: number; data?: ApprovalDelegateVO; message?: string }
+  type BaseResponseMyDelegatesVO_ = { code?: number; data?: MyDelegatesVO; message?: string }
+  type BaseResponsePendingCountVO_ = { code?: number; data?: PendingCountVO; message?: string }
   type EmpProfileVO = {
     id?: number;
     name?: string;
@@ -619,13 +2568,13 @@ declare namespace API {
     userAvatar?: string;
     departmentName?: string;
     positionName?: string;
-  };
-  type BaseResponseEmpProfileVO_ = { code?: number; data?: EmpProfileVO; message?: string };
+  }
+  type BaseResponseEmpProfileVO_ = { code?: number; data?: EmpProfileVO; message?: string }
   type EmpProfileUpdateRequest = {
     name?: string;
     phone?: string;
     email?: string;
     gender?: number;
     userAvatar?: string;
-  };
+  }
 }

@@ -117,11 +117,13 @@ const EmployeeList: React.FC = () => {
             key: 'transfer',
             label: '调岗',
             disabled: !isActive,
+            onClick: () => history.push(`/hr-change/transfer?employeeId=${record.id}`),
           });
           menuItems.push({
             key: 'resign',
             label: '离职',
             disabled: !isActive,
+            onClick: () => history.push(`/hr-change/resignation?employeeId=${record.id}`),
           });
         }
 

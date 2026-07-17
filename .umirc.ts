@@ -62,12 +62,22 @@ export default defineConfig({
         },
       ],
     },
-    // ========== 入职管理 ==========
+    // ========== 入转调离管理 ==========
     {
-      name: '入职管理',
-      path: '/onboarding',
-      component: './onboarding',
+      name: '入转调离管理',
+      path: '/hr-change',
       access: 'canSeeEmployees',
+      routes: [
+        { path: '/hr-change', redirect: '/hr-change/onboarding' },
+        { name: '入职管理', path: '/hr-change/onboarding', component: './onboarding' },
+        { name: '入职详情', path: '/hr-change/onboarding/:id', component: './onboarding/detail', hideInMenu: true },
+        { name: '转正管理', path: '/hr-change/probation', component: './probation' },
+        { name: '转正详情', path: '/hr-change/probation/:id', component: './probation/detail', hideInMenu: true },
+        { name: '调岗管理', path: '/hr-change/transfer', component: './transfer' },
+        { name: '调岗详情', path: '/hr-change/transfer/:id', component: './transfer/detail', hideInMenu: true },
+        { name: '离职管理', path: '/hr-change/resignation', component: './resignation' },
+        { name: '离职详情', path: '/hr-change/resignation/:id', component: './resignation/detail', hideInMenu: true },
+      ],
     },
     // ========== 原有页面 ==========
     {
