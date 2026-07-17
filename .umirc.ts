@@ -12,8 +12,44 @@ export default defineConfig({
   routes: [
     {
       path: '/',
-      redirect: '/home',
+      redirect: '/employees',
     },
+    // ========== 员工档案 ==========
+    {
+      name: '员工档案',
+      path: '/employees',
+      component: './employees/list',
+    },
+    {
+      name: '员工详情',
+      path: '/employees/:id',
+      component: './employees/detail',
+      hideInMenu: true,
+    },
+    {
+      name: '员工编辑',
+      path: '/employees/:id/edit',
+      component: './employees/edit',
+      hideInMenu: true,
+    },
+    // ========== 组织架构 ==========
+    {
+      name: '组织架构',
+      path: '/organization',
+      routes: [
+        {
+          name: '部门管理',
+          path: '/organization/departments',
+          component: './organization/departments',
+        },
+        {
+          name: '职位管理',
+          path: '/organization/positions',
+          component: './organization/positions',
+        },
+      ],
+    },
+    // ========== 原有页面 ==========
     {
       name: '首页',
       path: '/home',

@@ -1,6 +1,8 @@
 // 运行时配置
 
 import { getLoginUserUsingGet } from '@/api/userController';
+import { queryClient } from '@/libs/queryClient';
+import { QueryClientProvider } from '@tanstack/react-query';
 
 // 抑制 findDOMNode 弃用警告（来自 @ant-design/pro-components 内部依赖 rc-resize-observer）
 // React 18 开发模式下该警告通过 console.error 输出
@@ -19,13 +21,13 @@ console.error = (...args: any[]) => {
 // 更多信息见文档：https://umijs.org/docs/api/runtime-config#getinitialstate
 export async function getInitialState() {
   const initialState = {
-    name: '@umijs/max',
+    name: '人资管理系统',
     currentUser: undefined as API.LoginUserVO | undefined,
   };
   try {
     const res = await getLoginUserUsingGet();
     if (res.data) {
-      initialState.currentUser = res.data;
+      initialState.currentUser = res.data as API.LoginUserVO;
     }
   } catch (error) {
     // 未登录，保持 currentUser 为空
@@ -35,9 +37,19 @@ export async function getInitialState() {
 
 export const layout = () => {
   return {
+    title: '人资管理系统',
     logo: 'https://img.alicdn.com/tfs/TB1YHEpwUT1gK0jSZFhXXaAtVXa-28-27.svg',
     menu: {
       locale: false,
     },
   };
 };
+
+/**
+ * 根容器包裹 QueryClientProvider，使所有页面可使用 TanStack Query
+ */
+export function rootContainer(container: any) {
+  return (
+    <QueryClientProvider client={queryClient}>{container}</QueryClientProvider>
+  );
+}
