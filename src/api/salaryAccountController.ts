@@ -8,16 +8,13 @@ export async function listAccountsUsingGet(
   params: API.listAccountsUsingGETParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOfListOfSalaryAccountVO>(
-    '/api/salary-accounts',
-    {
-      method: 'GET',
-      params: {
-        ...params,
-      },
-      ...(options || {}),
+  return request<API.BaseResponseListSalaryAccountVO_>('/api/salary-accounts', {
+    method: 'GET',
+    params: {
+      ...params,
     },
-  );
+    ...(options || {}),
+  });
 }
 
 /** createAccount POST /api/salary-accounts */
@@ -25,7 +22,7 @@ export async function createAccountUsingPost(
   body: API.SalaryAccountAddRequest,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOflong>('/api/salary-accounts', {
+  return request<API.BaseResponseLong_>('/api/salary-accounts', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -42,7 +39,7 @@ export async function getAccountUsingGet(
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfSalaryAccountVO>(
+  return request<API.BaseResponseSalaryAccountVO_>(
     `/api/salary-accounts/${param0}`,
     {
       method: 'GET',
@@ -60,7 +57,7 @@ export async function updateAccountUsingPut(
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfboolean>(`/api/salary-accounts/${param0}`, {
+  return request<API.BaseResponseBoolean_>(`/api/salary-accounts/${param0}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -78,7 +75,7 @@ export async function deleteAccountUsingDelete(
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfboolean>(`/api/salary-accounts/${param0}`, {
+  return request<API.BaseResponseBoolean_>(`/api/salary-accounts/${param0}`, {
     method: 'DELETE',
     params: { ...queryParams },
     ...(options || {}),
@@ -92,7 +89,7 @@ export async function listItemsUsingGet(
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfListOfSalaryItemVO>(
+  return request<API.BaseResponseListSalaryItemVO_>(
     `/api/salary-accounts/${param0}/items`,
     {
       method: 'GET',
@@ -110,7 +107,7 @@ export async function addItemUsingPost(
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOflong>(
+  return request<API.BaseResponseLong_>(
     `/api/salary-accounts/${param0}/items`,
     {
       method: 'POST',
@@ -132,7 +129,7 @@ export async function sortItemsUsingPut(
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfboolean>(
+  return request<API.BaseResponseBoolean_>(
     `/api/salary-accounts/${param0}/items/sort`,
     {
       method: 'PUT',
@@ -154,7 +151,7 @@ export async function updateItemUsingPut(
   options?: { [key: string]: any },
 ) {
   const { itemId: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfboolean>(
+  return request<API.BaseResponseBoolean_>(
     `/api/salary-accounts/items/${param0}`,
     {
       method: 'PUT',
@@ -175,7 +172,7 @@ export async function deleteItemUsingDelete(
   options?: { [key: string]: any },
 ) {
   const { itemId: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfboolean>(
+  return request<API.BaseResponseBoolean_>(
     `/api/salary-accounts/items/${param0}`,
     {
       method: 'DELETE',

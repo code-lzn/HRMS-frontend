@@ -2,12 +2,12 @@
 /* eslint-disable */
 import request from '@/libs/request';
 
-/** clock POST /api/api/attendance/clock */
+/** clock POST /api/attendance/clock */
 export async function clockUsingPost(
   body: API.ClockRequest,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOfClockResultVO>('/api/api/attendance/clock', {
+  return request<API.BaseResponseClockResultVO_>('/api/attendance/clock', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -17,14 +17,14 @@ export async function clockUsingPost(
   });
 }
 
-/** queryRecords GET /api/api/attendance/records */
+/** queryRecords GET /api/attendance/records */
 export async function queryRecordsUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.queryRecordsUsingGETParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOfPageOfAttendanceRecordVO>(
-    '/api/api/attendance/records',
+  return request<API.BaseResponsePageAttendanceRecordVO_>(
+    '/api/attendance/records',
     {
       method: 'GET',
       params: {
@@ -35,14 +35,14 @@ export async function queryRecordsUsingGet(
   );
 }
 
-/** getCalendar GET /api/api/attendance/records/calendar */
+/** getCalendar GET /api/attendance/records/calendar */
 export async function getCalendarUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getCalendarUsingGETParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOfAttendanceCalendarVO>(
-    '/api/api/attendance/records/calendar',
+  return request<API.BaseResponseAttendanceCalendarVO_>(
+    '/api/attendance/records/calendar',
     {
       method: 'GET',
       params: {
@@ -53,14 +53,14 @@ export async function getCalendarUsingGet(
   );
 }
 
-/** querySupplementCards GET /api/api/attendance/supplement-cards */
+/** querySupplementCards GET /api/attendance/supplement-cards */
 export async function querySupplementCardsUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.querySupplementCardsUsingGETParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOfPageOfSupplementCardListVO>(
-    '/api/api/attendance/supplement-cards',
+  return request<API.BaseResponsePageSupplementCardListVO_>(
+    '/api/attendance/supplement-cards',
     {
       method: 'GET',
       params: {
@@ -76,13 +76,13 @@ export async function querySupplementCardsUsingGet(
   );
 }
 
-/** submitSupplementCard POST /api/api/attendance/supplement-cards */
+/** submitSupplementCard POST /api/attendance/supplement-cards */
 export async function submitSupplementCardUsingPost(
   body: API.SupplementCardSubmitDTO,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOfSupplementCardVO>(
-    '/api/api/attendance/supplement-cards',
+  return request<API.BaseResponseSupplementCardVO_>(
+    '/api/attendance/supplement-cards',
     {
       method: 'POST',
       headers: {

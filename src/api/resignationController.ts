@@ -2,30 +2,27 @@
 /* eslint-disable */
 import request from '@/libs/request';
 
-/** list GET /api/api/resignations */
+/** list GET /api/resignations */
 export async function listUsingGet2(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.listUsingGET2Params,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOfPageOfResignationListVO>(
-    '/api/api/resignations',
-    {
-      method: 'GET',
-      params: {
-        ...params,
-      },
-      ...(options || {}),
+  return request<API.BaseResponsePageResignationListVO_>('/api/resignations', {
+    method: 'GET',
+    params: {
+      ...params,
     },
-  );
+    ...(options || {}),
+  });
 }
 
-/** create POST /api/api/resignations */
+/** create POST /api/resignations */
 export async function createUsingPost2(
   body: API.ResignationCreateDTO,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOflong>('/api/api/resignations', {
+  return request<API.BaseResponseLong_>('/api/resignations', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -35,15 +32,15 @@ export async function createUsingPost2(
   });
 }
 
-/** getDetail GET /api/api/resignations/${param0} */
+/** getDetail GET /api/resignations/${param0} */
 export async function getDetailUsingGet3(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getDetailUsingGET3Params,
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfResignationDetailVO>(
-    `/api/api/resignations/${param0}`,
+  return request<API.BaseResponseResignationDetailVO_>(
+    `/api/resignations/${param0}`,
     {
       method: 'GET',
       params: { ...queryParams },
@@ -52,7 +49,7 @@ export async function getDetailUsingGet3(
   );
 }
 
-/** updateDraft PUT /api/api/resignations/${param0} */
+/** updateDraft PUT /api/resignations/${param0} */
 export async function updateDraftUsingPut2(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.updateDraftUsingPUT2Params,
@@ -60,7 +57,7 @@ export async function updateDraftUsingPut2(
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfobject>(`/api/api/resignations/${param0}`, {
+  return request<API.BaseResponseObject_>(`/api/resignations/${param0}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -71,29 +68,29 @@ export async function updateDraftUsingPut2(
   });
 }
 
-/** deleteDraft DELETE /api/api/resignations/${param0} */
+/** deleteDraft DELETE /api/resignations/${param0} */
 export async function deleteDraftUsingDelete2(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.deleteDraftUsingDELETE2Params,
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfobject>(`/api/api/resignations/${param0}`, {
+  return request<API.BaseResponseObject_>(`/api/resignations/${param0}`, {
     method: 'DELETE',
     params: { ...queryParams },
     ...(options || {}),
   });
 }
 
-/** cancel POST /api/api/resignations/${param0}/cancel */
+/** cancel POST /api/resignations/${param0}/cancel */
 export async function cancelUsingPost3(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.cancelUsingPOST3Params,
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfobject>(
-    `/api/api/resignations/${param0}/cancel`,
+  return request<API.BaseResponseObject_>(
+    `/api/resignations/${param0}/cancel`,
     {
       method: 'POST',
       params: { ...queryParams },
@@ -102,15 +99,15 @@ export async function cancelUsingPost3(
   );
 }
 
-/** submitToApproval POST /api/api/resignations/${param0}/submit */
+/** submitToApproval POST /api/resignations/${param0}/submit */
 export async function submitToApprovalUsingPost2(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.submitToApprovalUsingPOST2Params,
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfobject>(
-    `/api/api/resignations/${param0}/submit`,
+  return request<API.BaseResponseObject_>(
+    `/api/resignations/${param0}/submit`,
     {
       method: 'POST',
       params: { ...queryParams },

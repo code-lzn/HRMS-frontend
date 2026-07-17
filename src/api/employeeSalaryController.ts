@@ -9,7 +9,7 @@ export async function getEmployeeSalaryUsingGet(
   options?: { [key: string]: any },
 ) {
   const { employeeId: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfEmployeeSalaryVO>(
+  return request<API.BaseResponseEmployeeSalaryVO_>(
     `/api/employee-salaries/${param0}`,
     {
       method: 'GET',
@@ -27,18 +27,15 @@ export async function updateEmployeeSalaryUsingPut(
   options?: { [key: string]: any },
 ) {
   const { employeeId: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfboolean>(
-    `/api/employee-salaries/${param0}`,
-    {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      params: { ...queryParams },
-      data: body,
-      ...(options || {}),
+  return request<API.BaseResponseBoolean_>(`/api/employee-salaries/${param0}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
     },
-  );
+    params: { ...queryParams },
+    data: body,
+    ...(options || {}),
+  });
 }
 
 /** getSalaryHistory GET /api/employee-salaries/${param0}/history */
@@ -48,7 +45,7 @@ export async function getSalaryHistoryUsingGet(
   options?: { [key: string]: any },
 ) {
   const { employeeId: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfListOfSalaryChangeHistoryVO>(
+  return request<API.BaseResponseListSalaryChangeHistoryVO_>(
     `/api/employee-salaries/${param0}/history`,
     {
       method: 'GET',

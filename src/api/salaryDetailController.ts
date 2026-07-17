@@ -9,7 +9,7 @@ export async function getPayslipDetailUsingGet(
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfPayslipVO>(`/api/payslips/${param0}`, {
+  return request<API.BaseResponsePayslipVO_>(`/api/payslips/${param0}`, {
     method: 'GET',
     params: { ...queryParams },
     ...(options || {}),
@@ -24,7 +24,7 @@ export async function verifyPayslipUsingPost(
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfboolean>(`/api/payslips/${param0}/verify`, {
+  return request<API.BaseResponseBoolean_>(`/api/payslips/${param0}/verify`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -37,7 +37,7 @@ export async function verifyPayslipUsingPost(
 
 /** getMyPayslips GET /api/payslips/my */
 export async function getMyPayslipsUsingGet(options?: { [key: string]: any }) {
-  return request<API.BaseResponseOfListOfPayslipVO>('/api/payslips/my', {
+  return request<API.BaseResponseListPayslipVO_>('/api/payslips/my', {
     method: 'GET',
     ...(options || {}),
   });

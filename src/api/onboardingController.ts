@@ -2,30 +2,27 @@
 /* eslint-disable */
 import request from '@/libs/request';
 
-/** list GET /api/api/onboarding */
+/** list GET /api/onboarding */
 export async function listUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.listUsingGETParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOfPageOfOnboardingListVO>(
-    '/api/api/onboarding',
-    {
-      method: 'GET',
-      params: {
-        ...params,
-      },
-      ...(options || {}),
+  return request<API.BaseResponsePageOnboardingListVO_>('/api/onboarding', {
+    method: 'GET',
+    params: {
+      ...params,
     },
-  );
+    ...(options || {}),
+  });
 }
 
-/** create POST /api/api/onboarding */
+/** create POST /api/onboarding */
 export async function createUsingPost(
   body: API.OnboardingCreateDTO,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOflong>('/api/api/onboarding', {
+  return request<API.BaseResponseLong_>('/api/onboarding', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -35,15 +32,15 @@ export async function createUsingPost(
   });
 }
 
-/** getDetail GET /api/api/onboarding/${param0} */
+/** getDetail GET /api/onboarding/${param0} */
 export async function getDetailUsingGet1(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getDetailUsingGET1Params,
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfOnboardingDetailVO>(
-    `/api/api/onboarding/${param0}`,
+  return request<API.BaseResponseOnboardingDetailVO_>(
+    `/api/onboarding/${param0}`,
     {
       method: 'GET',
       params: { ...queryParams },
@@ -52,7 +49,7 @@ export async function getDetailUsingGet1(
   );
 }
 
-/** updateDraft PUT /api/api/onboarding/${param0} */
+/** updateDraft PUT /api/onboarding/${param0} */
 export async function updateDraftUsingPut(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.updateDraftUsingPUTParams,
@@ -60,7 +57,7 @@ export async function updateDraftUsingPut(
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfobject>(`/api/api/onboarding/${param0}`, {
+  return request<API.BaseResponseObject_>(`/api/onboarding/${param0}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -71,63 +68,57 @@ export async function updateDraftUsingPut(
   });
 }
 
-/** deleteDraft DELETE /api/api/onboarding/${param0} */
+/** deleteDraft DELETE /api/onboarding/${param0} */
 export async function deleteDraftUsingDelete(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.deleteDraftUsingDELETEParams,
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfobject>(`/api/api/onboarding/${param0}`, {
+  return request<API.BaseResponseObject_>(`/api/onboarding/${param0}`, {
     method: 'DELETE',
     params: { ...queryParams },
     ...(options || {}),
   });
 }
 
-/** abandon POST /api/api/onboarding/${param0}/abandon */
+/** abandon POST /api/onboarding/${param0}/abandon */
 export async function abandonUsingPost(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.abandonUsingPOSTParams,
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfobject>(
-    `/api/api/onboarding/${param0}/abandon`,
-    {
-      method: 'POST',
-      params: { ...queryParams },
-      ...(options || {}),
-    },
-  );
+  return request<API.BaseResponseObject_>(`/api/onboarding/${param0}/abandon`, {
+    method: 'POST',
+    params: { ...queryParams },
+    ...(options || {}),
+  });
 }
 
-/** cancel POST /api/api/onboarding/${param0}/cancel */
+/** cancel POST /api/onboarding/${param0}/cancel */
 export async function cancelUsingPost1(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.cancelUsingPOST1Params,
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfobject>(
-    `/api/api/onboarding/${param0}/cancel`,
-    {
-      method: 'POST',
-      params: { ...queryParams },
-      ...(options || {}),
-    },
-  );
+  return request<API.BaseResponseObject_>(`/api/onboarding/${param0}/cancel`, {
+    method: 'POST',
+    params: { ...queryParams },
+    ...(options || {}),
+  });
 }
 
-/** confirmJoin POST /api/api/onboarding/${param0}/confirm-join */
+/** confirmJoin POST /api/onboarding/${param0}/confirm-join */
 export async function confirmJoinUsingPost(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.confirmJoinUsingPOSTParams,
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfobject>(
-    `/api/api/onboarding/${param0}/confirm-join`,
+  return request<API.BaseResponseObject_>(
+    `/api/onboarding/${param0}/confirm-join`,
     {
       method: 'POST',
       params: {
@@ -138,31 +129,28 @@ export async function confirmJoinUsingPost(
   );
 }
 
-/** submitToApproval POST /api/api/onboarding/${param0}/submit */
+/** submitToApproval POST /api/onboarding/${param0}/submit */
 export async function submitToApprovalUsingPost(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.submitToApprovalUsingPOSTParams,
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfobject>(
-    `/api/api/onboarding/${param0}/submit`,
-    {
-      method: 'POST',
-      params: { ...queryParams },
-      ...(options || {}),
-    },
-  );
+  return request<API.BaseResponseObject_>(`/api/onboarding/${param0}/submit`, {
+    method: 'POST',
+    params: { ...queryParams },
+    ...(options || {}),
+  });
 }
 
-/** checkPhone GET /api/api/onboarding/check-phone */
+/** checkPhone GET /api/onboarding/check-phone */
 export async function checkPhoneUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.checkPhoneUsingGETParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOfMapOfstringAndobject>(
-    '/api/api/onboarding/check-phone',
+  return request<API.BaseResponseMapStringObject_>(
+    '/api/onboarding/check-phone',
     {
       method: 'GET',
       params: {
@@ -173,14 +161,14 @@ export async function checkPhoneUsingGet(
   );
 }
 
-/** previewEmployeeNo POST /api/api/onboarding/generate-employee-no */
+/** previewEmployeeNo POST /api/onboarding/generate-employee-no */
 export async function previewEmployeeNoUsingPost(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.previewEmployeeNoUsingPOSTParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOfMapOfstringAndstring>(
-    '/api/api/onboarding/generate-employee-no',
+  return request<API.BaseResponseMapStringString_>(
+    '/api/onboarding/generate-employee-no',
     {
       method: 'POST',
       params: {

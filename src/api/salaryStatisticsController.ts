@@ -4,7 +4,7 @@ import request from '@/libs/request';
 
 /** composition GET /api/salary-statistics/composition */
 export async function compositionUsingGet(options?: { [key: string]: any }) {
-  return request<API.BaseResponseOfListOfMapOfstringAndobject>(
+  return request<API.BaseResponseListMapStringObject_>(
     '/api/salary-statistics/composition',
     {
       method: 'GET',
@@ -17,7 +17,7 @@ export async function compositionUsingGet(options?: { [key: string]: any }) {
 export async function departmentDistributionUsingGet(options?: {
   [key: string]: any;
 }) {
-  return request<API.BaseResponseOfListOfMapOfstringAndobject>(
+  return request<API.BaseResponseListMapStringObject_>(
     '/api/salary-statistics/department-distribution',
     {
       method: 'GET',
@@ -28,7 +28,7 @@ export async function departmentDistributionUsingGet(options?: {
 
 /** monthlyTrend GET /api/salary-statistics/monthly-trend */
 export async function monthlyTrendUsingGet(options?: { [key: string]: any }) {
-  return request<API.BaseResponseOfListOfMapOfstringAndobject>(
+  return request<API.BaseResponseListMapStringObject_>(
     '/api/salary-statistics/monthly-trend',
     {
       method: 'GET',
@@ -41,7 +41,7 @@ export async function monthlyTrendUsingGet(options?: { [key: string]: any }) {
 export async function variationDistributionUsingGet(options?: {
   [key: string]: any;
 }) {
-  return request<API.BaseResponseOfListOfMapOfstringAndobject>(
+  return request<API.BaseResponseListMapStringObject_>(
     '/api/salary-statistics/variation-distribution',
     {
       method: 'GET',

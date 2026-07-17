@@ -8,7 +8,7 @@ export async function listBatchesUsingGet(
   params: API.listBatchesUsingGETParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOfPageOfSalaryBatchVO>('/api/salary-batches', {
+  return request<API.BaseResponsePageSalaryBatchVO_>('/api/salary-batches', {
     method: 'GET',
     params: {
       ...params,
@@ -22,7 +22,7 @@ export async function createBatchUsingPost(
   body: API.SalaryBatchCreateRequest,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseOflong>('/api/salary-batches', {
+  return request<API.BaseResponseLong_>('/api/salary-batches', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -39,7 +39,7 @@ export async function getBatchDetailUsingGet(
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfSalaryBatchVO>(
+  return request<API.BaseResponseSalaryBatchVO_>(
     `/api/salary-batches/${param0}`,
     {
       method: 'GET',
@@ -56,7 +56,7 @@ export async function listDetailsUsingGet(
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfPageOfSalaryDetailVO>(
+  return request<API.BaseResponsePageSalaryDetailVO_>(
     `/api/salary-batches/${param0}/details`,
     {
       method: 'GET',
@@ -75,7 +75,7 @@ export async function executeCalculateUsingPost(
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfboolean>(
+  return request<API.BaseResponseBoolean_>(
     `/api/salary-batches/${param0}/execute`,
     {
       method: 'POST',
@@ -92,7 +92,7 @@ export async function markAsPaidUsingPut(
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfboolean>(
+  return request<API.BaseResponseBoolean_>(
     `/api/salary-batches/${param0}/paid`,
     {
       method: 'PUT',
@@ -109,7 +109,7 @@ export async function submitForApprovalUsingPut(
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfboolean>(
+  return request<API.BaseResponseBoolean_>(
     `/api/salary-batches/${param0}/submit`,
     {
       method: 'PUT',
@@ -127,7 +127,7 @@ export async function adjustDetailUsingPut(
   options?: { [key: string]: any },
 ) {
   const { detailId: param0, ...queryParams } = params;
-  return request<API.BaseResponseOfboolean>(
+  return request<API.BaseResponseBoolean_>(
     `/api/salary-batches/details/${param0}/adjust`,
     {
       method: 'PUT',
