@@ -70,7 +70,11 @@ const RightContent: React.FC<RightContentProps> = ({
       icon: <LogoutOutlined />,
       label: '退出登录',
       onClick: async () => {
-        await userLogoutUsingPost();
+        try {
+          await userLogoutUsingPost();
+        } catch {
+          // 即使登出API失败也强制跳转登录页
+        }
         window.location.href = '/user/login';
       },
     },

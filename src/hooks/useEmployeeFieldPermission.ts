@@ -30,7 +30,8 @@ export default function useEmployeeFieldPermission(
   const currentUser = initialState?.currentUser;
 
   return useMemo(() => {
-    const roleCode: string = currentUser?.roleCode ?? 'employee';
+    // 优先 currentUser.roleCode，其次 initialState.roleCode，最后才默认 employee
+    const roleCode: string = currentUser?.roleCode || initialState?.roleCode || 'employee';
 
     // 是否为本人
     const isSelf = !!(
@@ -66,5 +67,5 @@ export default function useEmployeeFieldPermission(
       // 变更历史：HR + 部门主管
       canSeeHistory: isHR || isDeptManager,
     };
-  }, [currentUser, detail, employeeId]);
+  }, [currentUser, detail, employeeId, initialState?.roleCode]);
 }

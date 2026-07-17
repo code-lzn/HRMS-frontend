@@ -2,15 +2,6 @@ import { useModel } from '@umijs/max';
 import { useMemo } from 'react';
 import { hasAny, hasPermission } from '@/utils/permission';
 
-/**
- * 统一权限 Hook
- * 封装权限判断逻辑，组件中直接使用
- *
- * @example
- * const { hasPerm, hasAnyPerm, dataScope } = usePermission();
- * if (hasPerm('employee:add')) { ... }
- * if (hasAnyPerm('salary:list', 'salary:view')) { ... }
- */
 export default function usePermission() {
   const { initialState } = useModel('@@initialState');
   const user = initialState?.currentUser;
@@ -19,19 +10,18 @@ export default function usePermission() {
     const can = (code: string) => hasPermission(user, code);
     const canAny = (...codes: string[]) => hasAny(user, codes);
 
-    return {
-      /** 判断是否拥有某个权限 */
-      hasPerm: can,
-      /** 判断是否拥有任意一个权限 */
-      hasAnyPerm: canAny,
-      /** 数据范围 */
-      dataScope: (initialState?.dataScope ?? 5) as number,
-      /** 数据范围描述 */
-      dataScopeDesc: (initialState?.dataScopeDesc ?? '') as string,
-      /** 角色编码 */
-      roleCode: (initialState?.roleCode ?? '') as string,
+    // 数据范围：优先 initialState，其次 currentUser
+    const dataScope: number = (initialState?.dataScope ?? user?.dataScope ?? 5) as number;
+    const dataScopeDesc: string = (initialState?.dataScopeDesc ?? '') as string;
+    const roleCode: string = (initialState?.roleCode ?? user?.roleCode ?? '') as string;
 
-      // === 常用菜单权限 ===
+    return {
+      hasPerm: can,
+      hasAnyPerm: canAny,
+      dataScope,
+      dataScopeDesc,
+      roleCode,
+
       canSeeEmployeeMenu: canAny('employee:list', 'employee:detail'),
       canSeeSalaryMenu: canAny('salary:list', 'salary:view', 'salary:audit'),
       canSeeAttendanceMenu: canAny('attendance:list', 'attendance:manage'),
@@ -39,19 +29,15 @@ export default function usePermission() {
       canSeeOrgMenu: can('org:manage'),
       canSeeRoleMenu: can('role:manage'),
 
-      // === 常用按钮权限 ===
       canAddEmployee: can('employee:add'),
       canEditEmployee: can('employee:edit'),
       canDeleteEmployee: can('employee:delete'),
-      canViewEmployeeDetail: can('employee:detail'),
       canAuditSalary: can('salary:audit'),
       canManageSystem: can('system:config'),
-      canBackup: can('system:backup'),
 
-      /** 是否为系统管理员 */
-      isAdmin: can('system:config'),
-      /** 数据范围是否仅限本人 */
-      isSelfOnly: (initialState?.dataScope ?? 5) === 5,
+      // isAdmin 综合判断：dataScope 为 1 或 roleCode 为 admin 或有 system:config 权限
+      isAdmin: dataScope === 1 || roleCode === 'admin' || can('system:config'),
+      isSelfOnly: dataScope === 5,
     };
   }, [user, initialState?.dataScope, initialState?.dataScopeDesc, initialState?.roleCode]);
 }

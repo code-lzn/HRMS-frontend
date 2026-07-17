@@ -43,23 +43,26 @@ const EmployeeEditPage: React.FC = () => {
   const lockedFields = useMemo(() => {
     // 调岗流程字段（所有人不可直接编辑）
     const processFields = ['departmentId', 'positionId', 'directReportId', 'workLocation'];
-    // 录用类型（业务上不可修改）
-    const alwaysLocked = ['employmentType'];
     // 需HR协助的字段（身份证/手机号唯一性约束）
     const hrRequiredFields = ['phone', 'idCard'];
     // 薪资合同字段（仅HR/管理员可编辑）
     const salaryFields = ['contractType', 'contractExpireDate', 'probationRatio', 'baseSalary', 'bankAccount', 'bankName'];
 
-    const roleId = Number(currentUser?.roleId) || 5;
+    // 优先 currentUser.roleId，其次 initialState.dataScope，兜底 5（普通员工）
+    const roleId: number =
+      Number(currentUser?.roleId) ||
+      Number(initialState?.dataScope) ||
+      5;
 
-    // 系统管理员(1)：仅录用类型不可修改
-    if (roleId === 1) return alwaysLocked;
-    // HR专员(2)：调岗流程 + 录用类型不可修改
-    if (roleId === 2) return [...processFields, ...alwaysLocked];
+    // 系统管理员(1)：所有字段可编辑
+    if (roleId === 1) return [];
+    // HR专员(2)：仅调岗流程字段不可直接编辑
+    if (roleId === 2) return processFields;
     // 部门主管(3) / 财务(4) / 普通员工(5)：全部锁定
     const personalInfoFields = ['employeeName', 'gender', 'email', 'birthday', 'registeredAddress', 'currentAddress'];
-    return [...processFields, ...alwaysLocked, ...hrRequiredFields, ...salaryFields, ...personalInfoFields];
-  }, [currentUser]);
+    const restrictedFields = ['employmentType', 'hireDate'];
+    return [...processFields, ...hrRequiredFields, ...salaryFields, ...personalInfoFields, ...restrictedFields];
+  }, [currentUser, initialState?.dataScope]);
 
   /** 记录初始值用于对比变更字段 */
   const [initialValues, setInitialValues] = useState<Record<string, any>>({});
