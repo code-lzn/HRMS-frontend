@@ -65,7 +65,7 @@ const ResignationPage: React.FC = () => {
               fontWeight: 500,
             }}
           >
-            {name?.charAt(0)}
+            {String(name ?? '').charAt(0)}
           </div>
           <div>
             <div style={{ fontSize: 14, fontWeight: 500, color: '#333' }}>{name}</div>
