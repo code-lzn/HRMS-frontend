@@ -8,8 +8,11 @@ import {
   getLeaveTypeDistributionUsingGet,
   getAttendanceTrendUsingGet,
   getLateEarlyRankingUsingGet,
+  getPersonalTrendUsingGet,
+  getPersonalLeaveDistributionUsingGet,
 } from '@/api/attendanceStatsController';
 import { getDepartmentTreeUsingGet } from '@/api/departmentController';
+import usePermission from '@/hooks/usePermission';
 
 const STATUS_COLOR_MAP: Record<string, string> = {
   NORMAL: '#52c41a',
@@ -20,6 +23,7 @@ const STATUS_COLOR_MAP: Record<string, string> = {
   ABSENT: '#ff4d4f',
   MISS_IN: '#722ed1',
   MISS_OUT: '#1890ff',
+  REST: '#87d068',
 };
 
 const STATUS_TEXT_MAP: Record<string, string> = {
@@ -67,11 +71,14 @@ interface DepartmentStats {
 }
 
 const Statistics: React.FC = () => {
+  const { isAdmin, dataScope } = usePermission();
+  const canViewAllStats = isAdmin || dataScope <= 4;
+
   const [selectedDept, setSelectedDept] = useState('');
   const [selectedMonth, setSelectedMonth] = useState(dayjs().format('YYYY-MM'));
   const [departments, setDepartments] = useState<DepartmentOption[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [trendData, setTrendData] = useState<TrendData>({ months: [], rates: [] });
   const [leaveData, setLeaveData] = useState<LeaveTypeData>({ leaveTypes: [], counts: [], percentages: [] });
   const [lateEarlyData, setLateEarlyData] = useState<LateEarlyData[]>([]);
@@ -82,14 +89,24 @@ const Statistics: React.FC = () => {
   const chartRef3 = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchDepartmentList();
+    if (canViewAllStats) {
+      fetchDepartmentList();
+    } else {
+      fetchPersonalStatsData();
+    }
   }, []);
 
   useEffect(() => {
-    if (departments.length > 0) {
+    if (canViewAllStats && departments.length > 0) {
       fetchStatsData();
     }
   }, [selectedMonth, selectedDept, departments]);
+
+  useEffect(() => {
+    if (!canViewAllStats) {
+      fetchPersonalStatsData();
+    }
+  }, [selectedMonth]);
 
   const fetchDepartmentList = async () => {
     try {
@@ -98,7 +115,7 @@ const Statistics: React.FC = () => {
         const options: DepartmentOption[] = [{ value: '', label: '全部部门' }];
         const traverse = (nodes: any[]) => {
           nodes.forEach(node => {
-            options.push({ value: node.id, label: node.departmentName });
+            options.push({ value: node.id, label: node.name });
             if (node.children) {
               traverse(node.children);
             }
@@ -159,11 +176,40 @@ const Statistics: React.FC = () => {
     }
   };
 
+  const fetchPersonalStatsData = async () => {
+    setLoading(true);
+    try {
+      const [trendRes, leaveRes] = await Promise.all([
+        getPersonalTrendUsingGet({ months: 6 }),
+        getPersonalLeaveDistributionUsingGet({ month: selectedMonth }),
+      ]);
+
+      if (trendRes.code === 0 && trendRes.data) {
+        setTrendData({
+          months: trendRes.data.months || [],
+          rates: trendRes.data.rates || [],
+        });
+      }
+
+      if (leaveRes.code === 0 && leaveRes.data) {
+        setLeaveData({
+          leaveTypes: leaveRes.data.leaveTypes || [],
+          counts: leaveRes.data.counts || [],
+          percentages: leaveRes.data.percentages || [],
+        });
+      }
+    } catch (e) {
+      console.error('获取个人统计数据失败:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (chartRef1.current && trendData.months.length > 0) {
       const chart = echarts.init(chartRef1.current);
       chart.setOption({
-        title: { text: '近6个月出勤率趋势', left: 'center', fontSize: 14 },
+        title: { text: canViewAllStats ? '近6个月出勤率趋势' : '我的出勤率趋势', left: 'center', fontSize: 14 },
         xAxis: { type: 'category', data: trendData.months },
         yAxis: { type: 'value', max: 100, axisLabel: { formatter: '{value}%' } },
         series: [{
@@ -190,7 +236,7 @@ const Statistics: React.FC = () => {
         itemStyle: { color: ['#52c41a', '#faad14', '#1890ff', '#722ed1', '#ff4d4f', '#fa8c16', '#bfbfbf'][index % 7] },
       }));
       chart.setOption({
-        title: { text: '当月请假类型占比', left: 'center', fontSize: 14 },
+        title: { text: canViewAllStats ? '当月请假类型占比' : '我的请假类型占比', left: 'center', fontSize: 14 },
         series: [{
           type: 'pie',
           radius: ['40%', '70%'],
@@ -221,23 +267,23 @@ const Statistics: React.FC = () => {
   const columns = [
     { title: '部门名称', dataIndex: 'departmentName', key: 'departmentName' },
     { title: '部门人数', dataIndex: 'employeeCount', key: 'employeeCount' },
-    { 
-      title: '出勤率', 
-      dataIndex: 'attendanceRate', 
+    {
+      title: '出勤率',
+      dataIndex: 'attendanceRate',
       key: 'attendanceRate',
-      render: (rate: number) => `${(rate * 100).toFixed(1)}%`,
+      render: (rate: number) => `${(rate ?? 0).toFixed(1)}%`,
     },
-    { 
-      title: '迟到率', 
-      dataIndex: 'lateRate', 
+    {
+      title: '迟到率',
+      dataIndex: 'lateRate',
       key: 'lateRate',
-      render: (rate: number) => `${(rate * 100).toFixed(1)}%`,
+      render: (rate: number) => `${(rate ?? 0).toFixed(1)}%`,
     },
-    { 
-      title: '请假率', 
-      dataIndex: 'leaveRate', 
+    {
+      title: '请假率',
+      dataIndex: 'leaveRate',
       key: 'leaveRate',
-      render: (rate: number) => `${(rate * 100).toFixed(1)}%`,
+      render: (rate: number) => `${(rate ?? 0).toFixed(1)}%`,
     },
     { title: '迟到人次', dataIndex: 'lateCount', key: 'lateCount' },
     { title: '早退人次', dataIndex: 'earlyCount', key: 'earlyCount' },
@@ -251,14 +297,16 @@ const Statistics: React.FC = () => {
           <span style={{ color: '#999', fontSize: 14, marginTop: 4, display: 'block' }}>查看考勤数据统计与明细</span>
         </div>
         <Space>
-          <Select 
-            placeholder="选择部门" 
-            style={{ width: 150 }} 
-            value={selectedDept} 
-            onChange={setSelectedDept} 
-            allowClear
-            options={departments}
-          />
+          {canViewAllStats && (
+            <Select
+              placeholder="选择部门"
+              style={{ width: 150 }}
+              value={selectedDept}
+              onChange={setSelectedDept}
+              allowClear
+              options={departments}
+            />
+          )}
           <Select 
             placeholder="选择月份" 
             style={{ width: 120 }} 
@@ -281,18 +329,22 @@ const Statistics: React.FC = () => {
           <Card style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
             <div ref={chartRef2} style={{ height: 280 }} />
           </Card>
-          <Card style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-            <div ref={chartRef3} style={{ height: 280 }} />
-          </Card>
-          <Card title="部门考勤概况" style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-            <Table 
-              columns={columns} 
-              dataSource={departmentStats} 
-              rowKey="departmentId" 
-              pagination={false}
-              size="small"
-            />
-          </Card>
+          {canViewAllStats && (
+            <Card style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+              <div ref={chartRef3} style={{ height: 280 }} />
+            </Card>
+          )}
+          {canViewAllStats && (
+            <Card title="部门考勤概况" style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+              <Table
+                columns={columns}
+                dataSource={departmentStats}
+                rowKey="departmentId"
+                pagination={false}
+                size="small"
+              />
+            </Card>
+          )}
         </div>
       </Spin>
     </div>

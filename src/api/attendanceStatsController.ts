@@ -93,3 +93,33 @@ export async function getAttendanceTrendUsingGet(
     },
   );
 }
+
+/** getPersonalTrend GET /api/attendance/stats/personal-trend */
+export async function getPersonalTrendUsingGet(
+  params?: { months?: number },
+  options?: { [key: string]: any },
+) {
+  return request<API.BaseResponseAttendanceTrendVO_>(
+    '/api/attendance/stats/personal-trend',
+    {
+      method: 'GET',
+      params: { months: '6', ...params },
+      ...(options || {}),
+    },
+  );
+}
+
+/** getPersonalLeaveDistribution GET /api/attendance/stats/personal-leave-distribution */
+export async function getPersonalLeaveDistributionUsingGet(
+  params: { month: string },
+  options?: { [key: string]: any },
+) {
+  return request<API.BaseResponseLeaveTypeDistributionVO_>(
+    '/api/attendance/stats/personal-leave-distribution',
+    {
+      method: 'GET',
+      params: { ...params },
+      ...(options || {}),
+    },
+  );
+}
