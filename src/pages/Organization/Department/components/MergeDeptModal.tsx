@@ -18,18 +18,13 @@ const flattenTree = (nodes: API.DepartmentTreeVO[]): { label: string; value: num
 };
 
 /** 将部门树转为 TreeSelect 数据 */
-const buildTreeSelectData = (
-  nodes: API.DepartmentTreeVO[],
-  excludeId?: number,
-): any[] =>
-  nodes
-    .filter((n) => n.id !== excludeId)
-    .map((node) => ({
-      key: node.id!,
-      value: node.id!,
-      title: node.name,
-      children: node.children?.length ? buildTreeSelectData(node.children, excludeId) : [],
-    }));
+const buildTreeSelectData = (nodes: API.DepartmentTreeVO[]): any[] =>
+  nodes.map((node) => ({
+    key: node.id!,
+    value: node.id!,
+    title: node.name,
+    children: node.children?.length ? buildTreeSelectData(node.children) : [],
+  }));
 
 /** 检查 targetId 是否是 sourceId 的子孙节点 */
 const isDescendant = (
@@ -79,8 +74,8 @@ const MergeDeptModal: React.FC<MergeDeptModalProps> = ({
 
   const sourceOptions = useMemo(() => flattenTree(treeData), [treeData]);
   const targetTreeData = useMemo(
-    () => buildTreeSelectData(treeData, selectedDeptId),
-    [treeData, selectedDeptId],
+    () => buildTreeSelectData(treeData),
+    [treeData],
   );
 
   useEffect(() => {
