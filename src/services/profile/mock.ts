@@ -1,5 +1,5 @@
 import type {
-  ProfileVO, AttendanceCalendarVO, ClockResultVO,
+  ProfileVO, AttendanceCalendarVO, AttendanceStatus, ClockResultVO,
   LeaveListVO, PayslipListItem, PayslipDetailVO,
   SalaryTrendVO, LoginLogVO, PendingCountVO,
 } from './typings';
@@ -61,7 +61,7 @@ function generateMonthDays(yearMonth: string): AttendanceCalendarVO {
     const dayOfWeek = new Date(y, m - 1, d).getDay();
     const weekday = weekdays[dayOfWeek];
 
-    let status: string, statusDesc: string, clockIn: string | null = null, clockOut: string | null = null;
+    let status: AttendanceStatus, statusDesc: string, clockIn: string | null = null, clockOut: string | null = null;
 
     if (dayOfWeek === 0 || dayOfWeek === 6) {
       status = 'WEEKEND';
