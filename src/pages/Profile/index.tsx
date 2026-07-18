@@ -9,9 +9,9 @@ import dayjs from 'dayjs';
 export default function ProfilePage() {
   const { profile, loading, fetchProfile } = useProfile();
   const [editing, setEditing] = useState(false);
-  const [editData, setEditData] = useState<Record<string, any>>({});
+  const [editData, setEditData] = useState<Partial<ProfileUpdateDTO>>({});
   const [saving, setSaving] = useState(false);
-  const [originalData, setOriginalData] = useState<Record<string, any>>({});
+  const [originalData, setOriginalData] = useState<Partial<ProfileUpdateDTO>>({});
 
   useEffect(() => {
     fetchProfile();
@@ -49,30 +49,32 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await updateProfile(editData as ProfileUpdateDTO);
+      await updateProfile(editData);
       message.success('保存成功');
       setEditing(false);
       fetchProfile();
+    } catch (err: any) {
+      message.error(err?.message || '保存失败');
     } finally {
       setSaving(false);
     }
   };
 
-  const isLocked = (field: string) => profile?.lockedFields?.includes(field);
+  const isLocked = (field: string): boolean => profile?.lockedFields?.includes(field) ?? false;
 
   const renderField = (_label: string, field: string, value: any, locked: boolean) => {
     if (editing && !locked) {
       if (field === 'birthday') {
         return (
           <DatePicker
-            value={editData.birthday ? dayjs(editData.birthday) : null}
-            onChange={(d) => setEditData({ ...editData, birthday: d?.format('YYYY-MM-DD') })}
+            value={(editData as any).birthday ? dayjs((editData as any).birthday) : null}
+            onChange={(d) => setEditData({ ...editData, birthday: d?.format('YYYY-MM-DD') } as any)}
           />
         );
       }
       return (
         <Input
-          value={editData[field] ?? ''}
+          value={(editData as any)[field] ?? ''}
           onChange={(e) => setEditData({ ...editData, [field]: e.target.value })}
         />
       );

@@ -20,6 +20,8 @@ export default function useProfileModel() {
     try {
       const data = await profileService.getProfile();
       setProfile(data);
+    } catch (err: any) {
+      console.error('fetchProfile failed:', err);
     } finally {
       setLoading(false);
     }

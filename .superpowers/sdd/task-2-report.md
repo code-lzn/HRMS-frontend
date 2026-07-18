@@ -26,3 +26,17 @@ Implemented the full "我的档案" page at `src/pages/Profile/index.tsx`, repla
 
 - The `birthday` field is editable in the UI but not included in `ProfileUpdateDTO`. It's sent as an extra field in the update payload; the backend should ignore unknown fields gracefully.
 - The mock implementation of `updateProfile(_data: any)` ignores the payload, so birthday edits won't persist in mock mode until the real API is connected.
+
+## Fixes
+
+Applied the following fixes based on code review:
+
+1. **Fix 1 -- Error handling in handleSave**: Added `catch (err: any)` block to `handleSave` in `src/pages/Profile/index.tsx` that displays `message.error(err?.message || '保存失败')` on failure. Previously, the `try/finally` only reset saving state but silently swallowed errors.
+
+2. **Fix 2 -- Type safety for editData state**: Changed `useState<Record<string, any>>` to `useState<Partial<ProfileUpdateDTO>>` for both `editData` and `originalData` states in `src/pages/Profile/index.tsx`. Removed the `as ProfileUpdateDTO` cast in the `updateProfile()` call. Added `as any` casts in `renderField` for dynamic field accesses (`birthday` and the `[field]` pattern) since the render field handles arbitrary field keys that extend beyond the `ProfileUpdateDTO` type.
+
+3. **Fix 3 -- Error handling in fetchProfile model**: Added `catch (err: any)` block to `fetchProfile` in `src/models/profile.ts` that logs `console.error('fetchProfile failed:', err)`. Previously, the `try/finally` only reset loading state without catching errors.
+
+4. **isLocked return type**: Added explicit `: boolean` return type with `?? false` fallback to `isLocked()` function to fix `boolean | undefined` assignment errors.
+
+All changes compile without errors (`npx tsc --noEmit` passes for Profile-related files).
