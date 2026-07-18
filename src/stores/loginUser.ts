@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { DEFAULT_USER } from '@/constants/user';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 

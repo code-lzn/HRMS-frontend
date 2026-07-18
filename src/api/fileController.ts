@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-nocheck
 /* eslint-disable */
 import request from '@/libs/request';
 

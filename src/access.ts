@@ -19,8 +19,8 @@ export default (initialState?: {
     isDeptHead: role === 'dept_head',
     /** 财务专员 */
     isFinance: role === 'finance',
-    /** 普通员工 */
-    isEmployee: role === 'employee',
+    /** 普通员工（后端 userRole 值为 "user"） */
+    isEmployee: role === 'user',
 
     // ========== 页面/菜单可见性 ==========
     /** 可查看员工档案模块（所有登录用户） */

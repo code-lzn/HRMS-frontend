@@ -20,7 +20,8 @@
     "antd": "^5.29.3",
     "axios": "^1.18.1",
     "react-markdown": "^10.1.0",
-    "recharts": "^3.9.2"
+    "recharts": "^3.9.2",
+    "dayjs": "^1.11.10"
   },
   "devDependencies": {
     "@types/react": "^18.0.33",

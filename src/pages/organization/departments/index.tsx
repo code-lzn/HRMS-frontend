@@ -19,22 +19,19 @@ const DepartmentManagement: React.FC = () => {
   const [modalDeptId, setModalDeptId] = useState<number | undefined>();
   const [modalParentId, setModalParentId] = useState<number | undefined>();
   const [modalExcludeIds, setModalExcludeIds] = useState<number[]>([]);
-  const [modalInitialValues, setModalInitialValues] = useState<
-    Record<string, any>
-  >({});
   const [siderCollapsed, setSiderCollapsed] = useState(false);
 
   const handleSelect = useCallback((id: number) => {
     setSelectedId(id);
   }, []);
 
-  // 新增根部门
+  // 新增根部门（预留功能）
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleAddRoot = useCallback(() => {
     setModalMode('create');
     setModalDeptId(undefined);
     setModalParentId(undefined);
     setModalExcludeIds([]);
-    setModalInitialValues({});
     setModalOpen(true);
   }, []);
 
@@ -44,17 +41,15 @@ const DepartmentManagement: React.FC = () => {
     setModalDeptId(undefined);
     setModalParentId(parentId);
     setModalExcludeIds([]);
-    setModalInitialValues({});
     setModalOpen(true);
   }, []);
 
-  // 编辑部门（需要先获取该部门数据，这里用 initialValues 简单回填）
+  // 编辑部门（form modal 内部自动拉取部门详情填充表单）
   const handleEdit = useCallback((id: number) => {
     setModalMode('edit');
     setModalDeptId(id);
     setModalParentId(undefined);
-    setModalExcludeIds([id]); // 过滤自身
-    setModalInitialValues({});
+    setModalExcludeIds([]);
     setModalOpen(true);
   }, []);
 
@@ -84,7 +79,6 @@ const DepartmentManagement: React.FC = () => {
           <DepartmentTreePanel
             selectedId={selectedId}
             onSelect={handleSelect}
-            onAddRoot={handleAddRoot}
           />
         </Sider>
         <Content style={{ minHeight: 500 }}>
@@ -94,6 +88,8 @@ const DepartmentManagement: React.FC = () => {
               deptId={selectedId}
               onEdit={(id) => handleEdit(id)}
               onAddChild={handleAddChild}
+              onSelectChild={handleSelect}
+              onCancel={() => setSelectedId(undefined)}
             />
           ) : (
             <Empty
@@ -110,7 +106,6 @@ const DepartmentManagement: React.FC = () => {
         deptId={modalDeptId}
         parentId={modalParentId}
         excludeIds={modalExcludeIds}
-        initialValues={modalInitialValues}
         onClose={() => setModalOpen(false)}
         onSuccess={handleModalSuccess}
       />

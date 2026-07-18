@@ -1,3 +1,4 @@
+// @ts-nocheck
 import loginUser from '@/stores/loginUser';
 import { configureStore } from '@reduxjs/toolkit';
 

@@ -1,20 +1,24 @@
-import axios from 'axios';
-import {
-  flattenDepartments,
-  getMockEmployeeDetail,
-  mockDepartments,
-  mockEmployees,
-  mockPositions,
-  paginate,
-} from './mockData';
+import axios, { AxiosRequestConfig } from 'axios';
+import { mockPositions, paginate } from './mockData';
 
-// 创建 Axios 实例
-// 区分开发和生产环境
+// 后端基础地址：dev 指向本地后端（需后端开启 CORS），prod 指向线上
+// 注意：utoopack 在 dev 模式下 process.env.NODE_ENV 也会是 'production'，
+// 所以这里不能用 NODE_ENV 区分，必须用显式的 REACT_APP_ENV
 const DEV_BASE_URL = 'http://localhost:8123';
 const PROD_BASE_URL = 'http://xx.xx.xx.xx';
+const BASE_URL =
+  process.env.REACT_APP_ENV === 'production' ? PROD_BASE_URL : DEV_BASE_URL;
+
+console.log(
+  '[request.ts] REACT_APP_ENV =',
+  process.env.REACT_APP_ENV,
+  'BASE_URL =',
+  BASE_URL,
+);
+
 const myAxios = axios.create({
-  baseURL: process.env.NODE_ENV === 'production' ? PROD_BASE_URL : DEV_BASE_URL,
-  timeout: 60000,
+  baseURL: BASE_URL,
+  timeout: 10000, // 10s 超时，便于快速发现错误
   withCredentials: true,
 });
 
@@ -22,6 +26,8 @@ const myAxios = axios.create({
 /**
  * 根据 URL + method 返回本地 mock 数据
  * 返回 null 表示该请求不被 mock 拦截，需要走真实后端
+ *
+ * 仅职位相关保留 mock 作为演示数据；其他接口全部对接真实后端
  */
 function getMockResponse(
   method: string,
@@ -31,58 +37,8 @@ function getMockResponse(
 ): any | null {
   const path = url.split('?')[0];
 
-  // ---------- 部门相关 ----------
-  if (path === '/api/api/v1/departments/tree' && method === 'GET') {
-    return { code: 0, message: 'ok', data: mockDepartments };
-  }
-  // 部门分页列表
-  if (path === '/api/api/v1/departments' && method === 'GET') {
-    const all = flattenDepartments();
-    return {
-      code: 0,
-      message: 'ok',
-      data: paginate(all, params.current, params.pageSize || params.size),
-    };
-  }
-  // 部门详情
-  const deptDetailMatch = path.match(/^\/api\/api\/v1\/departments\/(\d+)$/);
-  if (deptDetailMatch && method === 'GET') {
-    const id = Number(deptDetailMatch[1]);
-    const all = flattenDepartments();
-    const dept = all.find((d) => d.id === id);
-    if (dept) return { code: 0, message: 'ok', data: dept };
-    return { code: 404, message: '部门不存在', data: null };
-  }
-  // 部门创建/更新/删除
-  if (path === '/api/api/v1/departments' && method === 'POST') {
-    return {
-      code: 0,
-      message: '创建成功',
-      data: {
-        id: Date.now(),
-        ...(body || {}),
-        children: [],
-        createTime: new Date().toISOString(),
-      },
-    };
-  }
-  if (deptDetailMatch && method === 'PUT') {
-    return {
-      code: 0,
-      message: '更新成功',
-      data: {
-        id: Number(deptDetailMatch[1]),
-        ...(body || {}),
-        updateTime: new Date().toISOString(),
-      },
-    };
-  }
-  if (deptDetailMatch && method === 'DELETE') {
-    return { code: 0, message: '删除成功', data: null };
-  }
-
-  // ---------- 职位相关 ----------
-  if (path === '/api/api/v1/positions' && method === 'GET') {
+  // ---------- 职位相关（仅职位保留 mock） ----------
+  if (path === '/api/positions' && method === 'GET') {
     const current = Number(params.current) || 1;
     const size = Number(params.pageSize || params.size) || 10;
     const keyword = (params.keyword || '').toString().toLowerCase();
@@ -100,7 +56,7 @@ function getMockResponse(
     }
     return { code: 0, message: 'ok', data: paginate(list, current, size) };
   }
-  if (path === '/api/api/v1/positions' && method === 'POST') {
+  if (path === '/api/positions' && method === 'POST') {
     return {
       code: 0,
       message: '创建成功',
@@ -124,7 +80,7 @@ function getMockResponse(
   if (posDetailMatch && method === 'DELETE') {
     return { code: 0, message: '删除成功', data: null };
   }
-  if (path === '/api/api/v1/positions/sequences' && method === 'GET') {
+  if (path === '/api/positions/sequences' && method === 'GET') {
     return {
       code: 0,
       message: 'ok',
@@ -136,75 +92,10 @@ function getMockResponse(
     };
   }
 
-  // ---------- 员工相关 ----------
-  if (path === '/api/api/v1/employees' && method === 'GET') {
-    const current = Number(params.current) || 1;
-    const size = Number(params.pageSize || params.size) || 10;
-    const keyword = (params.keyword || '').toString().toLowerCase();
-    const status = params.status;
-    const departmentId = params.departmentId;
-    let list = [...mockEmployees];
-    if (keyword) {
-      list = list.filter(
-        (e) =>
-          e.name.toLowerCase().includes(keyword) ||
-          (e.phone || '').includes(keyword) ||
-          (e.employeeNo || '').toLowerCase().includes(keyword),
-      );
-    }
-    if (status !== undefined && status !== null && status !== '') {
-      list = list.filter((e) => String(e.status) === String(status));
-    }
-    if (departmentId) {
-      list = list.filter((e) => e.departmentId === Number(departmentId));
-    }
-    return { code: 0, message: 'ok', data: paginate(list, current, size) };
-  }
-  if (path === '/api/api/v1/employees' && method === 'POST') {
-    return {
-      code: 0,
-      message: '创建成功',
-      data: { id: Date.now(), ...(body || {}) },
-    };
-  }
-  const empDetailMatch = path.match(/^\/api\/api\/v1\/employees\/(\d+)$/);
-  if (empDetailMatch && method === 'GET') {
-    const id = Number(empDetailMatch[1]);
-    return { code: 0, message: 'ok', data: getMockEmployeeDetail(id) };
-  }
-  if (empDetailMatch && method === 'PUT') {
-    return {
-      code: 0,
-      message: '更新成功',
-      data: { id: Number(empDetailMatch[1]), ...(body || {}) },
-    };
-  }
-  if (path === '/api/api/v1/employees/field-permissions' && method === 'GET') {
-    return {
-      code: 0,
-      message: 'ok',
-      data: {
-        visibleFields: ['phone', 'idCard', 'email', 'salary'],
-        hiddenFields: [],
-      },
-    };
-  }
-  if (path === '/api/api/v1/employees/statuses' && method === 'GET') {
-    return {
-      code: 0,
-      message: 'ok',
-      data: [
-        { value: 1, label: '正式' },
-        { value: 2, label: '试用' },
-        { value: 3, label: '离职' },
-      ],
-    };
-  }
-
   return null;
 }
 
-// 创建请求拦截器：自动拦截并返回 mock 数据
+// 请求拦截器
 myAxios.interceptors.request.use(
   function (config) {
     return config;
@@ -214,11 +105,8 @@ myAxios.interceptors.request.use(
   },
 );
 
-// 创建响应拦截器
 myAxios.interceptors.response.use(
-  // 2xx 响应触发
   function (response) {
-    // 处理响应数据
     const { data } = response;
     // 未登录
     if (data?.code === 40100) {
@@ -229,12 +117,24 @@ myAxios.interceptors.response.use(
         window.location.href = `/user/login?redirect=${window.location.href}`;
       }
     } else if (data?.code !== 0) {
-      throw new Error(data?.message ?? '服务器错误');
+      const err: any = new Error(data?.message ?? '服务器错误');
+      err.code = data?.code;
+      err.data = data?.data;
+      throw err;
     }
     return data;
   },
-  // 非 2xx 或 mock 接管：尝试用 mock 数据响应
+  // 非 2xx 或 mock 接管
   function (error) {
+    // 如果后端返回了响应（哪怕是 4xx/5xx 的业务错误），不要用 mock 数据覆盖
+    if (error.response) {
+      const { data } = error.response;
+      const err: any = new Error(data?.message ?? '服务器错误');
+      err.code = data?.code;
+      err.data = data?.data;
+      return Promise.reject(err);
+    }
+    // 后端不可达（网络错误/连接拒绝），才用 mock 兜底
     const config = error?.config;
     if (config) {
       const method = (config.method || 'get').toUpperCase();
@@ -246,12 +146,36 @@ myAxios.interceptors.response.use(
       } catch {}
       const mockData = getMockResponse(method, url, params, body);
       if (mockData) {
-        // 通过 Promise 成功 resolve，模拟 axios 正常响应
         return Promise.resolve(mockData);
       }
     }
+    // 详细错误日志，帮助排查后端/CORS/网络问题
+    console.error('[request error]', {
+      url: error?.config?.url,
+      method: error?.config?.method,
+      code: error?.code,
+      message: error?.message,
+      response: error?.response?.status,
+      responseData: error?.response?.data,
+    });
     return Promise.reject(error);
   },
 );
 
-export default myAxios;
+/**
+ * 类型安全的请求函数。
+ * 拦截器已解包 AxiosResponse → body，此包装让 TS 类型正确匹配。
+ */
+function request<T = any>(config: AxiosRequestConfig): Promise<T>;
+function request<T = any>(url: string, config?: AxiosRequestConfig): Promise<T>;
+function request<T = any>(
+  urlOrConfig: string | AxiosRequestConfig,
+  config?: AxiosRequestConfig,
+): Promise<T> {
+  if (typeof urlOrConfig === 'string') {
+    return myAxios({ url: urlOrConfig, ...config }) as any;
+  }
+  return myAxios(urlOrConfig) as any;
+}
+
+export default request;
