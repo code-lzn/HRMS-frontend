@@ -15,13 +15,34 @@ import {
   message,
 } from 'antd';
 import dayjs from 'dayjs';
-import React, { useEffect } from 'react';
-import { mockDepartments, mockEmployees, mockPositions } from '../mock';
+import React, { useEffect, useState } from 'react';
+import {
+  createUsingPost,
+  updateDraftUsingPut,
+  checkPhoneUsingGet,
+  previewEmployeeNoUsingPost,
+} from '@/api/onboardingController';
+import { getDepartmentTreeUsingGet } from '@/api/departmentController';
+import { getPositionListUsingGet } from '@/api/positionController';
+import { getEmployeeListUsingGet } from '@/api/employeeController';
 
 interface OnboardingFormProps {
   open: boolean;
   onClose: () => void;
   initialValues?: Record<string, any>;
+}
+
+interface PositionOption {
+  value: number;
+  label: string;
+  departmentId?: number;
+  probationMonths?: number;
+}
+
+interface EmployeeOption {
+  value: number;
+  label: string;
+  departmentId?: number;
 }
 
 /** 新建/编辑入职申请 Drawer */
@@ -37,7 +58,61 @@ const OnboardingFormModal: React.FC<OnboardingFormProps> = ({
   const [selectedPositionId, setSelectedPositionId] = React.useState<number | undefined>();
   const [previewEmpNo, setPreviewEmpNo] = React.useState<string>('');
 
+  const [departmentOptions, setDepartmentOptions] = useState<{ value: number; label: string }[]>([]);
+  const [positionOptions, setPositionOptions] = useState<PositionOption[]>([]);
+  const [employeeOptions, setEmployeeOptions] = useState<EmployeeOption[]>([]);
+
   const isEdit = !!initialValues;
+
+  // 加载字典数据
+  useEffect(() => {
+    if (!open) return;
+    // 加载部门
+    getDepartmentTreeUsingGet()
+      .then((res) => {
+        if (res.code === 0 && res.data) {
+          const flatten = (nodes: API.DepartmentTreeNode[]): { value: number; label: string }[] => {
+            const result: { value: number; label: string }[] = [];
+            for (const n of nodes) {
+              if (n.id != null) result.push({ value: n.id, label: n.name || '' });
+              if (n.children) result.push(...flatten(n.children));
+            }
+            return result;
+          };
+          setDepartmentOptions(flatten(res.data));
+        }
+      })
+      .catch(() => {});
+    // 加载职位
+    getPositionListUsingGet({ current: 1, pageSize: 500 })
+      .then((res) => {
+        if (res.code === 0 && res.data?.records) {
+          setPositionOptions(
+            res.data.records.map((p) => ({
+              value: p.id || 0,
+              label: p.name || '',
+              departmentId: p.departmentId,
+              probationMonths: p.defaultProbationMonths,
+            })),
+          );
+        }
+      })
+      .catch(() => {});
+    // 加载员工(汇报人)
+    getEmployeeListUsingGet({ current: 1, pageSize: 500 })
+      .then((res) => {
+        if (res.code === 0 && res.data?.records) {
+          setEmployeeOptions(
+            res.data.records.map((e) => ({
+              value: e.id || 0,
+              label: e.name || '',
+              departmentId: e.departmentId,
+            })),
+          );
+        }
+      })
+      .catch(() => {});
+  }, [open]);
 
   // 重置表单
   useEffect(() => {
@@ -50,67 +125,101 @@ const OnboardingFormModal: React.FC<OnboardingFormProps> = ({
     }
   }, [open, initialValues, form]);
 
-  /** 获取部门下的职位列表 */
+  // 获取部门下的职位列表
   const getPositions = (deptId?: number) => {
-    if (!deptId) return mockPositions;
-    return mockPositions.filter((p) => !p.departmentId || p.departmentId === deptId);
+    if (!deptId) return positionOptions;
+    return positionOptions.filter((p) => !p.departmentId || p.departmentId === deptId);
   };
 
-  /** 职位变更 → 自动填充试用期 */
+  // 获取部门下的员工列表(汇报人)
+  const getEmployeesByDept = (deptId?: number) => {
+    if (!deptId) return employeeOptions;
+    return employeeOptions.filter((e) => !e.departmentId || e.departmentId === deptId);
+  };
+
+  // 职位变更 → 自动填充试用期
   const handlePositionChange = (posId: number) => {
     setSelectedPositionId(posId);
-    const pos = mockPositions.find((p) => p.value === posId);
-    if (pos) {
+    const pos = positionOptions.find((p) => p.value === posId);
+    if (pos && pos.probationMonths) {
       form.setFieldValue('probationMonths', pos.probationMonths);
     }
   };
 
-  /** 部门变更 → 自动填充汇报人 + 生成工号预览 */
-  const handleDepartmentChange = (deptId: number) => {
+  // 部门变更 → 自动填充汇报人 + 生成工号预览
+  const handleDepartmentChange = async (deptId: number) => {
     setSelectedDeptId(deptId);
     // 清空职位
     form.setFieldValue('positionId', undefined);
     setSelectedPositionId(undefined);
-    // 自动设置汇报人为部门负责人
-    const manager = mockEmployees.find((e) => e.departmentId === deptId);
-    if (manager) {
-      form.setFieldValue('directReportId', manager.value);
+    // 自动设置汇报人为部门下第一位员工
+    const emp = getEmployeesByDept(deptId)[0];
+    if (emp) {
+      form.setFieldValue('directReportId', emp.value);
     }
-    // 生成工号预览
-    const deptCode = String(deptId).padStart(2, '0').slice(0, 2);
-    const randomSuffix = String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
-    setPreviewEmpNo(`2024${deptCode}${randomSuffix}`);
+    // 预览工号
+    try {
+      const res = await previewEmployeeNoUsingPost({ departmentId: deptId });
+      if (res.code === 0 && res.data) {
+        setPreviewEmpNo((res.data as any).employeeNo || '');
+      }
+    } catch {
+      // ignore
+    }
   };
 
-  /** 录用类型变更 → 实习默认100% */
+  // 录用类型变更 → 实习默认100%
   const handleHireTypeChange = (type: number) => {
     if (type === 3) {
       form.setFieldValue('probationRatio', 1.0);
     }
   };
 
-  /** 手机号查重 */
+  // 手机号查重（使用后端 API）
   const checkPhone = async () => {
     const phone = form.getFieldValue('phone');
     if (!phone || !/^1\d{10}$/.test(phone)) return;
-    // Mock 查重
-    const used = ['13800000000', '13900000000'];
-    if (used.includes(phone)) {
-      message.warning('该手机号已被占用');
+    try {
+      const res = await checkPhoneUsingGet({ phone });
+      if (res.code === 0 && res.data) {
+        const data = res.data as any;
+        if (data.used) {
+          message.warning('该手机号已被占用');
+        }
+      }
+    } catch {
+      // ignore
     }
   };
 
-  /** 提交 */
+  // 提交
   const handleSubmit = async (type: 'save' | 'submit') => {
     try {
       setActionType(type);
       setSubmitting(true);
       const values = await form.validateFields();
-      console.log(type === 'save' ? '保存草稿:' : '提交审批:', values);
-      if (type === 'save') {
-        message.success(isEdit ? '已更新草稿' : '草稿已保存');
+      const submitData = {
+        ...values,
+        expectedHireDate: values.expectedHireDate ? dayjs(values.expectedHireDate).format('YYYY-MM-DD') : undefined,
+        submitDirectly: type === 'submit',
+      };
+
+      if (isEdit && initialValues?.id) {
+        const res = await updateDraftUsingPut({ id: initialValues.id }, submitData);
+        if (res.code === 0) {
+          message.success(type === 'save' ? '已更新草稿' : '已提交审批');
+        } else {
+          message.error(res.message || '操作失败');
+          return;
+        }
       } else {
-        message.success('已提交审批');
+        const res = await createUsingPost(submitData);
+        if (res.code === 0) {
+          message.success(type === 'save' ? '草稿已保存' : '已提交审批');
+        } else {
+          message.error(res.message || '操作失败');
+          return;
+        }
       }
       form.resetFields();
       onClose();
@@ -258,8 +367,8 @@ const OnboardingFormModal: React.FC<OnboardingFormProps> = ({
                 showSearch
                 placeholder="请选择部门"
                 size="large"
-                options={mockDepartments}
-                onChange={handleDepartmentChange}
+                options={departmentOptions}
+                onChange={handleDepartmentChange as any}
                 filterOption={(input, option) =>
                   (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
                 }
@@ -322,7 +431,7 @@ const OnboardingFormModal: React.FC<OnboardingFormProps> = ({
                 showSearch
                 placeholder="默认部门负责人"
                 size="large"
-                options={mockEmployees}
+                options={getEmployeesByDept(selectedDeptId)}
                 allowClear
                 filterOption={(input, option) =>
                   (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
@@ -343,7 +452,7 @@ const OnboardingFormModal: React.FC<OnboardingFormProps> = ({
               gap: 12,
             }}>
               <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 16 }}>
-                ✓
+                {'✓'}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 500, color: '#166534' }}>工号预览</div>

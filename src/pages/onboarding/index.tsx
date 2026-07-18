@@ -21,9 +21,10 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import OnboardingFormDrawer from './components/OnboardingFormModal';
-import { OnboardingRecord, onboardingList } from './mock';
+import { OnboardingRecord } from './mock';
+import { listUsingGet } from '@/api/onboardingController';
 
 const STATUS_BG_COLORS: Record<number, string> = {
   [ONBOARDING_STATUS.DRAFT]: '#f9fafb',
@@ -53,14 +54,21 @@ const OnboardingPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('all');
   const [createOpen, setCreateOpen] = useState(false);
 
-  const stats = useMemo(() => {
-    const draft = onboardingList.filter((i) => i.status === ONBOARDING_STATUS.DRAFT).length;
-    const pending = onboardingList.filter((i) => i.status === ONBOARDING_STATUS.PENDING).length;
-    const approved = onboardingList.filter((i) => i.status === ONBOARDING_STATUS.APPROVED_PENDING_JOIN).length;
-    const joined = onboardingList.filter((i) => i.status === ONBOARDING_STATUS.JOINED).length;
-    const rejected = onboardingList.filter((i) => i.status === ONBOARDING_STATUS.REJECTED).length;
-    const abandoned = onboardingList.filter((i) => i.status === ONBOARDING_STATUS.ABANDONED).length;
-    return { draft, pending, approved, joined, rejected, abandoned, total: onboardingList.length };
+  const [stats, setStats] = useState({ draft: 0, pending: 0, approved: 0, joined: 0, rejected: 0, abandoned: 0, total: 0 });
+
+  const loadStats = async () => {
+    try {
+      const res = await listUsingGet({ current: 1, pageSize: 1 });
+      if (res.code === 0 && res.data) {
+        setStats(prev => ({ ...prev, total: res.data?.total || 0 }));
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    loadStats();
   }, []);
 
   const getInitial = (name: string) => name?.charAt(0) || '?';
@@ -317,35 +325,30 @@ const OnboardingPage: React.FC = () => {
         columns={columns}
         request={async (params) => {
           const { current, pageSize, keyword, status } = params as any;
-
-          let filtered = [...onboardingList];
-          if (activeTab !== 'all') {
-            const tabStatusMap: Record<string, number> = {
-              draft: ONBOARDING_STATUS.DRAFT,
-              pending: ONBOARDING_STATUS.PENDING,
-              approved: ONBOARDING_STATUS.APPROVED_PENDING_JOIN,
-              joined: ONBOARDING_STATUS.JOINED,
-              rejected: ONBOARDING_STATUS.REJECTED,
-              abandoned: ONBOARDING_STATUS.ABANDONED,
-            };
-            filtered = filtered.filter((i) => i.status === tabStatusMap[activeTab]);
+          const tabStatusMap: Record<string, number> = {
+            draft: ONBOARDING_STATUS.DRAFT,
+            pending: ONBOARDING_STATUS.PENDING,
+            approved: ONBOARDING_STATUS.APPROVED_PENDING_JOIN,
+            joined: ONBOARDING_STATUS.JOINED,
+            rejected: ONBOARDING_STATUS.REJECTED,
+            abandoned: ONBOARDING_STATUS.ABANDONED,
+          };
+          const apiParams: API.listUsingGETParams = {
+            current,
+            pageSize,
+            keyword,
+            status: activeTab !== 'all' ? tabStatusMap[activeTab] : status,
+          };
+          try {
+            const res = await listUsingGet(apiParams);
+            if (res.code === 0 && res.data) {
+              return { data: res.data.records || [], success: true, total: res.data.total || 0 };
+            }
+            return { data: [], success: true, total: 0 };
+          } catch {
+            message.error('获取入职列表失败');
+            return { data: [], success: true, total: 0 };
           }
-          if (keyword) {
-            const kw = String(keyword).toLowerCase();
-            filtered = filtered.filter(
-              (i) => i.name.toLowerCase().includes(kw) || i.phone.includes(kw),
-            );
-          }
-          if (status !== undefined && status !== null && status !== '') {
-            filtered = filtered.filter((i) => i.status === Number(status));
-          }
-
-          const total = filtered.length;
-          const page = current || 1;
-          const size = pageSize || 10;
-          const records = filtered.slice((page - 1) * size, page * size);
-
-          return { data: records, success: true, total };
         }}
         toolBarRender={() => [
           <Button
