@@ -1,5 +1,6 @@
 import { userLoginUsingPost } from '@/api/userController';
 import logo from '@/assets/logo.jpg';
+import { setCachedLoginUser } from '@/libs/loginCache';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProForm, ProFormText } from '@ant-design/pro-components';
 import { Link, useLocation, useModel, useNavigate } from '@umijs/max';
@@ -29,6 +30,8 @@ const UserLoginPage: React.FC = () => {
       const res = await userLoginUsingPost(values);
       if (res.data) {
         message.success('登录成功');
+        // 同步更新本地缓存，避免路由切换时再次调 getLoginUser
+        setCachedLoginUser(res.data as API.LoginUserVO);
         // 更新全局登录用户状态
         setInitialState((pre: any) => ({
           ...pre,

@@ -142,7 +142,7 @@ const EmployeeEdit: React.FC = () => {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>
-                  {employee.personalInfo?.name || employee.name} 的档案
+                  {employee.personalInfo?.name || ''} 的档案
                 </h1>
               </div>
               <div style={{ fontSize: 14, color: '#666', marginTop: 4 }}>

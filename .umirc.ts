@@ -7,6 +7,8 @@ export default defineConfig({
   initialState: {},
   request: {},
   layout: { title: '@umijs/max' },
+  // 注意：Umi Max 4 使用 utoopack，不支持 proxy 配置
+  // 浏览器通过 baseURL http://localhost:8123 直接调用后端（需后端开启 CORS）
   routes: [
     { path: '/', redirect: '/home' },
     { name: '首页', path: '/home', component: './Home' },
@@ -14,13 +16,31 @@ export default defineConfig({
     { name: ' CRUD 示例', path: '/table', component: './Table' },
     // ========== 审批中心 ==========
     {
-      name: '审批中心', path: '/approval',
+      name: '审批中心',
+      path: '/approval',
       routes: [
         { path: '/approval', redirect: '/approval/pending' },
-        { name: '待办审批', path: '/approval/pending', component: './Approval/Pending' },
-        { name: '已办审批', path: '/approval/processed', component: './Approval/Processed' },
-        { name: '审批详情', path: '/approval/detail/:instanceId', component: './Approval/Detail', hideInMenu: true },
-        { name: '委托审批管理', path: '/approval/delegate', component: './Approval/Delegate' },
+        {
+          name: '待办审批',
+          path: '/approval/pending',
+          component: './Approval/Pending',
+        },
+        {
+          name: '已办审批',
+          path: '/approval/processed',
+          component: './Approval/Processed',
+        },
+        {
+          name: '审批详情',
+          path: '/approval/detail/:instanceId',
+          component: './Approval/Detail',
+          hideInMenu: true,
+        },
+        {
+          name: '委托审批管理',
+          path: '/approval/delegate',
+          component: './Approval/Delegate',
+        },
       ],
     },
     // ========== 员工档案 ==========
@@ -69,14 +89,84 @@ export default defineConfig({
       access: 'canSeeEmployees',
       routes: [
         { path: '/hr-change', redirect: '/hr-change/onboarding' },
-        { name: '入职管理', path: '/hr-change/onboarding', component: './onboarding' },
-        { name: '入职详情', path: '/hr-change/onboarding/:id', component: './onboarding/detail', hideInMenu: true },
-        { name: '转正管理', path: '/hr-change/probation', component: './probation' },
-        { name: '转正详情', path: '/hr-change/probation/:id', component: './probation/detail', hideInMenu: true },
-        { name: '调岗管理', path: '/hr-change/transfer', component: './transfer' },
-        { name: '调岗详情', path: '/hr-change/transfer/:id', component: './transfer/detail', hideInMenu: true },
-        { name: '离职管理', path: '/hr-change/resignation', component: './resignation' },
-        { name: '离职详情', path: '/hr-change/resignation/:id', component: './resignation/detail', hideInMenu: true },
+        {
+          name: '入职管理',
+          path: '/hr-change/onboarding',
+          component: './onboarding',
+        },
+        {
+          name: '入职详情',
+          path: '/hr-change/onboarding/:id',
+          component: './onboarding/detail',
+          hideInMenu: true,
+        },
+        {
+          name: '转正管理',
+          path: '/hr-change/probation',
+          component: './probation',
+        },
+        {
+          name: '转正详情',
+          path: '/hr-change/probation/:id',
+          component: './probation/detail',
+          hideInMenu: true,
+        },
+        {
+          name: '调岗管理',
+          path: '/hr-change/transfer',
+          component: './transfer',
+        },
+        {
+          name: '调岗详情',
+          path: '/hr-change/transfer/:id',
+          component: './transfer/detail',
+          hideInMenu: true,
+        },
+        {
+          name: '离职管理',
+          path: '/hr-change/resignation',
+          component: './resignation',
+        },
+        {
+          name: '离职详情',
+          path: '/hr-change/resignation/:id',
+          component: './resignation/detail',
+          hideInMenu: true,
+        },
+      ],
+    },
+    // ========== 考勤管理 ==========
+    {
+      name: '考勤管理',
+      path: '/attendance',
+      access: 'canSeeEmployees',
+      routes: [
+        { path: '/attendance', redirect: '/attendance/clock' },
+        {
+          name: '考勤打卡',
+          path: '/attendance/clock',
+          component: './attendance/clock',
+        },
+        {
+          name: '考勤组',
+          path: '/attendance/groups',
+          component: './attendance/groups',
+        },
+        {
+          name: '考勤统计',
+          path: '/attendance/statistics',
+          component: './attendance/statistics',
+        },
+        {
+          name: '请假管理',
+          path: '/attendance/leave',
+          component: './attendance/leave',
+        },
+        {
+          name: '加班管理',
+          path: '/attendance/overtime',
+          component: './attendance/overtime',
+        },
       ],
     },
     // ========== 原有页面 ==========

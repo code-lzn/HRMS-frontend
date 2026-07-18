@@ -6,13 +6,22 @@ import request from '@/libs/request';
 
 /** getMyProfile GET /api/employee/profile */
 export async function getMyProfileUsingGet(options?: { [key: string]: any }) {
-  return request<API.BaseResponseEmpProfileVO_>('/api/employee/profile', { method: 'GET', ...(options || {}) });
+  return request<API.BaseResponseEmpProfileVO_>('/api/employee/profile', {
+    method: 'GET',
+    ...(options || {}),
+  });
 }
 
 /** updateMyProfile POST /api/employee/profileUpdate */
-export async function updateMyProfileUsingPost(body: API.EmpProfileUpdateRequest, options?: { [key: string]: any }) {
+export async function updateMyProfileUsingPost(
+  body: API.EmpProfileUpdateRequest,
+  options?: { [key: string]: any },
+) {
   return request<API.BaseResponseBoolean_>('/api/employee/profileUpdate', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, data: body, ...(options || {}),
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: body,
+    ...(options || {}),
   });
 }
 
@@ -23,18 +32,22 @@ export async function getEmployeeList(
   params: { current?: number; pageSize?: number; name?: string },
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponsePageEmployeeListVO_>('/api/v1/employees', { method: 'GET', params, ...(options || {}) });
+  return request<API.BaseResponsePageEmployeeListVO_>('/api/employees', {
+    method: 'GET',
+    params,
+    ...(options || {}),
+  });
 }
 
 // ========== 员工 CRUD（自动生成） ==========
 
-/** getEmployeeList GET /api/api/v1/employees */
+/** getEmployeeList GET /api/api/employees */
 export async function getEmployeeListUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getEmployeeListUsingGETParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponsePageEmployeeListVO_>('/api/api/v1/employees', {
+  return request<API.BaseResponsePageEmployeeListVO_>('/api/api/employees', {
     method: 'GET',
     params: {
       ...params,
@@ -43,12 +56,12 @@ export async function getEmployeeListUsingGet(
   });
 }
 
-/** createEmployee POST /api/api/v1/employees */
+/** createEmployee POST /api/api/employees */
 export async function createEmployeeUsingPost(
   body: API.EmployeeCreateRequest,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseEmployeeCreateVO_>('/api/api/v1/employees', {
+  return request<API.BaseResponseEmployeeCreateVO_>('/api/api/employees', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -58,7 +71,7 @@ export async function createEmployeeUsingPost(
   });
 }
 
-/** getEmployeeDetail GET /api/api/v1/employees/${param0} */
+/** getEmployeeDetail GET /api/api/employees/${param0} */
 export async function getEmployeeDetailUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getEmployeeDetailUsingGETParams,
@@ -66,7 +79,7 @@ export async function getEmployeeDetailUsingGet(
 ) {
   const { id: param0, ...queryParams } = params;
   return request<API.BaseResponseEmployeeDetailVO_>(
-    `/api/api/v1/employees/${param0}`,
+    `/api/api/employees/${param0}`,
     {
       method: 'GET',
       params: { ...queryParams },
@@ -75,7 +88,7 @@ export async function getEmployeeDetailUsingGet(
   );
 }
 
-/** updateEmployee PUT /api/api/v1/employees/${param0} */
+/** updateEmployee PUT /api/api/employees/${param0} */
 export async function updateEmployeeUsingPut(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.updateEmployeeUsingPUTParams,
@@ -84,7 +97,7 @@ export async function updateEmployeeUsingPut(
 ) {
   const { id: param0, ...queryParams } = params;
   return request<API.BaseResponseEmployeeUpdateVO_>(
-    `/api/api/v1/employees/${param0}`,
+    `/api/api/employees/${param0}`,
     {
       method: 'PUT',
       headers: {
@@ -97,12 +110,12 @@ export async function updateEmployeeUsingPut(
   );
 }
 
-/** getFieldPermissions GET /api/api/v1/employees/field-permissions */
+/** getFieldPermissions GET /api/api/employees/field-permissions */
 export async function getFieldPermissionsUsingGet(options?: {
   [key: string]: any;
 }) {
   return request<API.BaseResponseFieldPermissionsVO_>(
-    '/api/api/v1/employees/field-permissions',
+    '/api/api/employees/field-permissions',
     {
       method: 'GET',
       ...(options || {}),
@@ -110,10 +123,10 @@ export async function getFieldPermissionsUsingGet(options?: {
   );
 }
 
-/** getStatuses GET /api/api/v1/employees/statuses */
+/** getStatuses GET /api/api/employees/statuses */
 export async function getStatusesUsingGet(options?: { [key: string]: any }) {
   return request<API.BaseResponseListMapStringObject_>(
-    '/api/api/v1/employees/statuses',
+    '/api/api/employees/statuses',
     {
       method: 'GET',
       ...(options || {}),

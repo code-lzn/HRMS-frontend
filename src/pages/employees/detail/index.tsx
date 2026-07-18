@@ -55,7 +55,7 @@ const EmployeeDetail: React.FC = () => {
 
   const getSeniority = (hireDate?: string) => {
     if (!hireDate) return '-';
-    const now = new dayjs();
+    const now = dayjs();
     const hire = dayjs(hireDate);
     let years = now.year() - hire.year();
     let months = now.month() - hire.month();
@@ -108,7 +108,7 @@ const EmployeeDetail: React.FC = () => {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <h1 style={{ fontSize: 24, fontWeight: 600, margin: 0 }}>
-                  {employee.personalInfo?.name || employee.name}
+                  {employee.personalInfo?.name || ''}
                 </h1>
                 <StatusTag status={employee.status!} />
               </div>
@@ -179,11 +179,11 @@ const EmployeeDetail: React.FC = () => {
                 <a
                   onClick={() =>
                     history.push(
-                      `/employees/${employee.workInfo.directReportId}`,
+                      `/employees/${employee.workInfo?.directReportId}`,
                     )
                   }
                 >
-                  {employee.workInfo.directReportName}
+                  {employee.workInfo?.directReportName}
                 </a>
               ) : (
                 '-'
@@ -356,11 +356,11 @@ const EmployeeDetail: React.FC = () => {
                   <a
                     onClick={() =>
                       history.push(
-                        `/employees/${employee.workInfo.directReportId}`,
+                        `/employees/${employee.workInfo?.directReportId}`,
                       )
                     }
                   >
-                    {employee.workInfo.directReportName}
+                    {employee.workInfo?.directReportName}
                   </a>
                 ) : (
                   '-'
