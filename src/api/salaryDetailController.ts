@@ -3,9 +3,9 @@
 import request from '@/libs/request';
 
 /** getPayslipDetail GET /api/payslips/${param0} */
-export async function getPayslipDetailUsingGet(
+export async function getPayslipDetailUsingGet1(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getPayslipDetailUsingGETParams,
+  params: API.getPayslipDetailUsingGET1Params,
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
@@ -36,7 +36,7 @@ export async function verifyPayslipUsingPost(
 }
 
 /** getMyPayslips GET /api/payslips/my */
-export async function getMyPayslipsUsingGet(options?: { [key: string]: any }) {
+export async function getMyPayslipsUsingGet1(options?: { [key: string]: any }) {
   return request<API.BaseResponseListPayslipVO_>('/api/payslips/my', {
     method: 'GET',
     ...(options || {}),

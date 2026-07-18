@@ -4,11 +4,11 @@ import type { LeaveRecord } from '@/services/profile/typings';
 import { getLeaves, cancelLeave } from '@/services/profile';
 
 const STATUS_TABS = [
-  { key: '', tab: '全部' },
-  { key: '1', tab: '审批中' },
-  { key: '2', tab: '已通过' },
-  { key: '3', tab: '已拒绝' },
-  { key: '4', tab: '已撤回' },
+  { key: '', label: '全部' },
+  { key: '1', label: '审批中' },
+  { key: '2', label: '已通过' },
+  { key: '3', label: '已拒绝' },
+  { key: '4', label: '已撤回' },
 ];
 
 const STATUS_MAP: Record<number, { color: string }> = {
@@ -16,10 +16,6 @@ const STATUS_MAP: Record<number, { color: string }> = {
   2: { color: 'success' },
   3: { color: 'error' },
   4: { color: 'default' },
-};
-
-const LEAVE_TYPE_MAP: Record<number, string> = {
-  1: '年假', 2: '病假', 3: '事假', 4: '婚假', 5: '产假', 6: '丧假', 7: '调休',
 };
 
 export default function LeavesPage() {
@@ -32,6 +28,8 @@ export default function LeavesPage() {
     try {
       const res = await getLeaves({ status: status ? Number(status) : undefined });
       setData(res.records);
+    } catch {
+      // silent — state shows empty list
     } finally {
       setLoading(false);
     }
