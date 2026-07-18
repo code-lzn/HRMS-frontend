@@ -79,6 +79,18 @@ export default defineConfig({
         { name: '离职详情', path: '/hr-change/resignation/:id', component: './resignation/detail', hideInMenu: true },
       ],
     },
+    // ========== 个人中心 ==========
+    {
+      name: '个人中心', path: '/profile',
+      routes: [
+        { path: '/profile', redirect: '/profile/info' },
+        { name: '我的档案', path: '/profile/info', component: './Profile' },
+        { name: '我的考勤', path: '/profile/attendance', component: './Profile/Attendance' },
+        { name: '我的请假', path: '/profile/leaves', component: './Profile/Leaves' },
+        { name: '我的薪资', path: '/profile/salary', component: './Profile/Salary' },
+        { name: '账号安全', path: '/profile/security', component: './Profile/Security' },
+      ],
+    },
     // ========== 原有页面 ==========
     {
       name: '首页',
