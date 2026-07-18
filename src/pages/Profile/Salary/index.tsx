@@ -8,7 +8,6 @@ import { getSalaryList, getSalaryDetail, sendSalaryVerifyCode, getSalaryTrend } 
 export default function SalaryPage() {
   const [list, setList] = useState<PayslipListItem[]>([]);
   const [trend, setTrend] = useState<SalaryTrendVO | null>(null);
-  const [loading, setLoading] = useState(false);
   const [detailVisible, setDetailVisible] = useState(false);
   const [detail, setDetail] = useState<PayslipDetailVO | null>(null);
   const [verifyVisible, setVerifyVisible] = useState(false);
@@ -18,11 +17,14 @@ export default function SalaryPage() {
   const [countdown, setCountdown] = useState(0);
   const [targetId, setTargetId] = useState<number | null>(null);
   const chartRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    getSalaryList().then(setList);
-    getSalaryTrend().then((d) => { setTrend(d); });
+    getSalaryList().then(setList).catch(() => {});
+    getSalaryTrend().then((d) => { setTrend(d); }).catch(() => {});
   }, []);
+
+  useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   // 折线图渲染
   useEffect(() => {
@@ -65,8 +67,8 @@ export default function SalaryPage() {
     await sendSalaryVerifyCode(targetId);
     message.success('验证码已发送');
     setCountdown(60);
-    const timer = setInterval(() => {
-      setCountdown((c) => { if (c <= 1) { clearInterval(timer); return 0; } return c - 1; });
+    timerRef.current = setInterval(() => {
+      setCountdown((c) => { if (c <= 1) { if (timerRef.current) clearInterval(timerRef.current); return 0; } return c - 1; });
     }, 1000);
   };
 
