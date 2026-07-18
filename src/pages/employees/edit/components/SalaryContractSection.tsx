@@ -151,8 +151,14 @@ const SalaryContractSection: React.FC<SalaryContractSectionProps> = ({
                   min={0.8}
                   max={1}
                   step={0.05}
-                  formatter={(value) => `${Math.round((value || 0) * 100)}%`}
-                  parser={(value) => parseFloat(value.replace('%', '')) / 100}
+                  formatter={(value) =>
+                    `${Math.round(((value as any) || 0) * 100)}%` as any
+                  }
+                  parser={(value) =>
+                    value
+                      ? parseFloat(value.replace('%', '')) / 100
+                      : (0 as any)
+                  }
                   disabled={!isEditable('probationRatio')}
                 />
                 <span

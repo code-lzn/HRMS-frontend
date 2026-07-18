@@ -1,12 +1,13 @@
 import {
   createDepartmentUsingPost,
+  getDepartmentDetailUsingGet,
   updateDepartmentUsingPut,
 } from '@/api/departmentController';
 import { getEmployeeListUsingGet } from '@/api/employeeController';
 import { queryKeys } from '@/hooks/queryKeys';
 import { useDepartmentTree } from '@/hooks/useDepartmentTree';
 import { InfoCircleOutlined } from '@ant-design/icons';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Form,
   Input,
@@ -16,37 +17,51 @@ import {
   TreeSelect,
   message,
 } from 'antd';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 const { TextArea } = Input;
 
 interface DepartmentFormModalProps {
   open: boolean;
   mode: 'create' | 'edit';
-  /** 编辑时的部门ID */
   deptId?: number;
-  /** 初始数据（编辑时回填） */
-  initialValues?: Record<string, any>;
-  /** 新增子部门时自动填充的上级部门ID */
   parentId?: number;
-  /** 编辑时需过滤掉的自身及子孙节点ID列表 */
   excludeIds?: number[];
   onClose: () => void;
   onSuccess: () => void;
 }
 
-/**
- * 部门新增/编辑弹窗
- * - 编辑模式下过滤自身及子孙节点防止循环引用
- * - 部门编码提供 Tooltip 格式提示
- */
+/** 从树中递归收集某节点自身及其所有子孙的 id */
+function collectDescendantIds(
+  nodes: API.DepartmentTreeNode[],
+  targetId: number,
+): number[] {
+  for (const node of nodes) {
+    if (node.id === targetId) {
+      const ids: number[] = [targetId];
+      const walk = (children: API.DepartmentTreeNode[]) => {
+        for (const c of children) {
+          ids.push(c.id!);
+          if (c.children) walk(c.children);
+        }
+      };
+      if (node.children) walk(node.children);
+      return ids;
+    }
+    if (node.children) {
+      const found = collectDescendantIds(node.children, targetId);
+      if (found.length > 0) return found;
+    }
+  }
+  return [];
+}
+
 const DepartmentFormModal: React.FC<DepartmentFormModalProps> = ({
   open,
   mode,
   deptId,
-  initialValues,
   parentId,
-  excludeIds,
+  excludeIds: excludeIdsProp,
   onClose,
   onSuccess,
 }) => {
@@ -61,19 +76,51 @@ const DepartmentFormModal: React.FC<DepartmentFormModalProps> = ({
 
   const isEdit = mode === 'edit';
 
+  /** 编辑模式下自动拉取被编辑部门的完整数据 */
+  const { data: editingDept } = useQuery({
+    queryKey: queryKeys.departments.detail(deptId!),
+    queryFn: async () => {
+      const res = await getDepartmentDetailUsingGet({ id: deptId! });
+      return res.data as API.DepartmentVO | undefined;
+    },
+    enabled: isEdit && !!deptId && open,
+    staleTime: 0,
+  });
+
+  /** 编辑时需要排除的 id（自身 + 子孙），创建时用外部传入，编辑时自动计算 */
+  const excludeIds = useMemo(() => {
+    if (isEdit && deptId && treeData) {
+      return collectDescendantIds(treeData, deptId);
+    }
+    return excludeIdsProp ?? [];
+  }, [isEdit, deptId, treeData, excludeIdsProp]);
+
+  /** 弹窗打开时回填表单 */
   useEffect(() => {
-    if (open) {
-      if (isEdit && initialValues) {
-        form.setFieldsValue(initialValues);
-      } else {
-        form.resetFields();
-        setEmployeeOptions([]);
-        if (parentId !== undefined) {
-          form.setFieldValue('parentId', parentId);
-        }
+    if (!open) return;
+    if (isEdit && editingDept) {
+      form.setFieldsValue({
+        name: editingDept.name,
+        code: editingDept.code,
+        parentId: editingDept.parentId,
+        managerId: editingDept.managerId,
+        sortOrder: editingDept.sortOrder,
+        description: editingDept.description,
+      });
+      // 如果已有负责人，预填选项
+      if (editingDept.managerId && editingDept.managerName) {
+        setEmployeeOptions([
+          { label: editingDept.managerName, value: editingDept.managerId },
+        ]);
+      }
+    } else if (!isEdit) {
+      form.resetFields();
+      setEmployeeOptions([]);
+      if (parentId !== undefined) {
+        form.setFieldValue('parentId', parentId);
       }
     }
-  }, [open, isEdit, initialValues, parentId, form]);
+  }, [open, isEdit, editingDept, parentId, form]);
 
   /**
    * 将部门树转 TreeSelect 所需格式，编辑时过滤自身及子孙
@@ -190,13 +237,24 @@ const DepartmentFormModal: React.FC<DepartmentFormModalProps> = ({
           <Input placeholder="如：01" />
         </Form.Item>
 
-        <Form.Item name="parentId" label="上级部门">
+        <Form.Item
+          name="parentId"
+          label="上级部门"
+          getValueFromEvent={(val) => val}
+        >
           <TreeSelect
-            placeholder="请选择上级部门（不选表示根部门）"
+            placeholder="请选择上级部门"
             treeData={treeSelectData}
             allowClear
+            disabled={isEdit && editingDept?.parentId === null}
             dropdownStyle={{ maxHeight: 300 }}
+            notFoundContent="已是最顶层，无上级部门可选"
           />
+          {isEdit && editingDept?.parentId === null && (
+            <div style={{ color: '#faad14', fontSize: 12, marginTop: 4 }}>
+              已是根部门，无上级部门
+            </div>
+          )}
         </Form.Item>
 
         <Form.Item name="managerId" label="部门负责人">

@@ -6,7 +6,7 @@ import { LEVEL_RANGE_BY_SEQUENCE } from '@/constants/enums';
 import { queryKeys } from '@/hooks/queryKeys';
 import { useDepartmentTree } from '@/hooks/useDepartmentTree';
 import { useQueryClient } from '@tanstack/react-query';
-import { Form, Input, Modal, Select, message } from 'antd';
+import { Form, Input, Modal, Select, TreeSelect, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 
 const { TextArea } = Input;
@@ -228,21 +228,12 @@ const PositionFormModal: React.FC<PositionFormModalProps> = ({
           </div>
         </Form.Item>
 
-        <Form.Item
-          name="departmentId"
-          label="所属部门"
-          rules={[{ required: true, message: '请选择所属部门' }]}
-        >
-          <Select
-            placeholder="全公司通用"
-            options={[
-              { label: '全公司通用', value: null },
-              ...treeSelectData.map((item: any) => ({
-                label: item.title,
-                value: item.value,
-              })),
-            ]}
+        <Form.Item name="departmentId" label="所属部门">
+          <TreeSelect
+            placeholder="请选择所属部门（不选表示全公司通用）"
+            treeData={treeSelectData}
             allowClear
+            dropdownStyle={{ maxHeight: 300 }}
           />
         </Form.Item>
 

@@ -53,11 +53,11 @@ const DepartmentDetailPanel: React.FC<DepartmentDetailPanelProps> = ({
     queryKey: queryKeys.departments.list({ deptId }),
     queryFn: async () => {
       const res = await getEmployeeListUsingGet({
-        deptId,
+        departmentIds: [deptId],
         current: 1,
         pageSize: 50,
       });
-      return ((res.data as any)?.records ?? []) as API.EmployeeVO[];
+      return ((res.data as any)?.records ?? []) as API.EmployeeListVO[];
     },
     enabled: tab === 'members' && !!deptId,
     staleTime: 30 * 1000,

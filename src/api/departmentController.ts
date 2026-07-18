@@ -2,13 +2,13 @@
 /* eslint-disable */
 import request from '@/libs/request';
 
-/** getDepartmentList GET /api/api/v1/departments */
+/** getDepartmentList GET /api/api/departments */
 export async function getDepartmentListUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getDepartmentListUsingGETParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponsePageDepartmentVO_>('/api/api/v1/departments', {
+  return request<API.BaseResponsePageDepartmentVO_>('/api/api/departments', {
     method: 'GET',
     params: {
       ...params,
@@ -17,12 +17,12 @@ export async function getDepartmentListUsingGet(
   });
 }
 
-/** createDepartment POST /api/api/v1/departments */
+/** createDepartment POST /api/api/departments */
 export async function createDepartmentUsingPost(
   body: API.DepartmentCreateRequest,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseDepartment_>('/api/api/v1/departments', {
+  return request<API.BaseResponseDepartment_>('/api/api/departments', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -32,7 +32,7 @@ export async function createDepartmentUsingPost(
   });
 }
 
-/** getDepartmentDetail GET /api/api/v1/departments/${param0} */
+/** getDepartmentDetail GET /api/api/departments/${param0} */
 export async function getDepartmentDetailUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getDepartmentDetailUsingGETParams,
@@ -40,7 +40,7 @@ export async function getDepartmentDetailUsingGet(
 ) {
   const { id: param0, ...queryParams } = params;
   return request<API.BaseResponseDepartmentVO_>(
-    `/api/api/v1/departments/${param0}`,
+    `/api/api/departments/${param0}`,
     {
       method: 'GET',
       params: { ...queryParams },
@@ -49,7 +49,7 @@ export async function getDepartmentDetailUsingGet(
   );
 }
 
-/** updateDepartment PUT /api/api/v1/departments/${param0} */
+/** updateDepartment PUT /api/api/departments/${param0} */
 export async function updateDepartmentUsingPut(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.updateDepartmentUsingPUTParams,
@@ -58,7 +58,7 @@ export async function updateDepartmentUsingPut(
 ) {
   const { id: param0, ...queryParams } = params;
   return request<API.BaseResponseDepartment_>(
-    `/api/api/v1/departments/${param0}`,
+    `/api/api/departments/${param0}`,
     {
       method: 'PUT',
       headers: {
@@ -71,26 +71,26 @@ export async function updateDepartmentUsingPut(
   );
 }
 
-/** deleteDepartment DELETE /api/api/v1/departments/${param0} */
+/** deleteDepartment DELETE /api/api/departments/${param0} */
 export async function deleteDepartmentUsingDelete(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.deleteDepartmentUsingDELETEParams,
   options?: { [key: string]: any },
 ) {
   const { id: param0, ...queryParams } = params;
-  return request<API.BaseResponseVoid_>(`/api/api/v1/departments/${param0}`, {
+  return request<API.BaseResponseVoid_>(`/api/api/departments/${param0}`, {
     method: 'DELETE',
     params: { ...queryParams },
     ...(options || {}),
   });
 }
 
-/** getDepartmentTree GET /api/api/v1/departments/tree */
+/** getDepartmentTree GET /api/api/departments/tree */
 export async function getDepartmentTreeUsingGet(options?: {
   [key: string]: any;
 }) {
   return request<API.BaseResponseListDepartmentTreeNode_>(
-    '/api/api/v1/departments/tree',
+    '/api/api/departments/tree',
     {
       method: 'GET',
       ...(options || {}),

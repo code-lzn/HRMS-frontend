@@ -1,7 +1,5 @@
-import {
-  getLoginUserUsingGet,
-  userLogoutUsingPost,
-} from '@/api/userController';
+import { userLogoutUsingPost } from '@/api/userController';
+import { clearCachedLoginUser, setCachedLoginUser } from '@/libs/loginCache';
 import { queryClient } from '@/libs/queryClient';
 import {
   LogoutOutlined,
@@ -25,21 +23,27 @@ console.error = (...args: any[]) => {
 };
 
 export async function getInitialState() {
-  const initialState = {
+  const initialState: {
+    name: string;
+    currentUser: API.LoginUserVO | undefined;
+  } = {
     name: '人资管理系统',
-    currentUser: undefined as API.LoginUserVO | undefined,
+    currentUser: undefined,
   };
-  try {
-    const res = await getLoginUserUsingGet();
-    if (res.data) {
-      initialState.currentUser = res.data as API.LoginUserVO;
-    }
-  } catch (error) {
-    //
-  }
 
+  // 登录/注册页不拦截
   const currentPath = window.location.pathname;
   const publicPaths = ['/user/login', '/user/register'];
+
+  // 从 sessionStorage 恢复（页面刷新不丢，但前端 dev server 重启会丢）
+  try {
+    const cached = sessionStorage.getItem('hrms_login_user');
+    if (cached) {
+      initialState.currentUser = JSON.parse(cached);
+      setCachedLoginUser(initialState.currentUser);
+    }
+  } catch {}
+
   if (!publicPaths.includes(currentPath) && !initialState.currentUser) {
     window.location.href = `/user/login?redirect=${encodeURIComponent(
       currentPath,
@@ -68,11 +72,14 @@ const RightContent: React.FC = () => {
       onClick: async () => {
         try {
           await userLogoutUsingPost();
-          message.success('退出成功');
-          window.location.href = '/user/login';
         } catch {
-          message.error('退出失败');
+          // 即使后端调用失败，也要清空本地状态
         }
+        // 清空本地缓存和 React Query 缓存
+        clearCachedLoginUser();
+        queryClient.clear();
+        message.success('退出成功');
+        window.location.href = '/user/login';
       },
     },
   ];

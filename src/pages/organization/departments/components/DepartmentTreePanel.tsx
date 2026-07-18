@@ -1,10 +1,19 @@
 import { useDepartmentTree } from '@/hooks/useDepartmentTree';
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useAccess } from '@umijs/max';
-import { Empty, Input, Spin, Tree, Typography } from 'antd';
-import type { DataNode } from 'antd/es/tree';
+import { Button, Empty, Input, Spin, Tree, Typography } from 'antd';
 import React, { useMemo, useState } from 'react';
 import styles from './TreePanel.less';
+
+/** antd Tree DataNode 扩展：携带后端 DepartmentTreeNode 的额外字段 */
+interface DeptDataNode {
+  key: number;
+  title: string;
+  code?: string;
+  managerName?: string;
+  employeeCount: number;
+  children?: DeptDataNode[];
+}
 
 interface DepartmentTreeProps {
   selectedId: number | undefined;
@@ -13,7 +22,8 @@ interface DepartmentTreeProps {
   onAddChild: (parentId: number) => void;
 }
 
-function convertToTreeData(nodes: API.DepartmentTreeNode[]): DataNode[] {
+/** 将后端 DepartmentTreeNode[] 递归转为 antd Tree 可用格式 */
+function convertToTreeData(nodes: API.DepartmentTreeNode[]): DeptDataNode[] {
   return nodes.map((node) => ({
     key: node.id!,
     title: `${node.name} (${node.employeeCount ?? 0})`,
@@ -24,9 +34,23 @@ function convertToTreeData(nodes: API.DepartmentTreeNode[]): DataNode[] {
   }));
 }
 
+/** 按关键字递归过滤树节点（保留匹配节点及其祖先路径） */
+function filterTreeByKW(list: DeptDataNode[], kw: string): DeptDataNode[] {
+  return list
+    .map((n) => {
+      const match = n.title.includes(kw);
+      const children = n.children ? filterTreeByKW(n.children, kw) : undefined;
+      return match || (children && children.length > 0)
+        ? { ...n, children }
+        : null;
+    })
+    .filter(Boolean) as DeptDataNode[];
+}
+
 const DepartmentTreePanel: React.FC<DepartmentTreeProps> = ({
   selectedId,
   onSelect,
+  onAddRoot,
   onAddChild,
 }) => {
   const { data, isLoading } = useDepartmentTree();
@@ -35,31 +59,25 @@ const DepartmentTreePanel: React.FC<DepartmentTreeProps> = ({
   const canManage = access.canManageOrganization;
 
   const treeData = useMemo(() => {
-    const nodes = data ?? [];
-    let converted = convertToTreeData(nodes);
-    if (keyword) {
-      const filter = (list: DataNode[]): DataNode[] =>
-        list
-          .map((n) => {
-            const match = String(n.title).includes(keyword);
-            const children = n.children ? filter(n.children) : undefined;
-            if (match || (children && children.length > 0)) {
-              return { ...n, children };
-            }
-            return null;
-          })
-          .filter(Boolean) as DataNode[];
-      converted = filter(converted);
-    }
-    return converted;
+    const converted = convertToTreeData(data ?? []);
+    return keyword ? filterTreeByKW(converted, keyword) : converted;
   }, [data, keyword]);
 
   return (
     <div className={styles.panel}>
+      {/* 标题行：部门 + [+] */}
       <div className={styles.header}>
         <Typography.Text strong className={styles.title}>
           部门
         </Typography.Text>
+        {canManage && (
+          <Button
+            type="text"
+            size="small"
+            icon={<PlusOutlined />}
+            onClick={onAddRoot}
+          />
+        )}
       </div>
 
       <Input
@@ -86,8 +104,9 @@ const DepartmentTreePanel: React.FC<DepartmentTreeProps> = ({
             onSelect={(keys) => {
               if (keys.length > 0) onSelect(keys[0] as number);
             }}
-            treeData={treeData}
-            titleRender={(node) => {
+            treeData={treeData as any}
+            titleRender={(rawNode) => {
+              const node = rawNode as any;
               const isSelected = selectedId === node.key;
               return (
                 <div
@@ -99,7 +118,7 @@ const DepartmentTreePanel: React.FC<DepartmentTreeProps> = ({
                     <div className={styles.treeTitleContent}>
                       <div className={styles.deptNameRow}>
                         <span className={styles.deptName}>
-                          {String(node.title).split('(')[0].trim()}
+                          {node.title.split('(')[0].trim()}
                         </span>
                         {node.code && (
                           <span className={styles.deptCode}>{node.code}</span>
@@ -113,14 +132,14 @@ const DepartmentTreePanel: React.FC<DepartmentTreeProps> = ({
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       <span className={styles.deptCount}>
-                        {(node as any).employeeCount ?? 0}人
+                        {node.employeeCount}人
                       </span>
                       {canManage && (
                         <PlusOutlined
                           className={styles.addIcon}
                           onClick={(e) => {
                             e.stopPropagation();
-                            onAddChild(node.key as number);
+                            onAddChild(node.key);
                           }}
                         />
                       )}

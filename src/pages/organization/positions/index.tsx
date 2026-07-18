@@ -128,7 +128,9 @@ const PositionManagement: React.FC = () => {
       width: 170,
       search: false,
       render: (_, record) =>
-        record.createTime ? record.createTime.substring(0, 16) : '-',
+        record.createTime
+          ? record.createTime.replace('T', ' ').substring(0, 16)
+          : '-',
     },
     {
       title: '操作',
