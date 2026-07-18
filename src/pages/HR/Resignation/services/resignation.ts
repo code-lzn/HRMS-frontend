@@ -39,3 +39,7 @@ export function updateResignation(id: number, data: ResignationAddRequest) {
 export function deleteResignation(id: number) {
   return request.delete(`${BASE}/${id}`);
 }
+
+export function getResignationStats() {
+  return request.get<{ code: number; data: Record<string, number>; message: string }>(`${BASE}/stats`);
+}

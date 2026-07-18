@@ -5,6 +5,7 @@ import { useRef, useState, useEffect } from 'react';
 import TransferFormModal from './components/TransferFormModal';
 import {
   listTransfer, deleteTransfer, submitDraft,
+  getTransferStats,
 } from './services/transfer';
 import type { TransferVO } from './types/transfer';
 
@@ -31,8 +32,15 @@ const TransferPage: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const res = await listTransfer({ page: 1, size: 1 });
-      setStats({ draft: 1, approving: 2, approved: 1, effective: 1 });
+      const res = await getTransferStats();
+      if (res.data) {
+        setStats({
+          draft: res.data.draft || 0,
+          approving: res.data.approving || 0,
+          approved: res.data.approved || 0,
+          effective: res.data.effective || 0,
+        });
+      }
     } catch {
       setStats({ draft: 0, approving: 0, approved: 0, effective: 0 });
     }

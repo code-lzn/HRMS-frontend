@@ -1,14 +1,16 @@
 import { ProTable, type ProColumns, type ActionType } from '@ant-design/pro-components';
-import { Button, Tag, message, Popconfirm, Tabs, Card, Typography } from 'antd';
-import { PlusOutlined, FileTextOutlined, ClockCircleOutlined, UserAddOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { Button, Tag, message, Popconfirm, Tabs, Card, Typography, Modal, DatePicker } from 'antd';
+import { PlusOutlined, FileTextOutlined, ClockCircleOutlined, UserAddOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { useRef, useState, useEffect } from 'react';
 import usePermission from '@/hooks/usePermission';
 import OnboardingFormModal from './components/OnboardingFormModal';
 import ConfirmModal from './components/ConfirmModal';
 import {
   listOnboarding, deleteOnboarding, submitDraft,
-  abandonOnboarding,
+  abandonOnboarding, revokeOnboarding, updateHireDate, resubmitOnboarding,
+  getOnboardingStats,
 } from './services/onboarding';
+import dayjs from 'dayjs';
 import type { OnboardingVO } from './types/onboarding';
 
 const { Title, Text } = Typography;
@@ -29,6 +31,12 @@ const OnboardingPage: React.FC = () => {
   const [editRecord, setEditRecord] = useState<OnboardingVO | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmId, setConfirmId] = useState<number>();
+  const [hireDateOpen, setHireDateOpen] = useState(false);
+  const [hireDateId, setHireDateId] = useState<number>();
+  const [hireDateValue, setHireDateValue] = useState<string>('');
+  const [hireDateLoading, setHireDateLoading] = useState(false);
+  const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
+  const [rejectionText, setRejectionText] = useState('');
   const [stats, setStats] = useState({ draft: 0, approving: 0, approved: 0, onboarded: 0 });
 
   useEffect(() => {
@@ -37,9 +45,15 @@ const OnboardingPage: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const res = await listOnboarding({ page: 1, size: 1 });
-      const total = res.data?.total || 0;
-      setStats({ draft: 1, approving: 2, approved: 1, onboarded: 1 });
+      const res = await getOnboardingStats();
+      if (res.data) {
+        setStats({
+          draft: res.data.draft || 0,
+          approving: res.data.approving || 0,
+          approved: res.data.approved || 0,
+          onboarded: res.data.onboarded || 0,
+        });
+      }
     } catch {
       setStats({ draft: 0, approving: 0, approved: 0, onboarded: 0 });
     }
@@ -113,14 +127,15 @@ const OnboardingPage: React.FC = () => {
       },
     },
     {
-      title: '操作', key: 'action', width: 150, fixed: 'right', search: false,
+      title: '操作', key: 'action', width: 280, fixed: 'right', search: false,
       render: (_, r) => {
         const status = (r as any).approvalStatus;
         const isDraft = !r.recordId;
+        const isFirstStep = (r as any).approvalProgress?.startsWith('1/');
         if (isDraft) return (
           <>
             <a onClick={() => { setEditRecord(r); setFormOpen(true); }} style={{ marginRight: 8 }}>编辑</a>
-            <a onClick={() => submitDraft(r.id).then(() => { actionRef.current?.reload(); fetchStats(); })} style={{ marginRight: 8 }}>
+            <a onClick={() => submitDraft(r.id).then(() => { message.success('已提交审批'); actionRef.current?.reload(); fetchStats(); }).catch((e: any) => message.error(e?.message || '提交失败'))} style={{ marginRight: 8 }}>
               提交审批
             </a>
             <Popconfirm title="确定删除？" onConfirm={() => deleteOnboarding(r.id).then(() => { actionRef.current?.reload(); fetchStats(); })}>
@@ -129,13 +144,49 @@ const OnboardingPage: React.FC = () => {
           </>
         );
         if (status === 'APPROVING') return (
-          <a href={`/approval/detail/${r.recordId}`}>查看审批进度</a>
+          <>
+            <a href={`/approval/detail/${r.recordId}`} style={{ marginRight: 8 }}>查看进度</a>
+            {isFirstStep && (
+              <Popconfirm title="确定撤回？撤回后恢复为草稿" onConfirm={() =>
+                revokeOnboarding(r.id).then(() => { message.success('已撤回'); actionRef.current?.reload(); fetchStats(); })
+              }>
+                <a style={{ color: '#faad14', marginRight: 8 }}>撤回</a>
+              </Popconfirm>
+            )}
+            <Popconfirm title="确定删除？将永久删除该申请及关联审批数据" onConfirm={() =>
+              deleteOnboarding(r.id).then(() => { message.success('已删除'); actionRef.current?.reload(); fetchStats(); })
+            }>
+              <a style={{ color: '#ff4d4f' }}>删除</a>
+            </Popconfirm>
+          </>
         );
         if (status === 'APPROVED') return (
-          <a onClick={() => { setConfirmId(r.id); setConfirmOpen(true); }} style={{ color: '#1677ff' }}>确认入职</a>
+          <>
+            <a onClick={() => { setConfirmId(r.id); setConfirmOpen(true); }} style={{ marginRight: 8, color: '#1677ff' }}>确认入职</a>
+            <a onClick={() => { setHireDateId(r.id); setHireDateValue(''); setHireDateOpen(true); }} style={{ marginRight: 8 }}>
+              修改日期
+            </a>
+            <Popconfirm title="确定放弃入职？" onConfirm={() =>
+              abandonOnboarding(r.id).then(() => { message.success('已标记放弃'); actionRef.current?.reload(); fetchStats(); })
+            }>
+              <a style={{ color: '#ff4d4f' }}>标记放弃</a>
+            </Popconfirm>
+          </>
         );
         if (status === 'REJECTED') return (
-          <a onClick={() => { setEditRecord(r); setFormOpen(true); }}>重新编辑</a>
+          <>
+            <a onClick={() => {
+              setRejectionText((r as any).rejectionReason || '未填写拒绝原因');
+              setRejectionModalOpen(true);
+            }} style={{ marginRight: 8 }}>
+              查看原因
+            </a>
+            <Popconfirm title="确定重新发起审批？" onConfirm={() =>
+              resubmitOnboarding(r.id).then(() => { message.success('已重新发起'); actionRef.current?.reload(); fetchStats(); })
+            }>
+              <a style={{ color: '#1677ff', marginRight: 8 }}>重新发起</a>
+            </Popconfirm>
+          </>
         );
         return <span style={{ color: '#999' }}>完成入职</span>;
       },
@@ -234,7 +285,7 @@ const OnboardingPage: React.FC = () => {
           actionRef={actionRef}
           columns={columns}
           rowKey="id"
-          scroll={{ x: 800 }}
+          scroll={{ x: 1000 }}
           params={{ statuses: activeTab ? [activeTab] : undefined }}
           request={async (p) => {
             const res = await listOnboarding({
@@ -264,6 +315,48 @@ const OnboardingPage: React.FC = () => {
         onOk={() => { setConfirmOpen(false); actionRef.current?.reload(); fetchStats(); }}
         onCancel={() => setConfirmOpen(false)}
       />
+
+      <Modal
+        title="修改入职日期"
+        open={hireDateOpen}
+        onCancel={() => setHireDateOpen(false)}
+        onOk={async () => {
+          if (!hireDateValue) { message.warning('请选择日期'); return; }
+          setHireDateLoading(true);
+          try {
+            await updateHireDate(hireDateId!, hireDateValue);
+            message.success('入职日期已修改');
+            setHireDateOpen(false);
+            actionRef.current?.reload();
+            fetchStats();
+          } catch (e: any) {
+            if (e?.message) message.error(e.message);
+          } finally {
+            setHireDateLoading(false);
+          }
+        }}
+        confirmLoading={hireDateLoading}
+        destroyOnClose
+      >
+        <DatePicker
+          style={{ width: '100%' }}
+          placeholder="选择新的入职日期"
+          onChange={(date) => setHireDateValue(date?.format('YYYY-MM-DD') || '')}
+        />
+      </Modal>
+
+      <Modal
+        title="拒绝原因"
+        open={rejectionModalOpen}
+        onCancel={() => setRejectionModalOpen(false)}
+        footer={<Button onClick={() => setRejectionModalOpen(false)}>关闭</Button>}
+        destroyOnClose
+      >
+        <div style={{ padding: '12px 0' }}>
+          <ExclamationCircleOutlined style={{ color: '#ff4d4f', fontSize: 16, marginRight: 8 }} />
+          {rejectionText}
+        </div>
+      </Modal>
     </div>
   );
 };

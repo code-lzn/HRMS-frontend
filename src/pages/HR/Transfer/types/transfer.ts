@@ -1,7 +1,7 @@
 export interface TransferAddRequest {
   employeeId: number;
   toDeptId: number;
-  toPositionId?: number;
+  toPositionId: number;
   toRankCode?: string;
   toReporterId?: number;
   salaryAdjustment?: number;
@@ -9,6 +9,8 @@ export interface TransferAddRequest {
   effectiveDate?: string;
   flowId?: number;
   remark?: string;
+  workLocation?: string;
+  employmentType: string;
 }
 
 export interface TransferVO {
@@ -30,6 +32,8 @@ export interface TransferVO {
   toRankCode?: string;
   toReporterId?: number;
   toReporterName?: string;
+  workLocation?: string;
+  employmentType?: string;
   salaryAdjustment?: number;
   reason: string;
   status: string;

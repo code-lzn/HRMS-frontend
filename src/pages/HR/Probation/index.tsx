@@ -5,6 +5,7 @@ import { useRef, useState, useEffect } from 'react';
 import RegularizationFormModal from './components/RegularizationFormModal';
 import {
   listRegularization, deleteRegularization, submitDraft,
+  getRegularizationStats,
 } from './services/regularization';
 import type { RegularizationVO } from './types/regularization';
 
@@ -31,8 +32,15 @@ const ProbationPage: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const res = await listRegularization({ page: 1, size: 1 });
-      setStats({ draft: 1, assessing: 2, approving: 1, approved: 1 });
+      const res = await getRegularizationStats();
+      if (res.data) {
+        setStats({
+          draft: res.data.draft || 0,
+          assessing: res.data.assessing || 0,
+          approving: res.data.approving || 0,
+          approved: res.data.approved || 0,
+        });
+      }
     } catch {
       setStats({ draft: 0, assessing: 0, approving: 0, approved: 0 });
     }

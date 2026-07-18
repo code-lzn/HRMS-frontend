@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, Tag, Table, Modal, Form, Input, Select, DatePicker, Space, message, Spin } from 'antd';
+import { Card, Button, Tag, Table, Modal, Form, Input, Select, DatePicker, Space, message, Spin, Timeline } from 'antd';
 import { PlusOutlined, CalendarOutlined, UserOutlined, FileTextOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { useNavigate } from '@umijs/max';
 import dayjs from 'dayjs';
 import {
   getMyLeavesUsingGet,
   applyUsingPost,
   getBalanceUsingGet,
   cancelUsingPost,
+  getApprovalProgressUsingGet,
 } from '@/api/leaveController';
 
 const LEAVE_TYPES = [
@@ -56,7 +58,11 @@ const LeaveManagement: React.FC = () => {
   const [form] = Form.useForm();
   const [leaveRecords, setLeaveRecords] = useState<LeaveRecord[]>([]);
   const [leaveBalance, setLeaveBalance] = useState<LeaveBalance>({ annualRemaining: 0, compRemaining: 0 });
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [progressOpen, setProgressOpen] = useState(false);
+  const [progressData, setProgressData] = useState<any>(null);
+  const [selectedRecord, setSelectedRecord] = useState<LeaveRecord | null>(null);
 
   useEffect(() => {
     fetchLeaveRecords();
@@ -100,9 +106,17 @@ const LeaveManagement: React.FC = () => {
     }
   };
 
-  const handleApply = () => {
-    form.resetFields();
-    setModalVisible(true);
+  const handleApply = () => navigate('/personal/leave');
+
+  const handleViewProgress = async (record: LeaveRecord) => {
+    setSelectedRecord(record);
+    setProgressOpen(true);
+    try {
+      const res = await getApprovalProgressUsingGet({ id: record.id });
+      setProgressData(res?.data ?? null);
+    } catch {
+      setProgressData(null);
+    }
   };
 
   const handleCancel = async (id: number) => {
@@ -220,7 +234,7 @@ const LeaveManagement: React.FC = () => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <Tag color={statusInfo?.color}>{statusInfo?.text}</Tag>
                         <Space>
-                          <Button size="small">查看进度</Button>
+                          <Button type="link" size="small" onClick={() => handleViewProgress(record)}>查看进度</Button>
                           {(record.status === 'approving' || record.status === 'pending') && (
                             <Button size="small" danger onClick={() => handleCancel(record.id)}>撤回</Button>
                           )}
@@ -239,6 +253,50 @@ const LeaveManagement: React.FC = () => {
           )}
         </Card>
       </Spin>
+
+      <Modal
+        title="审批进度"
+        open={progressOpen}
+        onCancel={() => setProgressOpen(false)}
+        footer={null}
+        width={500}
+      >
+        {selectedRecord && (
+          <div style={{ marginBottom: 16 }}>
+            <p><strong>请假类型：</strong>
+              <Tag color={LEAVE_TYPES.find(t => t.value === selectedRecord.leaveType)?.color}>
+                {LEAVE_TYPES.find(t => t.value === selectedRecord.leaveType)?.label}
+              </Tag>
+            </p>
+            <p><strong>时间：</strong>{selectedRecord.startDate} ~ {selectedRecord.endDate}（{selectedRecord.days}天）</p>
+            <p><strong>原因：</strong>{selectedRecord.reason}</p>
+            <p><strong>状态：</strong>
+              <Tag color={STATUS_MAP[selectedRecord.status]?.color}>{STATUS_MAP[selectedRecord.status]?.text}</Tag>
+            </p>
+          </div>
+        )}
+        <Timeline
+          items={(progressData?.progressNodes ?? []).map((node: any) => ({
+            color: node.status === 0 ? 'green' : node.status === 1 ? 'blue' : 'gray',
+            children: (
+              <div>
+                <div style={{ fontWeight: 500 }}>{node.nodeName}</div>
+                {node.operatorName && (
+                  <div style={{ color: '#666', fontSize: 13 }}>
+                    {node.operatorName}
+                    {node.operateTime && ` · ${dayjs(node.operateTime).format('YYYY-MM-DD HH:mm')}`}
+                  </div>
+                )}
+                {node.comment && (
+                  <div style={{ color: '#999', fontSize: 12, marginTop: 4 }}>
+                    {node.status === 2 ? '原因：' : '意见：'}{node.comment}
+                  </div>
+                )}
+              </div>
+            ),
+          }))}
+        />
+      </Modal>
 
       <Modal
         title="申请请假"

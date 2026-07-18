@@ -60,3 +60,19 @@ export function confirmOnboarding(id: number, actualEntryDate: string) {
 export function abandonOnboarding(id: number) {
   return request.post(`${BASE}/abandon`, null, { params: { id } });
 }
+
+export function revokeOnboarding(id: number) {
+  return request.post(`${BASE}/${id}/revoke`);
+}
+
+export function updateHireDate(id: number, hireDate: string) {
+  return request.put(`${BASE}/${id}/hire-date`, null, { params: { hireDate } });
+}
+
+export function resubmitOnboarding(id: number) {
+  return request.post(`${BASE}/${id}/resubmit`);
+}
+
+export function getOnboardingStats() {
+  return request.get<{ code: number; data: Record<string, number>; message: string }>(`${BASE}/stats`);
+}
