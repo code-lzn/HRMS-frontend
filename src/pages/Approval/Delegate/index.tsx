@@ -33,7 +33,7 @@ const ApprovalDelegate: React.FC = () => {
     }
     setEmpLoading(true);
     try {
-      const res = await getEmployeeList({ current: 1, pageSize: 20, name: kw });
+      const res = await getEmployeeList({ current: 1, pageSize: 20, keyword: kw });
       setEmpOptions(
         (res?.data?.records || []).map((e: any) => ({
           label: `${e.name} (${e.positionName || ''})`,

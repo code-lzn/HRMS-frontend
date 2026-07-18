@@ -16,6 +16,7 @@ import {
   message,
   Tabs,
   Table,
+  Input,
 } from 'antd';
 import {
   PlusOutlined,
@@ -48,6 +49,7 @@ const STATUS_LABEL_COLORS: Record<number, { bg: string; color: string }> = {
 const TransferPage: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [activeTab, setActiveTab] = useState<string>('all');
+  const [keyword, setKeyword] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyEmpId, setHistoryEmpId] = useState<number | undefined>();
@@ -298,13 +300,23 @@ const TransferPage: React.FC = () => {
         ))}
       </Row>
 
+      <div style={{ marginBottom: 12, background: '#fafafa', padding: '8px 12px', borderRadius: 8, display: 'flex', gap: 12, alignItems: 'center' }}>
+        <Input.Search
+          placeholder="搜索员工姓名/工号"
+          allowClear
+          onSearch={(v) => { setKeyword(v); actionRef.current?.reload(); }}
+          style={{ width: 280 }}
+        />
+        <Button icon={<ReloadOutlined />} onClick={() => actionRef.current?.reload()}>刷新</Button>
+      </div>
+
       <ProTable<TransferRecord>
         actionRef={actionRef}
         rowKey="id"
-        search={{ labelWidth: 'auto', defaultCollapsed: false, span: 8 }}
+        search={false}
         columns={columns}
         request={async (params) => {
-          const { current, pageSize, keyword, status } = params as any;
+          const { current, pageSize, status } = params as any;
           const tabMap: Record<string, number> = {
             draft: TRANSFER_STATUS.DRAFT,
             pending: TRANSFER_STATUS.PENDING,
@@ -314,6 +326,7 @@ const TransferPage: React.FC = () => {
           const apiParams: API.listUsingGET3Params = {
             current,
             pageSize,
+            keyword,
             status: activeTab !== 'all' ? tabMap[activeTab] : status,
           };
           try {
@@ -327,16 +340,7 @@ const TransferPage: React.FC = () => {
             return { data: [] as TransferRecord[], success: true, total: 0 };
           }
         }}
-        toolBarRender={() => [
-          <Button
-            key="reload"
-            icon={<ReloadOutlined />}
-            onClick={() => actionRef.current?.reload()}
-            style={{ borderRadius: 8 }}
-          >
-            刷新
-          </Button>,
-        ]}
+        toolBarRender={false}
         toolbar={{
           actions: [
             <Tabs

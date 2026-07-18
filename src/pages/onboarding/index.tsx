@@ -15,6 +15,7 @@ import {
   Tag,
   message,
   Tabs,
+  Input,
 } from 'antd';
 import {
   PlusOutlined,
@@ -24,13 +25,15 @@ import dayjs from 'dayjs';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import OnboardingFormDrawer from './components/OnboardingFormModal';
 import { OnboardingRecord } from './mock';
-import { listUsingGet } from '@/api/onboardingController';
+import { listUsingGet, confirmJoinUsingPost } from '@/api/onboardingController';
 
 const STATUS_BG_COLORS: Record<number, string> = {
   [ONBOARDING_STATUS.DRAFT]: '#f9fafb',
   [ONBOARDING_STATUS.PENDING]: '#fef9c3',
   [ONBOARDING_STATUS.APPROVED_PENDING_JOIN]: '#eff6ff',
   [ONBOARDING_STATUS.JOINED]: '#f0fdf4',
+  [ONBOARDING_STATUS.REJECTED]: '#fef2f2',
+  [ONBOARDING_STATUS.ABANDONED]: '#f9fafb',
 };
 
 const STATUS_TEXT_COLORS: Record<number, string> = {
@@ -38,6 +41,8 @@ const STATUS_TEXT_COLORS: Record<number, string> = {
   [ONBOARDING_STATUS.PENDING]: '#ca8a04',
   [ONBOARDING_STATUS.APPROVED_PENDING_JOIN]: '#3b82f6',
   [ONBOARDING_STATUS.JOINED]: '#22c55e',
+  [ONBOARDING_STATUS.REJECTED]: '#dc2626',
+  [ONBOARDING_STATUS.ABANDONED]: '#6b7280',
 };
 
 const STATUS_LABEL_COLORS: Record<number, { bg: string; color: string }> = {
@@ -52,15 +57,25 @@ const STATUS_LABEL_COLORS: Record<number, { bg: string; color: string }> = {
 const OnboardingPage: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [activeTab, setActiveTab] = useState<string>('all');
+  const [keyword, setKeyword] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
 
   const [stats, setStats] = useState({ draft: 0, pending: 0, approved: 0, joined: 0, rejected: 0, abandoned: 0, total: 0 });
 
   const loadStats = async () => {
     try {
-      const res = await listUsingGet({ current: 1, pageSize: 1 });
-      if (res.code === 0 && res.data) {
-        setStats(prev => ({ ...prev, total: res.data?.total || 0 }));
+      const res = await listUsingGet({ current: 1, pageSize: 10000 });
+      if (res.code === 0 && res.data?.records) {
+        const records = res.data.records;
+        setStats({
+          draft: records.filter((i) => i.status === ONBOARDING_STATUS.DRAFT).length,
+          pending: records.filter((i) => i.status === ONBOARDING_STATUS.PENDING).length,
+          approved: records.filter((i) => i.status === ONBOARDING_STATUS.APPROVED_PENDING_JOIN).length,
+          joined: records.filter((i) => i.status === ONBOARDING_STATUS.JOINED).length,
+          rejected: records.filter((i) => i.status === ONBOARDING_STATUS.REJECTED).length,
+          abandoned: records.filter((i) => i.status === ONBOARDING_STATUS.ABANDONED).length,
+          total: res.data.total || 0,
+        });
       }
     } catch {
       // ignore
@@ -210,10 +225,32 @@ const OnboardingPage: React.FC = () => {
                 type="link"
                 size="small"
                 onClick={() => {
-                  Modal.confirm({
+                  let dateValue = dayjs().format('YYYY-MM-DD');
+                  const modal = Modal.confirm({
                     title: '确认入职',
-                    content: '确认该候选人已入职？',
-                    onOk: () => message.success('已确认入职'),
+                    content: (
+                      <div>
+                        <p>确认该候选人已入职？</p>
+                        <div style={{ marginTop: 8 }}>
+                          <span>实际入职日期：</span>
+                          <input
+                            type="date"
+                            defaultValue={dateValue}
+                            onChange={(e) => { dateValue = e.target.value; }}
+                            style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid #d9d9d9' }}
+                          />
+                        </div>
+                      </div>
+                    ),
+                    onOk: async () => {
+                      try {
+                        await confirmJoinUsingPost({ id: record.id!, actualHireDate: dateValue } as any);
+                        message.success('已确认入职');
+                        actionRef.current?.reload();
+                      } catch {
+                        message.error('操作失败');
+                      }
+                    },
                   });
                 }}
                 style={{ color: '#3b82f6', padding: 0 }}
@@ -252,6 +289,18 @@ const OnboardingPage: React.FC = () => {
       bgColor: STATUS_BG_COLORS[ONBOARDING_STATUS.JOINED],
       textColor: STATUS_TEXT_COLORS[ONBOARDING_STATUS.JOINED],
     },
+    {
+      label: '已拒绝',
+      count: stats.rejected,
+      bgColor: STATUS_BG_COLORS[ONBOARDING_STATUS.REJECTED],
+      textColor: STATUS_TEXT_COLORS[ONBOARDING_STATUS.REJECTED],
+    },
+    {
+      label: '已放弃',
+      count: stats.abandoned,
+      bgColor: STATUS_BG_COLORS[ONBOARDING_STATUS.ABANDONED],
+      textColor: STATUS_TEXT_COLORS[ONBOARDING_STATUS.ABANDONED],
+    },
   ];
 
   return (
@@ -284,7 +333,7 @@ const OnboardingPage: React.FC = () => {
     >
       <Row gutter={16} style={{ marginBottom: 24 }}>
         {statCards.map((card) => (
-          <Col span={6} key={card.label}>
+          <Col flex="1" key={card.label}>
             <Card
               style={{
                 background: card.bgColor,
@@ -314,17 +363,23 @@ const OnboardingPage: React.FC = () => {
         ))}
       </Row>
 
+      <div style={{ marginBottom: 12, background: '#fafafa', padding: '8px 12px', borderRadius: 8, display: 'flex', gap: 12, alignItems: 'center' }}>
+        <Input.Search
+          placeholder="搜索姓名/手机号"
+          allowClear
+          onSearch={(v) => { setKeyword(v); actionRef.current?.reload(); }}
+          style={{ width: 280 }}
+        />
+        <Button icon={<ReloadOutlined />} onClick={() => actionRef.current?.reload()}>刷新</Button>
+      </div>
+
       <ProTable<OnboardingRecord>
         actionRef={actionRef}
         rowKey="id"
-        search={{
-          labelWidth: 'auto',
-          defaultCollapsed: false,
-          span: 8,
-        }}
+        search={false}
         columns={columns}
         request={async (params) => {
-          const { current, pageSize, keyword, status } = params as any;
+          const { current, pageSize, status } = params as any;
           const tabStatusMap: Record<string, number> = {
             draft: ONBOARDING_STATUS.DRAFT,
             pending: ONBOARDING_STATUS.PENDING,
@@ -350,16 +405,7 @@ const OnboardingPage: React.FC = () => {
             return { data: [] as OnboardingRecord[], success: true, total: 0 };
           }
         }}
-        toolBarRender={() => [
-          <Button
-            key="reload"
-            icon={<ReloadOutlined />}
-            onClick={() => actionRef.current?.reload()}
-            style={{ borderRadius: 8 }}
-          >
-            刷新
-          </Button>,
-        ]}
+        toolBarRender={false}
         toolbar={{
           actions: [
             <Tabs
@@ -367,6 +413,7 @@ const OnboardingPage: React.FC = () => {
               activeKey={activeTab}
               onChange={(k) => {
                 setActiveTab(k);
+                loadStats();
                 actionRef.current?.reload();
               }}
               items={[

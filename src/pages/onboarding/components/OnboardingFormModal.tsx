@@ -198,8 +198,9 @@ const OnboardingFormModal: React.FC<OnboardingFormProps> = ({
       setActionType(type);
       setSubmitting(true);
       const values = await form.validateFields();
-      const submitData = {
+      const submitData: Record<string, any> = {
         ...values,
+        defaultProbationMonths: values.probationMonths, // 前端表单字段名映射到后端 DTO 字段名
         expectedHireDate: values.expectedHireDate ? dayjs(values.expectedHireDate).format('YYYY-MM-DD') : undefined,
         submitDirectly: type === 'submit',
       };

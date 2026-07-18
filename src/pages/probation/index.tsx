@@ -16,6 +16,7 @@ import {
   message,
   Tabs,
   Alert,
+  Input,
 } from 'antd';
 import {
   PlusOutlined,
@@ -52,6 +53,7 @@ const STATUS_LABEL_COLORS: Record<number, { bg: string; color: string }> = {
 const ProbationPage: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [activeTab, setActiveTab] = useState<string>('all');
+  const [keyword, setKeyword] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedEmpId, setSelectedEmpId] = useState<number | undefined>();
 
@@ -345,10 +347,20 @@ const ProbationPage: React.FC = () => {
         ))}
       </Row>
 
+      <div style={{ marginBottom: 12, background: '#fafafa', padding: '8px 12px', borderRadius: 8, display: 'flex', gap: 12, alignItems: 'center' }}>
+        <Input.Search
+          placeholder="搜索员工姓名/工号"
+          allowClear
+          onSearch={(v) => { setKeyword(v); actionRef.current?.reload(); }}
+          style={{ width: 280 }}
+        />
+        <Button icon={<ReloadOutlined />} onClick={() => actionRef.current?.reload()}>刷新</Button>
+      </div>
+
       <ProTable<ProbationRecord>
         actionRef={actionRef}
         rowKey="id"
-        search={{ labelWidth: 'auto', defaultCollapsed: false, span: 8 }}
+        search={false}
         columns={columns}
         request={async (params) => {
           const { current, pageSize, status } = params as any;
@@ -361,6 +373,7 @@ const ProbationPage: React.FC = () => {
           const apiParams: API.listUsingGET1Params = {
             current,
             pageSize,
+            keyword,
             status: activeTab !== 'all' ? tabMap[activeTab] : status,
           };
           try {
@@ -374,16 +387,7 @@ const ProbationPage: React.FC = () => {
             return { data: [] as ProbationRecord[], success: true, total: 0 };
           }
         }}
-        toolBarRender={() => [
-          <Button
-            key="reload"
-            icon={<ReloadOutlined />}
-            onClick={() => actionRef.current?.reload()}
-            style={{ borderRadius: 8 }}
-          >
-            刷新
-          </Button>,
-        ]}
+        toolBarRender={false}
         toolbar={{
           actions: [
             <Tabs

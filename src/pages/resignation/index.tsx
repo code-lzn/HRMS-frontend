@@ -17,6 +17,7 @@ import {
   message,
   Tabs,
   Alert,
+  Input,
 } from 'antd';
 import {
   PlusOutlined,
@@ -27,6 +28,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import ResignationFormModal from './components/ResignationForm';
 import { ResignationRecord } from './mock';
 import { listUsingGet2 } from '@/api/resignationController';
+import request from '@/libs/request';
 
 const RESIGN_TYPE_COLORS: Record<string, { bg: string; color: string }> = {
   辞职: { bg: '#fee2e2', color: '#dc2626' },
@@ -41,6 +43,7 @@ const STATUS_BG_COLORS: Record<number, string> = {
   [RESIGNATION_STATUS.PENDING]: '#fef9c3',
   [RESIGNATION_STATUS.APPROVED]: '#eff6ff',
   [RESIGNATION_STATUS.RESIGNED]: '#f0fdf4',
+  [RESIGNATION_STATUS.REJECTED]: '#fef2f2',
 };
 
 const STATUS_TEXT_COLORS: Record<number, string> = {
@@ -48,6 +51,7 @@ const STATUS_TEXT_COLORS: Record<number, string> = {
   [RESIGNATION_STATUS.PENDING]: '#ca8a04',
   [RESIGNATION_STATUS.APPROVED]: '#3b82f6',
   [RESIGNATION_STATUS.RESIGNED]: '#22c55e',
+  [RESIGNATION_STATUS.REJECTED]: '#dc2626',
 };
 
 const STATUS_LABEL_COLORS: Record<number, { bg: string; color: string }> = {
@@ -61,6 +65,7 @@ const STATUS_LABEL_COLORS: Record<number, { bg: string; color: string }> = {
 const ResignationPage: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [activeTab, setActiveTab] = useState<string>('all');
+  const [keyword, setKeyword] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
 
   const [stats, setStats] = useState({ draft: 0, pending: 0, approved: 0, resigned: 0, rejected: 0, total: 0 });
@@ -205,16 +210,47 @@ const ResignationPage: React.FC = () => {
       width: 120,
       fixed: 'right',
       search: false,
-      render: (_, record) => (
-        <Button
-          type="link"
-          size="small"
-          onClick={() => history.push(`/hr-change/resignation/${record.id}`)}
-          style={{ color: '#3b82f6', padding: 0 }}
-        >
-          查看详情
-        </Button>
-      ),
+      render: (_, record) => {
+        const isApproved = record.status === RESIGNATION_STATUS.APPROVED;
+        return (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button
+              type="link"
+              size="small"
+              onClick={() => history.push(`/hr-change/resignation/${record.id}`)}
+              style={{ color: '#3b82f6', padding: 0 }}
+            >
+              查看详情
+            </Button>
+            {isApproved && (
+              <Button
+                type="link"
+                size="small"
+                danger
+                onClick={() => {
+                  Modal.confirm({
+                    title: '确认离职',
+                    content: `确认 ${record.employeeName} 已正式离职？`,
+                    onOk: async () => {
+                      try {
+                        await request(`/api/resignations/${record.id}/confirm`, { method: 'POST' });
+                        message.success('已确认离职');
+                        actionRef.current?.reload();
+                        loadStats();
+                      } catch {
+                        message.error('操作失败');
+                      }
+                    },
+                  });
+                }}
+                style={{ padding: 0 }}
+              >
+                确认离职
+              </Button>
+            )}
+          </div>
+        );
+      },
     },
   ];
 
@@ -242,6 +278,12 @@ const ResignationPage: React.FC = () => {
       count: stats.resigned,
       bgColor: STATUS_BG_COLORS[RESIGNATION_STATUS.RESIGNED],
       textColor: STATUS_TEXT_COLORS[RESIGNATION_STATUS.RESIGNED],
+    },
+    {
+      label: '已拒绝',
+      count: stats.rejected,
+      bgColor: STATUS_BG_COLORS[RESIGNATION_STATUS.REJECTED],
+      textColor: STATUS_TEXT_COLORS[RESIGNATION_STATUS.REJECTED],
     },
   ];
 
@@ -280,7 +322,7 @@ const ResignationPage: React.FC = () => {
         icon={<WarningOutlined />}
         message={
           <span>
-            风险提醒：本月离职人数 <b>4</b> 人，离职率 <b>3.2%</b>，高于上月 <b>1.1%</b>，请关注团队稳定性。
+            风险提醒：离职涉及员工账号禁用、薪资结算、档案保留等连锁操作，请确认所有信息无误后再提交。
           </span>
         }
         style={{ marginBottom: 20, borderRadius: 8, background: '#fef2f2', border: 'none', color: '#dc2626' }}
@@ -288,7 +330,7 @@ const ResignationPage: React.FC = () => {
 
       <Row gutter={16} style={{ marginBottom: 24 }}>
         {statCards.map((card) => (
-          <Col span={6} key={card.label}>
+          <Col flex="1" key={card.label}>
             <Card
               style={{
                 background: card.bgColor,
@@ -318,13 +360,23 @@ const ResignationPage: React.FC = () => {
         ))}
       </Row>
 
+      <div style={{ marginBottom: 12, background: '#fafafa', padding: '8px 12px', borderRadius: 8, display: 'flex', gap: 12, alignItems: 'center' }}>
+        <Input.Search
+          placeholder="搜索员工姓名/工号"
+          allowClear
+          onSearch={(v) => { setKeyword(v); actionRef.current?.reload(); }}
+          style={{ width: 280 }}
+        />
+        <Button icon={<ReloadOutlined />} onClick={() => actionRef.current?.reload()}>刷新</Button>
+      </div>
+
       <ProTable<ResignationRecord>
         actionRef={actionRef}
         rowKey="id"
-        search={{ labelWidth: 'auto', defaultCollapsed: false, span: 8 }}
+        search={false}
         columns={columns}
         request={async (params) => {
-          const { current, pageSize, keyword, status } = params as any;
+          const { current, pageSize, status } = params as any;
           const tabMap: Record<string, number> = {
             draft: RESIGNATION_STATUS.DRAFT,
             pending: RESIGNATION_STATUS.PENDING,
@@ -335,6 +387,7 @@ const ResignationPage: React.FC = () => {
           const apiParams: API.listUsingGET2Params = {
             current,
             pageSize,
+            keyword,
             status: activeTab !== 'all' ? tabMap[activeTab] : status,
           };
           try {
@@ -348,16 +401,7 @@ const ResignationPage: React.FC = () => {
             return { data: [] as ResignationRecord[], success: true, total: 0 };
           }
         }}
-        toolBarRender={() => [
-          <Button
-            key="reload"
-            icon={<ReloadOutlined />}
-            onClick={() => actionRef.current?.reload()}
-            style={{ borderRadius: 8 }}
-          >
-            刷新
-          </Button>,
-        ]}
+        toolBarRender={false}
         toolbar={{
           actions: [
             <Tabs
