@@ -238,7 +238,7 @@ const OnboardingPage: React.FC = () => {
           params={{ statuses: activeTab ? [activeTab] : undefined }}
           request={async (p) => {
             const res = await listOnboarding({
-              keyword: p.keyword as string,
+              keyword: (p.candidateName as string) || undefined,
               statuses: activeTab ? [activeTab] : undefined,
               page: p.current ?? 1,
               size: p.pageSize ?? 10,
