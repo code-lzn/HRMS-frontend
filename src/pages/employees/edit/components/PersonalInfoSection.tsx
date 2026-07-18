@@ -1,147 +1,91 @@
-import LockedField from '@/components/LockedField';
-import { GENDER_MAP, LOCKED_FIELD_MESSAGES } from '@/constants/enums';
-import { Card, DatePicker, Form, Input, Select, Tag } from 'antd';
+import { LockOutlined } from '@ant-design/icons';
+import { Card, DatePicker, Form, Input, Select, Tooltip } from 'antd';
 import React from 'react';
 
 interface PersonalInfoSectionProps {
   editableFields: string[];
   flowRequiredFields: string[];
   initialValues: Record<string, any>;
+  form: any;
 }
 
 const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
   editableFields,
   flowRequiredFields,
   initialValues,
+  form,
 }) => {
   const isEditable = (field: string) => editableFields.includes(field);
   const isLocked = (field: string) => flowRequiredFields.includes(field);
 
   return (
-    <Card title="个人信息" style={{ borderRadius: 12, marginBottom: 0 }}>
-      <Form layout="vertical">
+    <Card title="个人信息" style={{ borderRadius: 12, marginBottom: 24 }}>
+      <Form form={form} layout="vertical" initialValues={initialValues}>
         <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
           <Form.Item
             name="name"
-            label={
-              <span>
-                姓名 <span style={{ color: '#ff4d4f' }}>*</span>
-              </span>
-            }
+            label="姓名"
             style={{ flex: 1 }}
-            rules={
-              isEditable('name')
-                ? [{ required: true, message: '请输入姓名' }]
-                : undefined
-            }
+            rules={[{ required: true, message: '请输入姓名' }]}
           >
-            {isLocked('name') ? (
-              <LockedField
-                value={initialValues.name}
-                tooltip={LOCKED_FIELD_MESSAGES.name || '此字段不可编辑'}
-              />
-            ) : (
-              <Input placeholder="请输入姓名" disabled={!isEditable('name')} />
-            )}
+            <Input placeholder="请输入姓名" />
           </Form.Item>
 
           <Form.Item
             name="gender"
-            label={
-              <span>
-                性别 <span style={{ color: '#ff4d4f' }}>*</span>
-              </span>
-            }
+            label="性别"
             style={{ flex: 1 }}
-            rules={
-              isEditable('gender')
-                ? [{ required: true, message: '请选择性别' }]
-                : undefined
-            }
+            rules={[{ required: true, message: '请选择性别' }]}
           >
-            {isLocked('gender') ? (
-              <LockedField
-                value={GENDER_MAP[initialValues.gender] || ''}
-                tooltip="此字段不可编辑"
-              />
-            ) : (
-              <Select
-                placeholder="请选择性别"
-                options={[
-                  { label: '男', value: 1 },
-                  { label: '女', value: 2 },
-                ]}
-                disabled={!isEditable('gender')}
-              />
-            )}
+            <Select
+              placeholder="请选择性别"
+              options={[
+                { label: '男', value: 1 },
+                { label: '女', value: 2 },
+              ]}
+            />
           </Form.Item>
         </div>
 
         <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
           <Form.Item
             name="phone"
-            label={
-              <span>
-                手机号 <span style={{ color: '#ff4d4f' }}>*</span>
-                <Tag color="orange" style={{ marginLeft: 8, fontSize: 10 }}>
-                  需调岗流程
-                </Tag>
-              </span>
-            }
+            label="手机号"
             style={{ flex: 1 }}
+            rules={[
+              { required: true, message: '请输入手机号' },
+              { pattern: /^1\d{10}$/, message: '手机号格式不正确' },
+            ]}
           >
-            <LockedField
-              value={initialValues.phone || ''}
-              tooltip={LOCKED_FIELD_MESSAGES.phone}
-            />
+            <Input placeholder="请输入手机号" maxLength={11} />
           </Form.Item>
 
           <Form.Item
             name="email"
-            label={
-              <span>
-                邮箱 <span style={{ color: '#ff4d4f' }}>*</span>
-              </span>
-            }
+            label="邮箱"
             style={{ flex: 1 }}
-            rules={
-              isEditable('email')
-                ? [
-                    { required: true, message: '请输入邮箱' },
-                    {
-                      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                      message: '邮箱格式不正确',
-                    },
-                  ]
-                : undefined
-            }
+            rules={[
+              { required: true, message: '请输入邮箱' },
+              {
+                pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: '邮箱格式不正确',
+              },
+            ]}
           >
-            {isLocked('email') ? (
-              <LockedField
-                value={initialValues.email}
-                tooltip={LOCKED_FIELD_MESSAGES.email || '此字段不可编辑'}
-              />
-            ) : (
-              <Input placeholder="请输入邮箱" disabled={!isEditable('email')} />
-            )}
+            <Input placeholder="请输入邮箱" />
           </Form.Item>
         </div>
 
-        <Form.Item
-          name="idCard"
-          label={
-            <span>
-              身份证号 <span style={{ color: '#ff4d4f' }}>*</span>
-              <Tag color="orange" style={{ marginLeft: 8, fontSize: 10 }}>
-                需调岗流程
-              </Tag>
-            </span>
-          }
-          style={{ marginBottom: 16 }}
-        >
-          <LockedField
+        <Form.Item name="idCard" label="身份证号" style={{ marginBottom: 16 }}>
+          <Input
             value={initialValues.idCard || ''}
-            tooltip={LOCKED_FIELD_MESSAGES.idCard}
+            disabled
+            style={{ backgroundColor: '#f5f5f5', color: '#bfbfbf' }}
+            suffix={
+              <Tooltip title="身份证号不可编辑">
+                <LockOutlined style={{ color: '#bfbfbf' }} />
+              </Tooltip>
+            }
           />
         </Form.Item>
 
@@ -165,10 +109,7 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
           }
         >
           {isLocked('birthday') ? (
-            <LockedField
-              value={initialValues.birthday || ''}
-              tooltip="此字段不可编辑"
-            />
+            <Input value={initialValues.birthday || ''} disabled />
           ) : (
             <DatePicker
               style={{ width: '100%' }}
@@ -189,9 +130,55 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
           }
         >
           {isLocked('registeredAddress') ? (
-            <LockedField
+            <Input.TextArea
+              rows={2}
               value={initialValues.registeredAddress}
-              tooltip="此字段不可编辑"
+              disabled
+            />
+          ) : (
+            <Input.TextArea
+              rows={2}
+              placeholder="请输入户籍地址"
+              disabled={!isEditable('registeredAddress')}
+            />
+          )}
+        </Form.Item>
+
+        <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+          <Form.Item
+            name="emergencyContactName"
+            label="紧急联系人"
+            style={{ flex: 1 }}
+            rules={[{ max: 32, message: '最多32个字符' }]}
+          >
+            <Input placeholder="请输入紧急联系人姓名" />
+          </Form.Item>
+
+          <Form.Item
+            name="emergencyContactPhone"
+            label="紧急联系电话"
+            style={{ flex: 1 }}
+            rules={[{ pattern: /^1\d{10}$/, message: '手机号格式不正确' }]}
+          >
+            <Input placeholder="请输入紧急联系电话" maxLength={11} />
+          </Form.Item>
+        </div>
+
+        <Form.Item
+          name="registeredAddress"
+          label="户籍地址"
+          style={{ marginBottom: 16 }}
+          rules={
+            isEditable('registeredAddress')
+              ? [{ max: 256, message: '最多256个字符' }]
+              : undefined
+          }
+        >
+          {isLocked('registeredAddress') ? (
+            <Input.TextArea
+              rows={2}
+              value={initialValues.registeredAddress}
+              disabled
             />
           ) : (
             <Input.TextArea
@@ -212,9 +199,10 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
           }
         >
           {isLocked('currentAddress') ? (
-            <LockedField
+            <Input.TextArea
+              rows={2}
               value={initialValues.currentAddress}
-              tooltip="此字段不可编辑"
+              disabled
             />
           ) : (
             <Input.TextArea

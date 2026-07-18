@@ -133,3 +133,8 @@ export async function getStatusesUsingGet(options?: { [key: string]: any }) {
     },
   );
 }
+
+/** exportEmployees GET /api/employees/export (xlsx 文件流) */
+export function getExportUrl(): string {
+  return '/api/employees/export';
+}

@@ -12,6 +12,12 @@ import { Button, Card, Descriptions, Result, Spin } from 'antd';
 import dayjs from 'dayjs';
 import React, { useState } from 'react';
 
+const LEVEL_COLORS: Record<string, { color: string; bg: string }> = {
+  M: { color: '#722ed1', bg: '#f9f0ff' },
+  P: { color: '#1677ff', bg: '#e6f4ff' },
+  S: { color: '#52c41a', bg: '#f6ffed' },
+};
+
 const EmployeeDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const employeeId = Number(id);
@@ -63,6 +69,27 @@ const EmployeeDetail: React.FC = () => {
 
   const formatDate = (date?: string) => {
     return date ? dayjs(date).format('YYYY-MM-DD') : '-';
+  };
+
+  const renderJobLevelTag = (level?: string) => {
+    if (!level) return null;
+    const prefix = level.charAt(0).toUpperCase();
+    const c = LEVEL_COLORS[prefix] ?? { color: '#595959', bg: '#fafafa' };
+    return (
+      <span
+        style={{
+          marginLeft: 8,
+          padding: '1px 8px',
+          borderRadius: 4,
+          fontSize: 12,
+          fontWeight: 600,
+          color: c.color,
+          background: c.bg,
+        }}
+      >
+        {level}
+      </span>
+    );
   };
 
   return (
@@ -117,6 +144,7 @@ const EmployeeDetail: React.FC = () => {
                 <span>{employee.employeeNo}</span>
                 <span>{employee.workInfo?.departmentName}</span>
                 <span>{employee.workInfo?.positionName}</span>
+                {renderJobLevelTag(employee.workInfo?.jobLevel)}
               </div>
               <div
                 style={{
@@ -281,6 +309,15 @@ const EmployeeDetail: React.FC = () => {
                   ? dayjs(employee.createTime).format('YYYY-MM-DD HH:mm')
                   : '-'}
               </Descriptions.Item>
+              <Descriptions.Item label="紧急联系人">
+                {employee.personalInfo?.emergencyContactName || '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label="紧急联系电话">
+                <DesensitizedText
+                  text={employee.personalInfo?.emergencyContactPhone}
+                  type="phone"
+                />
+              </Descriptions.Item>
             </Descriptions>
           </Card>
           <Card title="个人信息" style={{ flex: 1, borderRadius: 12 }}>
@@ -338,9 +375,6 @@ const EmployeeDetail: React.FC = () => {
             <Descriptions.Item label="职位">
               {employee.workInfo?.positionName || '-'}
             </Descriptions.Item>
-            <Descriptions.Item label="职级">
-              {employee.workInfo?.jobLevel || '-'}
-            </Descriptions.Item>
             <Descriptions.Item label="直接汇报人">
               {employee.workInfo?.directReportName ? (
                 <a
@@ -367,8 +401,24 @@ const EmployeeDetail: React.FC = () => {
       )}
 
       {activeTab === 'salary' && (
-        <Card title="薪资信息" style={{ borderRadius: 12 }}>
+        <Card title="薪资与合同信息" style={{ borderRadius: 12 }}>
           <Descriptions column={2} bordered size="small">
+            <Descriptions.Item label="合同类型">
+              {CONTRACT_TYPE_MAP[employee.salaryInfo?.contractType ?? -1] ||
+                '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="合同到期日">
+              {formatDate(employee.salaryInfo?.contractExpireDate)}
+            </Descriptions.Item>
+            <Descriptions.Item label="试用期待遇比例">
+              {employee.salaryInfo?.probationRatio !== null &&
+              employee.salaryInfo?.probationRatio !== undefined
+                ? `${(employee.salaryInfo.probationRatio * 100).toFixed(0)}%`
+                : '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="薪资账套">
+              {employee.salaryInfo?.salaryAccountName || '-'}
+            </Descriptions.Item>
             <Descriptions.Item label="基本工资">
               <DesensitizedText
                 text={String(employee.salaryInfo?.baseSalary ?? '')}

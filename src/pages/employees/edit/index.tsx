@@ -1,7 +1,9 @@
 import { updateEmployeeUsingPut } from '@/api/employeeController';
+import { queryKeys } from '@/hooks/queryKeys';
 import { useEmployeeDetail } from '@/hooks/useEmployeeDetail';
 import { useFieldPermissions } from '@/hooks/useFieldPermissions';
 import { UserOutlined } from '@ant-design/icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { history, useAccess, useParams } from '@umijs/max';
 import { Avatar, Button, Card, Form, message, Modal, Result, Spin } from 'antd';
 import React, { useMemo } from 'react';
@@ -13,6 +15,7 @@ const EmployeeEdit: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const employeeId = Number(id);
   const access = useAccess();
+  const queryClient = useQueryClient();
   const [form] = Form.useForm();
 
   const { data: employee, isLoading, isError } = useEmployeeDetail(employeeId);
@@ -29,11 +32,14 @@ const EmployeeEdit: React.FC = () => {
       birthday: employee.personalInfo?.birthday,
       registeredAddress: employee.personalInfo?.registeredAddress,
       currentAddress: employee.personalInfo?.currentAddress,
+      emergencyContactName: employee.personalInfo?.emergencyContactName,
+      emergencyContactPhone: employee.personalInfo?.emergencyContactPhone,
       departmentName: employee.workInfo?.departmentName,
       positionName: employee.workInfo?.positionName,
       jobLevel: employee.workInfo?.jobLevel,
       directReportName: employee.workInfo?.directReportName,
       workLocation: employee.workInfo?.workLocation,
+      hireType: employee.hireType,
       contractType: employee.salaryInfo?.contractType,
       contractExpireDate: employee.salaryInfo?.contractExpireDate,
       probationRatio: employee.salaryInfo?.probationRatio,
@@ -79,6 +85,8 @@ const EmployeeEdit: React.FC = () => {
       const dirtyFields: Record<string, any> = {};
       const init: Record<string, any> = initialValues;
       Object.keys(values).forEach((key) => {
+        // idCard 不在后端 EmployeeUpdateRequest DTO 中，跳过
+        if (key === 'idCard') return;
         if (init[key] !== values[key]) {
           dirtyFields[key] = values[key] ?? null;
         }
@@ -91,6 +99,49 @@ const EmployeeEdit: React.FC = () => {
       }
 
       await updateEmployeeUsingPut({ id: employeeId }, dirtyFields);
+
+      // 直接更新缓存，确保详情页拿到的就是最新值
+      queryClient.setQueryData(
+        queryKeys.employees.detail(employeeId),
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          const updated = { ...oldData };
+          // 合并顶层字段和个人信息
+          Object.entries(dirtyFields).forEach(([key, val]) => {
+            if (
+              [
+                'name',
+                'gender',
+                'phone',
+                'email',
+                'idCard',
+                'birthday',
+                'registeredAddress',
+                'currentAddress',
+                'emergencyContactName',
+                'emergencyContactPhone',
+              ].includes(key)
+            ) {
+              updated.personalInfo = { ...updated.personalInfo, [key]: val };
+            } else if (
+              [
+                'departmentName',
+                'positionName',
+                'jobLevel',
+                'directReportName',
+                'workLocation',
+                'hireType',
+              ].includes(key)
+            ) {
+              updated.workInfo = { ...updated.workInfo, [key]: val };
+            } else {
+              updated.salaryInfo = { ...updated.salaryInfo, [key]: val };
+            }
+          });
+          return updated;
+        },
+      );
+      queryClient.invalidateQueries({ queryKey: queryKeys.employees.lists() });
       message.success('保存成功');
       history.push(`/employees/${employeeId}`);
     } catch (error: any) {
@@ -165,6 +216,7 @@ const EmployeeEdit: React.FC = () => {
             editableFields={editableFields}
             flowRequiredFields={flowRequiredFields}
             initialValues={initialValues}
+            form={form}
           />
         </div>
 
