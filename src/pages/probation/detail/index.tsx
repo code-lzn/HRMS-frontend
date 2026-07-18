@@ -16,9 +16,11 @@ import {
   Result,
   Spin,
   Tag,
+  message,
 } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { ProbationDetail, probationDetails } from '../mock';
+import { ProbationDetail } from '../mock';
+import { getDetailUsingGet2 } from '@/api/probationController';
 
 const ProbationDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,11 +28,21 @@ const ProbationDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDetail(id ? probationDetails[Number(id)] || null : null);
-      setLoading(false);
-    }, 300);
-    return () => clearTimeout(timer);
+    if (!id) { setLoading(false); return; }
+    setLoading(true);
+    getDetailUsingGet2({ id: Number(id) })
+      .then((res) => {
+        if (res.code === 0 && res.data) {
+          setDetail(res.data as unknown as ProbationDetail);
+        } else {
+          setDetail(null);
+        }
+      })
+      .catch(() => {
+        message.error('获取转正详情失败');
+        setDetail(null);
+      })
+      .finally(() => setLoading(false));
   }, [id]);
 
   if (loading) {

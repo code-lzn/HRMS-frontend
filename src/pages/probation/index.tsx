@@ -23,9 +23,10 @@ import {
   BellOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ProbationFormModal from './components/ProbationForm';
-import { pendingEmployees, ProbationRecord, probationList } from './mock';
+import { ProbationRecord, PendingProbationEmployee } from './mock';
+import { listUsingGet1, getPendingEmployeesUsingGet } from '@/api/probationController';
 
 const STATUS_BG_COLORS: Record<number, string> = {
   [PROBATION_STATUS.DRAFT]: '#f9fafb',
@@ -54,19 +55,37 @@ const ProbationPage: React.FC = () => {
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedEmpId, setSelectedEmpId] = useState<number | undefined>();
 
-  const stats = useMemo(() => {
-    const draft = probationList.filter((i) => i.status === PROBATION_STATUS.DRAFT).length;
-    const pending = probationList.filter((i) => i.status === PROBATION_STATUS.PENDING).length;
-    const completed = probationList.filter((i) => i.status === PROBATION_STATUS.COMPLETED).length;
-    const rejected = probationList.filter((i) => i.status === PROBATION_STATUS.REJECTED).length;
-    return {
-      draft,
-      pending,
-      completed,
-      rejected,
-      total: probationList.length,
-      expiring: pendingEmployees.length,
-    };
+  const [pendingEmployees, setPendingEmployees] = useState<PendingProbationEmployee[]>([]);
+  const [stats, setStats] = useState({ draft: 0, pending: 0, completed: 0, rejected: 0, total: 0, expiring: 0 });
+
+  const loadStats = async () => {
+    try {
+      const [listRes, pendingRes] = await Promise.all([
+        listUsingGet1({ current: 1, pageSize: 10000 }),
+        getPendingEmployeesUsingGet({}),
+      ]);
+      if (listRes.code === 0 && listRes.data?.records) {
+        const records = listRes.data.records;
+        setStats({
+          draft: records.filter((i) => i.status === PROBATION_STATUS.DRAFT).length,
+          pending: records.filter((i) => i.status === PROBATION_STATUS.PENDING).length,
+          completed: records.filter((i) => i.status === PROBATION_STATUS.COMPLETED).length,
+          rejected: records.filter((i) => i.status === PROBATION_STATUS.REJECTED).length,
+          total: listRes.data.total || 0,
+          expiring: 0,
+        });
+      }
+      if (pendingRes.code === 0 && pendingRes.data) {
+        setPendingEmployees(pendingRes.data as any);
+        setStats((prev) => ({ ...prev, expiring: (pendingRes.data as any).length || 0 }));
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    loadStats();
   }, []);
 
   const getInitial = (name: string) => name?.charAt(0) || '?';
@@ -333,30 +352,28 @@ const ProbationPage: React.FC = () => {
         columns={columns}
         request={async (params) => {
           const { current, pageSize, keyword, status } = params as any;
-          let filtered = [...probationList];
-          if (activeTab !== 'all') {
-            const tabMap: Record<string, number> = {
-              draft: PROBATION_STATUS.DRAFT,
-              pending: PROBATION_STATUS.PENDING,
-              completed: PROBATION_STATUS.COMPLETED,
-              rejected: PROBATION_STATUS.REJECTED,
-            };
-            filtered = filtered.filter((i) => i.status === tabMap[activeTab]);
+          const tabMap: Record<string, number> = {
+            draft: PROBATION_STATUS.DRAFT,
+            pending: PROBATION_STATUS.PENDING,
+            completed: PROBATION_STATUS.COMPLETED,
+            rejected: PROBATION_STATUS.REJECTED,
+          };
+          const apiParams: API.listUsingGET1Params = {
+            current,
+            pageSize,
+            keyword,
+            status: activeTab !== 'all' ? tabMap[activeTab] : status,
+          };
+          try {
+            const res = await listUsingGet1(apiParams);
+            if (res.code === 0 && res.data) {
+              return { data: res.data.records || [], success: true, total: res.data.total || 0 };
+            }
+            return { data: [], success: true, total: 0 };
+          } catch {
+            message.error('获取转正列表失败');
+            return { data: [], success: true, total: 0 };
           }
-          if (keyword) {
-            const kw = String(keyword).toLowerCase();
-            filtered = filtered.filter(
-              (i) =>
-                i.employeeName.toLowerCase().includes(kw) || i.employeeNo.includes(kw),
-            );
-          }
-          if (status !== undefined && status !== null && status !== '') {
-            filtered = filtered.filter((i) => i.status === Number(status));
-          }
-          const total = filtered.length;
-          const page = current || 1;
-          const size = pageSize || 10;
-          return { data: filtered.slice((page - 1) * size, page * size), success: true, total };
         }}
         toolBarRender={() => [
           <Button

@@ -11,7 +11,9 @@ import {
   Tag,
   message,
 } from 'antd';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createUsingPost1 } from '@/api/probationController';
+import { getEmployeeListUsingGet } from '@/api/employeeController';
 
 const { TextArea } = Input;
 
@@ -21,12 +23,17 @@ interface ProbationFormProps {
   preselectedEmployeeId?: number;
 }
 
-/** Mock 员工数据（在职试用期员工） */
-const mockProbationEmployees = [
-  { value: 1005, label: '孙七 (202401005) - 技术部/后端工程师', department: '技术部', position: '后端工程师', hireDate: '2026-06-01', probationEnd: '2026-08-31', jobLevel: 'P5' },
-  { value: 1006, label: '周八 (202402006) - 财务部/财务分析师', department: '财务部', position: '财务分析师', hireDate: '2026-06-15', probationEnd: '2026-09-14', jobLevel: 'P4' },
-  { value: 1007, label: '吴九 (202401007) - 技术部/测试工程师', department: '技术部', position: '测试工程师', hireDate: '2026-06-10', probationEnd: '2026-09-09', jobLevel: 'P3' },
-];
+interface EmployeeOption {
+  value: number;
+  label: string;
+  department: string;
+  position: string;
+  hireDate: string;
+  probationEnd: string;
+  jobLevel: string;
+  employeeName: string;
+  employeeNo: string;
+}
 
 const ProbationFormModal: React.FC<ProbationFormProps> = ({
   open,
@@ -35,13 +42,37 @@ const ProbationFormModal: React.FC<ProbationFormProps> = ({
 }) => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = React.useState(false);
-  const [selectedEmp, setSelectedEmp] = React.useState<(typeof mockProbationEmployees)[number] | null>(null);
+  const [employeeOptions, setEmployeeOptions] = useState<EmployeeOption[]>([]);
+  const [selectedEmp, setSelectedEmp] = useState<EmployeeOption | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    getEmployeeListUsingGet({ current: 1, pageSize: 500 })
+      .then((res) => {
+        if (res.code === 0 && res.data?.records) {
+          setEmployeeOptions(
+            res.data.records.map((e) => ({
+              value: e.id || 0,
+              label: `${e.name} (${e.employeeNo}) - ${e.departmentName}/${e.positionName}`,
+              department: e.departmentName || '',
+              position: e.positionName || '',
+              hireDate: e.hireDate || '',
+              probationEnd: '',
+              jobLevel: e.jobLevel || '',
+              employeeName: e.name || '',
+              employeeNo: e.employeeNo || '',
+            })),
+          );
+        }
+      })
+      .catch(() => {});
+  }, [open]);
 
   useEffect(() => {
     if (open) {
       form.resetFields();
       if (preselectedEmployeeId) {
-        const emp = mockProbationEmployees.find((e) => e.value === preselectedEmployeeId);
+        const emp = employeeOptions.find((e) => e.value === preselectedEmployeeId);
         if (emp) {
           form.setFieldValue('employeeId', emp.value);
           setSelectedEmp(emp);
@@ -50,10 +81,11 @@ const ProbationFormModal: React.FC<ProbationFormProps> = ({
         setSelectedEmp(null);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, preselectedEmployeeId, form]);
 
   const handleEmployeeChange = (empId: number) => {
-    const emp = mockProbationEmployees.find((e) => e.value === empId);
+    const emp = employeeOptions.find((e) => e.value === empId);
     setSelectedEmp(emp || null);
   };
 
@@ -61,11 +93,21 @@ const ProbationFormModal: React.FC<ProbationFormProps> = ({
     try {
       setSubmitting(true);
       const values = await form.validateFields();
-      console.log(type === 'save' ? '保存草稿:' : '提交审批:', values);
-      message.success(type === 'save' ? '草稿已保存' : '已提交审批');
-      form.resetFields();
-      setSelectedEmp(null);
-      onClose();
+      const submitData = {
+        employeeId: values.employeeId,
+        performanceReview: values.performanceReview,
+        salaryAdjustment: values.salaryAdjustment,
+        submitDirectly: type === 'submit',
+      };
+      const res = await createUsingPost1(submitData);
+      if (res.code === 0) {
+        message.success(type === 'save' ? '草稿已保存' : '已提交审批');
+        form.resetFields();
+        setSelectedEmp(null);
+        onClose();
+      } else {
+        message.error(res.message || '操作失败');
+      }
     } catch {
       // validate error
     } finally {
@@ -140,7 +182,7 @@ const ProbationFormModal: React.FC<ProbationFormProps> = ({
                 showSearch
                 placeholder="搜索并选择试用期员工"
                 size="large"
-                options={mockProbationEmployees}
+                options={employeeOptions}
                 onChange={handleEmployeeChange}
                 filterOption={(input, option) =>
                   (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
@@ -170,11 +212,11 @@ const ProbationFormModal: React.FC<ProbationFormProps> = ({
                     fontSize: 16,
                     fontWeight: 600,
                   }}>
-                    {selectedEmp.label.charAt(0)}
+                    {selectedEmp.employeeName.charAt(0)}
                   </div>
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
-                      {selectedEmp.label.split('(')[0].trim()}
+                      {selectedEmp.employeeName}
                     </div>
                     <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
                       {selectedEmp.department} / {selectedEmp.position}
@@ -183,14 +225,11 @@ const ProbationFormModal: React.FC<ProbationFormProps> = ({
                   <Tag color="green" style={{ marginLeft: 'auto' }}>{selectedEmp.jobLevel}</Tag>
                 </div>
                 <Descriptions column={2} size="small" labelStyle={{ color: '#6b7280', fontWeight: 400 }}>
-                  <Descriptions.Item label="工号">{selectedEmp.label.match(/\(([^)]+)\)/)?.[1]}</Descriptions.Item>
+                  <Descriptions.Item label="工号">{selectedEmp.employeeNo}</Descriptions.Item>
                   <Descriptions.Item label="部门">{selectedEmp.department}</Descriptions.Item>
                   <Descriptions.Item label="职位">{selectedEmp.position}</Descriptions.Item>
                   <Descriptions.Item label="职级">{selectedEmp.jobLevel}</Descriptions.Item>
                   <Descriptions.Item label="入职日期">{selectedEmp.hireDate}</Descriptions.Item>
-                  <Descriptions.Item label="试用期截止">
-                    <span style={{ color: '#f59e0b', fontWeight: 500 }}>{selectedEmp.probationEnd}</span>
-                  </Descriptions.Item>
                 </Descriptions>
               </div>
             )}
