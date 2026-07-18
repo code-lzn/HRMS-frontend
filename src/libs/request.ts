@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { type AxiosRequestConfig } from 'axios';
 
 // 创建 Axios 实例
 // 区分开发和生产环境
@@ -45,9 +45,16 @@ myAxios.interceptors.response.use(
   },
   // 非 2xx 响应触发
   function (error) {
-    // 处理响应错误
+    // 处理请求错误
     return Promise.reject(error);
   },
 );
 
-export default myAxios;
+// 类型安全的请求函数：interceptor 已解包 response.data，所以直接返回 T
+async function request<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  const response = await myAxios.request<T>({ url, ...config });
+  // 拦截器已解包 response.data，但 TypeScript 无法感知，此处用类型断言
+  return response as unknown as T;
+}
+
+export default request;
