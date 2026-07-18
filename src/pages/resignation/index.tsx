@@ -23,9 +23,10 @@ import {
   ReloadOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ResignationFormModal from './components/ResignationForm';
-import { ResignationRecord, resignationList, resignationDetails } from './mock';
+import { ResignationRecord } from './mock';
+import { listUsingGet2 } from '@/api/resignationController';
 
 const RESIGN_TYPE_COLORS: Record<string, { bg: string; color: string }> = {
   辞职: { bg: '#fee2e2', color: '#dc2626' },
@@ -62,26 +63,35 @@ const ResignationPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('all');
   const [createOpen, setCreateOpen] = useState(false);
 
-  const stats = useMemo(() => {
-    const draft = resignationList.filter((i) => i.status === RESIGNATION_STATUS.DRAFT).length;
-    const pending = resignationList.filter((i) => i.status === RESIGNATION_STATUS.PENDING).length;
-    const approved = resignationList.filter((i) => i.status === RESIGNATION_STATUS.APPROVED).length;
-    const resigned = resignationList.filter((i) => i.status === RESIGNATION_STATUS.RESIGNED).length;
-    const rejected = resignationList.filter((i) => i.status === RESIGNATION_STATUS.REJECTED).length;
-    return {
-      draft,
-      pending,
-      approved,
-      resigned,
-      rejected,
-      total: resignationList.length,
-    };
+  const [stats, setStats] = useState({ draft: 0, pending: 0, approved: 0, resigned: 0, rejected: 0, total: 0 });
+
+  const loadStats = async () => {
+    try {
+      const res = await listUsingGet2({ current: 1, pageSize: 10000 });
+      if (res.code === 0 && res.data?.records) {
+        const records = res.data.records;
+        setStats({
+          draft: records.filter((i) => i.status === RESIGNATION_STATUS.DRAFT).length,
+          pending: records.filter((i) => i.status === RESIGNATION_STATUS.PENDING).length,
+          approved: records.filter((i) => i.status === RESIGNATION_STATUS.APPROVED).length,
+          resigned: records.filter((i) => i.status === RESIGNATION_STATUS.RESIGNED).length,
+          rejected: records.filter((i) => i.status === RESIGNATION_STATUS.REJECTED).length,
+          total: res.data.total || 0,
+        });
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    loadStats();
   }, []);
 
   const getInitial = (name: string) => name?.charAt(0) || '?';
 
-  const getHandoverName = (record: ResignationRecord) => {
-    return resignationDetails[record.id]?.handoverToName || '-';
+  const getHandoverName = (_: ResignationRecord) => {
+    return '-';
   };
 
   const columns: ProColumns<ResignationRecord>[] = [
@@ -315,31 +325,28 @@ const ResignationPage: React.FC = () => {
         columns={columns}
         request={async (params) => {
           const { current, pageSize, keyword, status } = params as any;
-          let filtered = [...resignationList];
-          if (activeTab !== 'all') {
-            const tabMap: Record<string, number> = {
-              draft: RESIGNATION_STATUS.DRAFT,
-              pending: RESIGNATION_STATUS.PENDING,
-              approved: RESIGNATION_STATUS.APPROVED,
-              resigned: RESIGNATION_STATUS.RESIGNED,
-              rejected: RESIGNATION_STATUS.REJECTED,
-            };
-            filtered = filtered.filter((i) => i.status === tabMap[activeTab]);
+          const tabMap: Record<string, number> = {
+            draft: RESIGNATION_STATUS.DRAFT,
+            pending: RESIGNATION_STATUS.PENDING,
+            approved: RESIGNATION_STATUS.APPROVED,
+            resigned: RESIGNATION_STATUS.RESIGNED,
+            rejected: RESIGNATION_STATUS.REJECTED,
+          };
+          const apiParams: API.listUsingGET2Params = {
+            current,
+            pageSize,
+            status: activeTab !== 'all' ? tabMap[activeTab] : status,
+          };
+          try {
+            const res = await listUsingGet2(apiParams);
+            if (res.code === 0 && res.data) {
+              return { data: res.data.records || [], success: true, total: res.data.total || 0 };
+            }
+            return { data: [], success: true, total: 0 };
+          } catch {
+            message.error('获取离职列表失败');
+            return { data: [], success: true, total: 0 };
           }
-          if (keyword) {
-            const kw = String(keyword).toLowerCase();
-            filtered = filtered.filter(
-              (i) =>
-                i.employeeName.toLowerCase().includes(kw) || i.employeeNo.includes(kw),
-            );
-          }
-          if (status !== undefined && status !== null && status !== '') {
-            filtered = filtered.filter((i) => i.status === Number(status));
-          }
-          const total = filtered.length;
-          const page = current || 1;
-          const size = pageSize || 10;
-          return { data: filtered.slice((page - 1) * size, page * size), success: true, total };
         }}
         toolBarRender={() => [
           <Button

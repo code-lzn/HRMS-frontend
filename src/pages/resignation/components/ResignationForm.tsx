@@ -14,6 +14,8 @@ import {
 import dayjs from 'dayjs';
 import React, { useEffect, useState } from 'react';
 import { RESIGNATION_TYPE_MAP } from '@/constants';
+import { createUsingPost2 } from '@/api/resignationController';
+import { getEmployeeListUsingGet } from '@/api/employeeController';
 
 const { TextArea } = Input;
 
@@ -22,26 +24,41 @@ interface ResignationFormProps {
   onClose: () => void;
 }
 
-/** Mock 在职员工 */
-const mockEmployees = [
-  { value: 1004, label: '赵六 (202401004)', department: '市场部', position: '市场专员' },
-  { value: 1009, label: '冯十二 (202401009)', department: '技术部', position: '后端工程师' },
-  { value: 1010, label: '陈十三 (202401010)', department: '运营部', position: '运营专员' },
-  { value: 1011, label: '褚十四 (202401011)', department: '人事行政部', position: 'HR 助理' },
-  { value: 1012, label: '卫十五 (202401012)', department: '产品部', position: '产品助理' },
-];
+interface EmployeeOption {
+  value: number;
+  label: string;
+  department: string;
+  position: string;
+}
 
 const resignationTypeOptions = Object.entries(RESIGNATION_TYPE_MAP).map(([value, label]) => ({
   value: Number(value),
   label,
 }));
 
-const handoverOptions = mockEmployees.map((e) => ({ value: e.value, label: e.label }));
-
 const ResignationFormModal: React.FC<ResignationFormProps> = ({ open, onClose }) => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
-  const [selectedEmp, setSelectedEmp] = useState<(typeof mockEmployees)[number] | null>(null);
+  const [selectedEmp, setSelectedEmp] = useState<EmployeeOption | null>(null);
+  const [employeeOptions, setEmployeeOptions] = useState<EmployeeOption[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    getEmployeeListUsingGet({ current: 1, pageSize: 500 })
+      .then((res) => {
+        if (res.code === 0 && res.data?.records) {
+          setEmployeeOptions(
+            res.data.records.map((e) => ({
+              value: e.id || 0,
+              label: `${e.name} (${e.employeeNo})`,
+              department: e.departmentName || '',
+              position: e.positionName || '',
+            })),
+          );
+        }
+      })
+      .catch(() => {});
+  }, [open]);
 
   useEffect(() => {
     if (open) {
@@ -51,20 +68,31 @@ const ResignationFormModal: React.FC<ResignationFormProps> = ({ open, onClose })
   }, [open, form]);
 
   const handleEmployeeChange = (empId: number) => {
-    const emp = mockEmployees.find((e) => e.value === empId);
+    const emp = employeeOptions.find((e) => e.value === empId);
     setSelectedEmp(emp || null);
-    // 过滤掉当前员工作为交接人
   };
 
   const handleSubmit = async (type: 'save' | 'submit') => {
     try {
       setSubmitting(true);
       const values = await form.validateFields();
-      console.log(type === 'save' ? '保存离职草稿:' : '提交离职审批:', values);
-      message.success(type === 'save' ? '草稿已保存' : '已提交离职审批');
-      form.resetFields();
-      setSelectedEmp(null);
-      onClose();
+      const submitData = {
+        employeeId: values.employeeId,
+        resignationDate: values.resignationDate ? dayjs(values.resignationDate).format('YYYY-MM-DD') : undefined,
+        resignationType: values.resignationType,
+        reason: values.reason,
+        handoverToId: values.handoverToId,
+        submitDirectly: type === 'submit',
+      };
+      const res = await createUsingPost2(submitData);
+      if (res.code === 0) {
+        message.success(type === 'save' ? '草稿已保存' : '已提交离职审批');
+        form.resetFields();
+        setSelectedEmp(null);
+        onClose();
+      } else {
+        message.error(res.message || '操作失败');
+      }
     } catch {
       // validate error
     } finally {
@@ -77,6 +105,8 @@ const ResignationFormModal: React.FC<ResignationFormProps> = ({ open, onClose })
     setSelectedEmp(null);
     onClose();
   };
+
+  const handoverOptions = employeeOptions.filter((o) => o.value !== selectedEmp?.value);
 
   return (
     <Drawer
@@ -135,7 +165,7 @@ const ResignationFormModal: React.FC<ResignationFormProps> = ({ open, onClose })
                 showSearch
                 placeholder="搜索并选择在职员工"
                 size="large"
-                options={mockEmployees}
+                options={employeeOptions}
                 onChange={handleEmployeeChange}
                 filterOption={(input, option) =>
                   (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
@@ -244,7 +274,7 @@ const ResignationFormModal: React.FC<ResignationFormProps> = ({ open, onClose })
                 showSearch
                 placeholder="搜索并选择交接人"
                 size="large"
-                options={handoverOptions.filter((o) => o.value !== selectedEmp?.value)}
+                options={handoverOptions.map((e) => ({ value: e.value, label: e.label }))}
                 filterOption={(input, option) =>
                   (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
                 }
