@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Card, Button, Tag, Table, Space, Spin, message, Select } from 'antd';
+import { Card, Button, Tag, Table, Space, Spin, message, Select, Alert } from 'antd';
 import { ClockCircleOutlined, CalendarOutlined, PlusOutlined, CheckCircleOutlined } from '@ant-design/icons';
-import { useRequest } from '@umijs/max';
 import dayjs from 'dayjs';
 import usePermission from '@/hooks/usePermission';
+import request from '@/libs/request';
 import { getDepartmentTreeUsingGet } from '@/api/departmentController';
 
 const STATUS_COLOR_MAP: Record<string, string> = {
@@ -15,6 +15,7 @@ const STATUS_COLOR_MAP: Record<string, string> = {
   ABSENT: '#ff4d4f',
   MISS_IN: '#722ed1',
   MISS_OUT: '#1890ff',
+  REST: '#87d068',
 };
 
 const STATUS_TEXT_MAP: Record<string, string> = {
@@ -26,6 +27,7 @@ const STATUS_TEXT_MAP: Record<string, string> = {
   ABSENT: '旷工',
   MISS_IN: '上班缺卡',
   MISS_OUT: '下班缺卡',
+  REST: '休息',
 };
 
 const STATUS_DESC_MAP: Record<string, string> = {
@@ -37,6 +39,7 @@ const STATUS_DESC_MAP: Record<string, string> = {
   ABSENT: '超出阈值超过15分钟',
   MISS_IN: '上班未打卡，下班有记录',
   MISS_OUT: '上班已打卡，下班无记录',
+  REST: '周末或节假日休息',
 };
 
 const Attendance: React.FC = () => {
@@ -45,6 +48,8 @@ const Attendance: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState(dayjs().format('YYYY-MM'));
   const [selectedDept, setSelectedDept] = useState<string>('');
   const [departments, setDepartments] = useState<{ value: string; label: string }[]>([]);
+  const [pageNum, setPageNum] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [todayStatus, setTodayStatus] = useState<{ inDone: boolean; inTime: string; outDone: boolean; outTime: string }>({
     inDone: false,
     inTime: '',
@@ -85,8 +90,7 @@ const Attendance: React.FC = () => {
 
   const fetchTodayStatus = async () => {
     try {
-      const res = await fetch('/api/attendance/today');
-      const data = await res.json();
+      const data = await request.get('/api/attendance/today');
       if (data.code === 0 && data.data) {
         const d = data.data;
         setTodayStatus({
@@ -103,12 +107,9 @@ const Attendance: React.FC = () => {
 
   const handlePunch = async (type: 'in' | 'out') => {
     try {
-      const res = await fetch('/api/attendance/punch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ punchType: type === 'in' ? 0 : 1 }),
+      const data = await request.post('/api/attendance/punch', {
+        punchType: type === 'in' ? 0 : 1,
       });
-      const data = await res.json();
       if (data.code === 0) {
         message.success(type === 'in' ? '上班打卡成功' : '下班打卡成功');
         fetchTodayStatus();
@@ -120,31 +121,69 @@ const Attendance: React.FC = () => {
     }
   };
 
-  const queryParams = new URLSearchParams();
-  queryParams.set('month', currentMonth);
-  if (selectedDept) {
-    queryParams.set('departmentId', selectedDept);
-  }
+  // 部门筛选仅管理员可见
+  const showDeptFilter = isAdmin || dataScope <= 3;
 
-  const { data, loading, run } = useRequest(
-    async () => {
-      const res = await fetch(`/api/hr/attendance/list?${queryParams.toString()}`);
-      const result = await res.json();
-      return result.data;
-    },
-    {
-      refreshOnWindowFocus: false,
-      onError: () => message.error('获取考勤数据失败'),
+  const isAdminOrManager = isAdmin || dataScope <= 3;
+
+  const [attendanceData, setAttendanceData] = useState<{ list: any[]; total: number }>({ list: [], total: 0 });
+  const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  const fetchAttendanceData = useCallback(async () => {
+    setLoading(true);
+    setFetchError(null);
+    try {
+      // 兜底：确保当天考勤记录已生成
+      if (isAdminOrManager) {
+        try {
+          await request.post('/api/attendance/ensure-today');
+        } catch (e) {
+          // 静默失败，不影响主流程
+        }
+      }
+
+      if (isAdminOrManager) {
+        const queryParams: Record<string, any> = { month: currentMonth, pageNum, pageSize };
+        if (selectedDept) {
+          queryParams.departmentId = selectedDept;
+        }
+        console.log('[Attendance] HR path, params:', queryParams);
+        const result = await request.get('/api/hr/attendance/list', { params: queryParams });
+        console.log('[Attendance] HR response:', result);
+        setAttendanceData({ list: result.data?.list || [], total: result.data?.total || 0 });
+      } else {
+        console.log('[Attendance] Self-service path, month:', currentMonth);
+        const result = await request.get('/api/attendance/records', { params: { month: currentMonth } });
+        console.log('[Attendance] Self-service response:', result);
+        setAttendanceData({ list: result.data || [], total: (result.data || []).length });
+      }
+    } catch (e: any) {
+      console.error('[Attendance] fetch error:', e);
+      setFetchError(e.message || '获取考勤数据失败');
+    } finally {
+      setLoading(false);
     }
-  );
+  }, [isAdminOrManager, currentMonth, selectedDept, pageNum, pageSize]);
+
+  useEffect(() => {
+    fetchAttendanceData();
+  }, [fetchAttendanceData]);
 
   const handlePrevMonth = useCallback(() => {
+    setPageNum(1);
     setCurrentMonth(dayjs(currentMonth).subtract(1, 'month').format('YYYY-MM'));
   }, [currentMonth]);
 
   const handleNextMonth = useCallback(() => {
+    setPageNum(1);
     setCurrentMonth(dayjs(currentMonth).add(1, 'month').format('YYYY-MM'));
   }, [currentMonth]);
+
+  const handleDeptChange = useCallback((value: string) => {
+    setPageNum(1);
+    setSelectedDept(value);
+  }, []);
 
   const columns = [
     {
@@ -187,14 +226,13 @@ const Attendance: React.FC = () => {
       width: 100,
       render: (status: string | number) => {
         const statusKey = typeof status === 'number' 
-          ? ['NORMAL', 'LATE', 'EARLY', 'MISSING', 'LEAVE', 'ABSENT', 'MISS_IN', 'MISS_OUT'][status] || 'NORMAL'
+          ? ['NORMAL', 'LATE', 'EARLY', 'MISSING', 'LEAVE', 'ABSENT', 'MISS_IN', 'MISS_OUT', 'REST'][status] || 'NORMAL'
           : status;
         return <Tag color={STATUS_COLOR_MAP[statusKey]}>{STATUS_TEXT_MAP[statusKey]}</Tag>;
       },
     },
   ];
 
-  const showDeptFilter = isAdmin || dataScope <= 3;
   const showPunchButtons = !isAdmin || dataScope === 5;
 
   return (
@@ -308,7 +346,7 @@ const Attendance: React.FC = () => {
                   placeholder="选择部门"
                   style={{ width: 150 }}
                   value={selectedDept}
-                  onChange={setSelectedDept}
+                  onChange={handleDeptChange}
                   allowClear
                 >
                   <Select.Option value="">全部部门</Select.Option>
@@ -321,20 +359,39 @@ const Attendance: React.FC = () => {
               )}
               <Button onClick={handlePrevMonth}>上月</Button>
               <Button onClick={handleNextMonth}>下月</Button>
-              <Button type="primary" icon={<PlusOutlined />}>
-                申请补卡 (1/2)
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => message.info('请前往补卡申请页面提交补卡')}>
+                申请补卡
               </Button>
             </Space>
           </div>
 
+          {fetchError && (
+            <Alert
+              type="error"
+              message={`数据加载失败: ${fetchError}`}
+              closable
+              style={{ marginBottom: 16 }}
+              onClose={() => setFetchError(null)}
+            />
+          )}
+          <div style={{ marginBottom: 8, color: '#999', fontSize: 13 }}>
+            当前角色: {isAdminOrManager ? '管理员/HR' : '普通员工'} |
+            数据范围: {dataScope} |
+            记录总数: {attendanceData.total}
+          </div>
           <Table
             columns={columns}
-            dataSource={data?.list || []}
+            dataSource={attendanceData.list}
             rowKey="id"
             pagination={{
-              total: data?.total || 0,
-              pageSize: 20,
+              current: pageNum,
+              pageSize: pageSize,
+              total: attendanceData.total,
               showTotal: (total) => `共 ${total} 条`,
+              onChange: (page, size) => {
+                setPageNum(page);
+                setPageSize(size);
+              },
             }}
             locale={{
               emptyText: '暂无打卡记录',

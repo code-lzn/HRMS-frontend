@@ -34,21 +34,19 @@ interface AttendanceGroup {
   workStartTime: string;
   workEndTime: string;
   lateThreshold: number;
+  earlyThreshold: number;
   employeeCount: number;
   departments: string[];
-}
-
-interface DepartmentOption {
-  value: string;
-  label: string;
+  departmentIds: number[];
 }
 
 const RuleConfig: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
   const [selectedWorkdays, setSelectedWorkdays] = useState<string[]>(['周一', '周二', '周三', '周四', '周五']);
   const [form] = Form.useForm();
   const [groups, setGroups] = useState<AttendanceGroup[]>([]);
-  const [departments, setDepartments] = useState<DepartmentOption[]>([]);
+  const [departments, setDepartments] = useState<{ value: string; label: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<number | null>(null);
 
@@ -68,9 +66,11 @@ const RuleConfig: React.FC = () => {
           shiftType: String(g.shiftType),
           workStartTime: g.workStartTime,
           workEndTime: g.workEndTime,
-          lateThreshold: g.lateThreshold,
+          lateThreshold: g.lateThreshold ?? 15,
+          earlyThreshold: g.earlyThreshold ?? 15,
           employeeCount: g.employeeCount || 0,
           departments: g.departmentNames || [],
+          departmentIds: g.departmentIds || [],
         })));
       }
     } catch (e) {
@@ -84,10 +84,10 @@ const RuleConfig: React.FC = () => {
     try {
       const res = await getDepartmentTreeUsingGet();
       if (res.code === 0 && res.data) {
-        const options: DepartmentOption[] = [];
+        const options: { value: string; label: string }[] = [];
         const traverse = (nodes: any[]) => {
-          nodes.forEach(node => {
-            options.push({ value: node.id, label: node.departmentName });
+          nodes.forEach((node: any) => {
+            options.push({ value: String(node.id), label: node.name });
             if (node.children) {
               traverse(node.children);
             }
@@ -115,6 +115,8 @@ const RuleConfig: React.FC = () => {
       startTime: group.workStartTime,
       endTime: group.workEndTime,
       lateThreshold: group.lateThreshold,
+      earlyThreshold: group.earlyThreshold || 15,
+      departmentIds: group.departmentIds || [],
     });
     setModalVisible(true);
   };
@@ -132,15 +134,17 @@ const RuleConfig: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    setConfirmLoading(true);
     try {
       const values = await form.validateFields();
-      const data = {
+      const data: Record<string, any> = {
         groupName: values.name,
         shiftType: Number(values.type),
         workStartTime: values.startTime,
         workEndTime: values.endTime,
         lateThreshold: values.lateThreshold,
-        earlyThreshold: values.lateThreshold,
+        earlyThreshold: values.earlyThreshold,
+        departmentIds: values.departmentIds || [],
       };
 
       if (editingId) {
@@ -154,8 +158,15 @@ const RuleConfig: React.FC = () => {
 
       setModalVisible(false);
       fetchGroups();
-    } catch (e) {
+    } catch (e: any) {
+      if (e?.errorFields) {
+        // form validation error, don't show message, fields will highlight
+        return;
+      }
       console.error('提交失败:', e);
+      message.error(e?.message || '提交失败');
+    } finally {
+      setConfirmLoading(false);
     }
   };
 
@@ -244,9 +255,11 @@ const RuleConfig: React.FC = () => {
 
       <Modal
         title={editingId ? '编辑考勤组' : '新增考勤组'}
-        visible={modalVisible}
+        open={modalVisible}
+        confirmLoading={confirmLoading}
         onCancel={() => setModalVisible(false)}
         onOk={handleSubmit}
+        destroyOnClose
       >
         <Form form={form} layout="vertical">
           <Form.Item label="考勤组名称" name="name" rules={[{ required: true, message: '请输入考勤组名称' }]}>
@@ -267,6 +280,17 @@ const RuleConfig: React.FC = () => {
           </Form.Item>
           <Form.Item label="迟到阈值(分钟)" name="lateThreshold" rules={[{ required: true, message: '请输入迟到阈值' }]}>
             <Input type="number" placeholder="15" />
+          </Form.Item>
+          <Form.Item label="早退阈值(分钟)" name="earlyThreshold" rules={[{ required: true, message: '请输入早退阈值' }]}>
+            <Input type="number" placeholder="15" />
+          </Form.Item>
+          <Form.Item label="分配部门" name="departmentIds">
+            <Select
+              mode="multiple"
+              placeholder="选择要分配的部门"
+              allowClear
+              options={departments}
+            />
           </Form.Item>
         </Form>
       </Modal>

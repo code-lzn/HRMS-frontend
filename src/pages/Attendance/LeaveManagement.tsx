@@ -6,6 +6,7 @@ import {
   getMyLeavesUsingGet,
   applyUsingPost,
   getBalanceUsingGet,
+  cancelUsingPost,
 } from '@/api/leaveController';
 
 const LEAVE_TYPES = [
@@ -46,15 +47,15 @@ interface LeaveRecord {
 }
 
 interface LeaveBalance {
-  annualLeave: number;
-  compensatoryLeave: number;
+  annualRemaining: number;
+  compRemaining: number;
 }
 
 const LeaveManagement: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [leaveRecords, setLeaveRecords] = useState<LeaveRecord[]>([]);
-  const [leaveBalance, setLeaveBalance] = useState<LeaveBalance>({ annualLeave: 0, compensatoryLeave: 0 });
+  const [leaveBalance, setLeaveBalance] = useState<LeaveBalance>({ annualRemaining: 0, compRemaining: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -75,7 +76,7 @@ const LeaveManagement: React.FC = () => {
           reason: r.reason,
           approverName: r.approverName || '待分配',
           createTime: r.createTime,
-          status: r.status === '1' ? 'approved' : (r.status === '2' ? 'rejected' : (r.status === '0' ? 'approving' : 'pending')),
+          status: r.status === 1 ? 'approved' : (r.status === 2 ? 'rejected' : (r.status === 0 ? 'approving' : 'pending')),
         })));
       }
     } catch (e) {
@@ -88,8 +89,8 @@ const LeaveManagement: React.FC = () => {
       const res = await getBalanceUsingGet();
       if (res.code === 0 && res.data) {
         setLeaveBalance({
-          annualLeave: res.data.annualLeave || 0,
-          compensatoryLeave: res.data.compensatoryLeave || 0,
+          annualRemaining: res.data.annualRemaining || 0,
+          compRemaining: res.data.compRemaining || 0,
         });
       }
     } catch (e) {
@@ -104,8 +105,17 @@ const LeaveManagement: React.FC = () => {
     setModalVisible(true);
   };
 
-  const handleCancel = (id: number) => {
-    message.info(`取消申请 ${id}`);
+  const handleCancel = async (id: number) => {
+    try {
+      const res = await cancelUsingPost({ id });
+      if (res.code === 0) {
+        message.success('已取消申请');
+        fetchLeaveRecords();
+        fetchLeaveBalance();
+      }
+    } catch (e) {
+      message.error('取消失败');
+    }
   };
 
   const handleSubmit = async () => {
@@ -150,9 +160,9 @@ const LeaveManagement: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'center', gap: 120 }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ width: 120, height: 120, borderRadius: '50%', border: '8px solid #e6f7ff', position: 'relative', marginBottom: 12 }}>
-                <div style={{ width: '60%', height: '60%', borderRadius: '50%', background: `conic-gradient(#1890ff 0% ${Math.min(leaveBalance.annualLeave * 10, 100)}%, transparent ${Math.min(leaveBalance.annualLeave * 10, 100)}%)`, position: 'absolute', top: '20%', left: '20%' }} />
+                <div style={{ width: '60%', height: '60%', borderRadius: '50%', background: `conic-gradient(#1890ff 0% ${Math.min(leaveBalance.annualRemaining * 10, 100)}%, transparent ${Math.min(leaveBalance.annualRemaining * 10, 100)}%)`, position: 'absolute', top: '20%', left: '20%' }} />
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                  <div style={{ fontSize: 28, fontWeight: 700, color: '#333' }}>{leaveBalance.annualLeave}</div>
+                  <div style={{ fontSize: 28, fontWeight: 700, color: '#333' }}>{leaveBalance.annualRemaining}</div>
                   <div style={{ fontSize: 12, color: '#999' }}>天</div>
                 </div>
               </div>
@@ -161,9 +171,9 @@ const LeaveManagement: React.FC = () => {
 
             <div style={{ textAlign: 'center' }}>
               <div style={{ width: 120, height: 120, borderRadius: '50%', border: '8px solid #f3e8ff', position: 'relative', marginBottom: 12 }}>
-                <div style={{ width: '60%', height: '60%', borderRadius: '50%', background: `conic-gradient(#722ed1 0% ${Math.min(leaveBalance.compensatoryLeave * 10, 100)}%, transparent ${Math.min(leaveBalance.compensatoryLeave * 10, 100)}%)`, position: 'absolute', top: '20%', left: '20%' }} />
+                <div style={{ width: '60%', height: '60%', borderRadius: '50%', background: `conic-gradient(#722ed1 0% ${Math.min(leaveBalance.compRemaining * 10, 100)}%, transparent ${Math.min(leaveBalance.compRemaining * 10, 100)}%)`, position: 'absolute', top: '20%', left: '20%' }} />
                 <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                  <div style={{ fontSize: 28, fontWeight: 700, color: '#333' }}>{leaveBalance.compensatoryLeave}</div>
+                  <div style={{ fontSize: 28, fontWeight: 700, color: '#333' }}>{leaveBalance.compRemaining}</div>
                   <div style={{ fontSize: 12, color: '#999' }}>天</div>
                 </div>
               </div>
@@ -232,7 +242,7 @@ const LeaveManagement: React.FC = () => {
 
       <Modal
         title="申请请假"
-        visible={modalVisible}
+        open={modalVisible}
         onCancel={() => setModalVisible(false)}
         onOk={handleSubmit}
         width={500}
@@ -258,7 +268,7 @@ const LeaveManagement: React.FC = () => {
           </div>
 
           <Form.Item label="请假天数" name="days">
-            <Input disabled style={{ backgroundColor: '#f5f5f5' }} />
+            <Input disabled style={{ backgroundColor: '#f5f5f5' }} placeholder="根据起止日期自动计算" />
           </Form.Item>
 
           <Form.Item label="请假事由" name="reason" rules={[{ required: true, message: '请输入请假事由' }]}>
@@ -266,10 +276,11 @@ const LeaveManagement: React.FC = () => {
           </Form.Item>
 
           <Form.Item label="工作交接人" name="handover">
-            <Select placeholder="请选择工作交接人">
-              <Select.Option value="1">张三</Select.Option>
-              <Select.Option value="2">李四</Select.Option>
-            </Select>
+            <Select placeholder="请选择工作交接人" showSearch
+              filterOption={(input: string, option: any) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
+            />
           </Form.Item>
         </Form>
       </Modal>
