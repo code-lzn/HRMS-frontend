@@ -39,3 +39,7 @@ export function updateTransfer(id: number, data: TransferAddRequest) {
 export function deleteTransfer(id: number) {
   return request.delete(`${BASE}/${id}`);
 }
+
+export function getTransferStats() {
+  return request.get<{ code: number; data: Record<string, number>; message: string }>(`${BASE}/stats`);
+}

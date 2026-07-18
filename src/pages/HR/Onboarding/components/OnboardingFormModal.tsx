@@ -129,7 +129,12 @@ const OnboardingFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }
       };
       if (isEdit) {
         await updateOnboarding(editData!.id, payload);
-        if (submitNow) await submitDraft(editData!.id);
+        if (submitNow) {
+          await submitDraft(editData!.id);
+          message.success('已提交审批');
+        } else {
+          message.success('已保存');
+        }
       } else {
         if (submitNow) {
           await submitOnboarding(payload);
@@ -141,7 +146,8 @@ const OnboardingFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }
       }
       onOk();
     } catch (e: any) {
-      if (e?.message) message.error(e.message);
+      const msg = e?.response?.data?.message || e?.message;
+      if (msg) message.error(msg);
     } finally {
       setLoading(false);
     }
@@ -234,7 +240,8 @@ const OnboardingFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }
             placeholder="默认80%" formatter={(v) => `${v}%`} />
         </Form.Item>
 
-        <Form.Item name="directReportId" label="直接汇报人">
+        <Form.Item name="directReportId" label="直接汇报人"
+          rules={[{ required: true, message: '请选择直接汇报人' }]}>
           <Select placeholder="默认部门负责人，可修改" showSearch
             optionFilterProp="label" options={employeeList}
             allowClear

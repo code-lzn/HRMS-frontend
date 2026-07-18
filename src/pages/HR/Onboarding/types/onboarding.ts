@@ -44,6 +44,8 @@ export interface OnboardingVO {
   bankAccount?: string;
   bankName?: string;
   candidateName: string;
+  gender?: string;
+  probationSalaryRatio?: number;
   phone: string;
   idCard?: string;
   email?: string;
@@ -58,6 +60,7 @@ export interface OnboardingVO {
   updateTime: string;
   approvalStatus?: string;
   approvalProgress?: string;
+  rejectionReason?: string;
 }
 
 export interface PageVO<T> {

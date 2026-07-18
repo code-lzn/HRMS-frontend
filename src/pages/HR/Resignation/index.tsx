@@ -5,6 +5,7 @@ import { useRef, useState, useEffect } from 'react';
 import ResignationFormModal from './components/ResignationFormModal';
 import {
   listResignation, deleteResignation, submitDraft,
+  getResignationStats,
 } from './services/resignation';
 import type { ResignationVO } from './types/resignation';
 
@@ -38,8 +39,15 @@ const ResignationPage: React.FC = () => {
 
   const fetchStats = async () => {
     try {
-      const res = await listResignation({ page: 1, size: 1 });
-      setStats({ draft: 1, approving: 2, pending: 1, resigned: 1 });
+      const res = await getResignationStats();
+      if (res.data) {
+        setStats({
+          draft: res.data.draft || 0,
+          approving: res.data.approving || 0,
+          pending: res.data.pending || 0,
+          resigned: res.data.resigned || 0,
+        });
+      }
     } catch {
       setStats({ draft: 0, approving: 0, pending: 0, resigned: 0 });
     }

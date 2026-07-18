@@ -168,9 +168,10 @@ const TransferFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }) 
           />
         </Form.Item>
 
-        <Form.Item name="toPositionId" label="新职位">
-          <Select placeholder="选择新职位（可选）" showSearch
-            optionFilterProp="label" options={posList} allowClear
+        <Form.Item name="toPositionId" label="新职位"
+          rules={[{ required: true, message: '必选' }]}>
+          <Select placeholder="选择新职位" showSearch
+            optionFilterProp="label" options={posList}
           />
         </Form.Item>
 
@@ -182,6 +183,19 @@ const TransferFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }) 
           <Select placeholder="搜索员工（可选）" showSearch allowClear
             optionFilterProp="label" options={empList}
           />
+        </Form.Item>
+
+        <Form.Item name="workLocation" label="工作地点">
+          <Input placeholder="如 上海、北京（可选）" maxLength={64} />
+        </Form.Item>
+
+        <Form.Item name="employmentType" label="入职类型"
+          rules={[{ required: true, message: '必选' }]}>
+          <Select placeholder="选择入职类型">
+            <Select.Option value="FULL_TIME">全职</Select.Option>
+            <Select.Option value="PART_TIME">兼职</Select.Option>
+            <Select.Option value="INTERN">实习</Select.Option>
+          </Select>
         </Form.Item>
 
         <Form.Item name="salaryAdjustment" label="调岗调薪金额">

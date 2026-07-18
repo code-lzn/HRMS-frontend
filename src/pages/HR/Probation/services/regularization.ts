@@ -39,3 +39,7 @@ export function updateRegularization(id: number, data: RegularizationAddRequest)
 export function deleteRegularization(id: number) {
   return request.delete(`${BASE}/${id}`);
 }
+
+export function getRegularizationStats() {
+  return request.get<{ code: number; data: Record<string, number>; message: string }>(`${BASE}/stats`);
+}
