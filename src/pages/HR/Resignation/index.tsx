@@ -222,7 +222,7 @@ const ResignationPage: React.FC = () => {
           params={{ statuses: activeTab ? [activeTab] : undefined }}
           request={async (p) => {
             const res = await listResignation({
-              keyword: p.keyword as string,
+              keyword: (p.employeeName as string) || undefined,
               statuses: p.statuses as string[],
               page: p.current ?? 1,
               size: p.pageSize ?? 10,
