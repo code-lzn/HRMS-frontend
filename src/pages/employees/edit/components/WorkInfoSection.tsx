@@ -31,7 +31,6 @@ const WorkInfoSection: React.FC<WorkInfoSectionProps> = ({ initialValues }) => {
             tooltip={LOCKED_FIELD_MESSAGES.departmentName || '修改需走调岗流程'}
           />
         </div>
-
         <div style={{ flex: 1 }}>
           <div
             style={{
@@ -64,26 +63,6 @@ const WorkInfoSection: React.FC<WorkInfoSectionProps> = ({ initialValues }) => {
               gap: 8,
             }}
           >
-            <span style={{ fontWeight: 500 }}>职级</span>
-            <Tag color="orange" style={{ fontSize: 10 }}>
-              需调岗流程
-            </Tag>
-          </div>
-          <LockedField
-            value={initialValues.jobLevel || ''}
-            tooltip="修改需走调岗流程"
-          />
-        </div>
-
-        <div style={{ flex: 1 }}>
-          <div
-            style={{
-              marginBottom: 8,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
             <span style={{ fontWeight: 500 }}>直接汇报人</span>
             <Tag color="orange" style={{ fontSize: 10 }}>
               需调岗流程
@@ -94,9 +73,6 @@ const WorkInfoSection: React.FC<WorkInfoSectionProps> = ({ initialValues }) => {
             tooltip="修改需走调岗流程"
           />
         </div>
-      </div>
-
-      <div style={{ display: 'flex', gap: 16 }}>
         <div style={{ flex: 1 }}>
           <div
             style={{
@@ -116,7 +92,9 @@ const WorkInfoSection: React.FC<WorkInfoSectionProps> = ({ initialValues }) => {
             tooltip="修改需走调岗流程"
           />
         </div>
+      </div>
 
+      <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
         <div style={{ flex: 1 }}>
           <div
             style={{
@@ -141,6 +119,7 @@ const WorkInfoSection: React.FC<WorkInfoSectionProps> = ({ initialValues }) => {
             tooltip="修改需走调岗流程"
           />
         </div>
+        <div style={{ flex: 1 }} />
       </div>
 
       <div

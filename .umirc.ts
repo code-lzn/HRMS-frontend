@@ -10,7 +10,7 @@ export default defineConfig({
   // 注意：Umi Max 4 使用 utoopack，不支持 proxy 配置
   // 浏览器通过 baseURL http://localhost:8123 直接调用后端（需后端开启 CORS）
   routes: [
-    { path: '/', redirect: '/home' },
+    { path: '/', redirect: '/employees' },
     { name: '首页', path: '/home', component: './Home' },
     { name: '权限演示', path: '/access', component: './Access' },
     { name: ' CRUD 示例', path: '/table', component: './Table' },

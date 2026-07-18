@@ -13,6 +13,6 @@ export function useEmployeeDetail(id: number) {
       return res.data as API.EmployeeDetailVO | undefined;
     },
     enabled: !!id,
-    staleTime: 30 * 1000,
+    staleTime: 0, // 每次进入详情页都重新拉取最新数据
   });
 }

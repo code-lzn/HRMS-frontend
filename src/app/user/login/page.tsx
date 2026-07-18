@@ -20,7 +20,7 @@ const UserLoginPage: React.FC = () => {
 
   // 获取登录后回跳地址
   const searchParams = new URLSearchParams(location.search);
-  const redirect = searchParams.get('redirect') || '/';
+  const redirect = searchParams.get('redirect') || '/employees';
 
   /**
    * 提交
@@ -30,14 +30,18 @@ const UserLoginPage: React.FC = () => {
       const res = await userLoginUsingPost(values);
       if (res.data) {
         message.success('登录成功');
-        // 同步更新本地缓存，避免路由切换时再次调 getLoginUser
         setCachedLoginUser(res.data as API.LoginUserVO);
-        // 更新全局登录用户状态
         setInitialState((pre: any) => ({
           ...pre,
           currentUser: res.data,
         }));
-        navigate(redirect, { replace: true });
+        // 处理 redirect：防止被注入完整 URL 导致路径拼接
+        let target = redirect;
+        try {
+          const url = new URL(target);
+          target = url.pathname + url.search;
+        } catch {}
+        navigate(target, { replace: true });
         form.resetFields();
       }
     } catch (e: any) {
