@@ -3,6 +3,7 @@ import {
 } from '../services/onboarding';
 import { getDepartmentTreeUsingGet, getDepartmentDetailUsingGet } from '@/api/departmentController';
 import { listPositionsUsingGet } from '@/api/positionController';
+import { listEmployeesUsingGet } from '@/api/employeeController';
 import type { OnboardingAddRequest, OnboardingVO } from '../types/onboarding';
 import {
   Modal, Form, Input, Select, DatePicker, InputNumber, message, Button,
@@ -22,7 +23,8 @@ const OnboardingFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }
   const [loading, setLoading] = useState(false);
   const [deptList, setDeptList] = useState<{ label: string; value: number }[]>([]);
   const [posList, setPosList] = useState<{ label: string; value: number }[]>([]);
-  const [approverName, setApproverName] = useState<string>('');
+  const [employeeList, setEmployeeList] = useState<{ label: string; value: number }[]>([]);
+  const [defaultReportId, setDefaultReportId] = useState<number | undefined>();
   const isEdit = !!editData;
 
   const fetchDeptList = async () => {
@@ -55,17 +57,45 @@ const OnboardingFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }
     }
   };
 
+  const fetchEmployeeList = async (keyword?: string, deptId?: number) => {
+    try {
+      const res = await listEmployeesUsingGet({
+        keyword,
+        departmentIds: deptId ? [deptId] : undefined,
+        page: 1,
+        size: 50,
+      });
+      const data = res?.data?.records ?? [];
+      setEmployeeList(data.map((e: any) => ({ label: `${e.employeeName} (${e.employeeNo})`, value: e.id })));
+    } catch {
+      setEmployeeList([]);
+    }
+  };
+
   const handleDeptChange = async (deptId: number) => {
     if (!deptId) {
-      setApproverName('');
+      setDefaultReportId(undefined);
       return;
     }
     try {
       const res = await getDepartmentDetailUsingGet({ id: deptId });
+      const managerId = res?.data?.managerId;
       const managerName = res?.data?.managerName;
-      setApproverName(managerName || '（该部门未设置负责人）');
+      if (managerId) {
+        setDefaultReportId(managerId);
+        form.setFieldValue('directReportId', managerId);
+        // 预填充直接汇报人到下拉列表
+        setEmployeeList(prev => {
+          const exists = prev.find(e => e.value === managerId);
+          if (exists) return prev;
+          return [{ label: managerName || `负责人(${managerId})`, value: managerId }, ...prev];
+        });
+      } else {
+        setDefaultReportId(undefined);
+      }
+      fetchEmployeeList(undefined, deptId);
     } catch {
-      setApproverName('');
+      setDefaultReportId(undefined);
     }
   };
 
@@ -73,16 +103,17 @@ const OnboardingFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }
     if (open) {
       fetchDeptList();
       fetchPosList();
+      fetchEmployeeList();
       if (editData) {
         form.setFieldsValue({
           ...editData,
           hireDate: editData.hireDate ? dayjs(editData.hireDate) : null,
           contractExpireDate: editData.contractExpireDate ? dayjs(editData.contractExpireDate) : null,
         });
-        if (editData.approverName) setApproverName(editData.approverName);
+        if (editData.deptId) handleDeptChange(editData.deptId);
       } else {
         form.resetFields();
-        setApproverName('');
+        setDefaultReportId(undefined);
       }
     }
   }, [open, editData, form]);
@@ -130,11 +161,19 @@ const OnboardingFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }
       ]}
     >
       <Form form={form} layout="vertical" style={{ marginTop: 12 }}
-        initialValues={{ probationMonth: 3, employmentType: 'FULL_TIME' }}>
+        initialValues={{ probationMonth: 3, probationSalaryRatio: 80, employmentType: 'FULL_TIME' }}>
 
         <Form.Item name="candidateName" label="姓名"
           rules={[{ required: true, message: '必填' }]}>
           <Input placeholder="候选人姓名" maxLength={64} />
+        </Form.Item>
+
+        <Form.Item name="gender" label="性别"
+          rules={[{ required: true, message: '必选' }]}>
+          <Select options={[
+            { label: '男', value: 'MALE' },
+            { label: '女', value: 'FEMALE' },
+          ]} placeholder="选择性别" />
         </Form.Item>
 
         <Form.Item name="phone" label="手机号"
@@ -150,8 +189,14 @@ const OnboardingFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }
           <Input placeholder="候选人邮箱" />
         </Form.Item>
 
-        <Form.Item name="idCard" label="身份证号">
-          <Input placeholder="身份证号（选填）" maxLength={18} />
+        <Form.Item name="idCard" label="身份证号"
+          rules={[{ required: true, message: '必填' }]}>
+          <Input placeholder="身份证号" maxLength={18} />
+        </Form.Item>
+
+        <Form.Item name="hireDate" label="预计入职日期"
+          rules={[{ required: true, message: '必选' }]}>
+          <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
         </Form.Item>
 
         <Form.Item name="deptId" label="所属部门"
@@ -159,13 +204,6 @@ const OnboardingFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }
           <Select placeholder="选择部门" showSearch
             optionFilterProp="label" options={deptList}
             onChange={handleDeptChange}
-          />
-        </Form.Item>
-
-        <Form.Item label="审批人">
-          <Input value={approverName} disabled
-            placeholder="选择部门后自动关联负责人"
-            style={{ color: approverName ? '#000' : '#999' }}
           />
         </Form.Item>
 
@@ -181,16 +219,26 @@ const OnboardingFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }
           <Select options={[
             { label: '全职', value: 'FULL_TIME' },
             { label: '兼职', value: 'PART_TIME' },
-          ]} />
+            { label: '实习', value: 'INTERNSHIP' },
+          ]} placeholder="选择录用类型" />
         </Form.Item>
 
-        <Form.Item name="hireDate" label="预定入职日期"
-          rules={[{ required: true, message: '必选' }]}>
-          <DatePicker style={{ width: '100%' }} placeholder="选择日期" />
-        </Form.Item>
-
-        <Form.Item name="probationMonth" label="试用期(月)">
+        <Form.Item name="probationMonth" label="试用期(月)"
+          rules={[{ required: true, message: '必填' }]}>
           <InputNumber min={0} max={12} style={{ width: '100%' }} placeholder="默认3个月" />
+        </Form.Item>
+
+        <Form.Item name="probationSalaryRatio" label="试用期薪资比例(%)"
+          rules={[{ required: true, message: '必填' }]}>
+          <InputNumber min={0} max={100} style={{ width: '100%' }}
+            placeholder="默认80%" formatter={(v) => `${v}%`} />
+        </Form.Item>
+
+        <Form.Item name="directReportId" label="直接汇报人">
+          <Select placeholder="默认部门负责人，可修改" showSearch
+            optionFilterProp="label" options={employeeList}
+            allowClear
+          />
         </Form.Item>
 
         <Form.Item name="contractType" label="合同类型">

@@ -1,13 +1,16 @@
 export interface OnboardingAddRequest {
   candidateName: string;
+  gender: string;
   phone: string;
-  idCard?: string;
+  idCard: string;
   email: string;
   deptId: number;
   positionId: number;
   hireDate: string;
-  probationMonth?: number;
+  probationMonth: number;
+  probationSalaryRatio: number;
   employmentType: string;
+  directReportId?: number;
   contractType?: number;
   contractExpireDate?: string;
   flowId?: number;
