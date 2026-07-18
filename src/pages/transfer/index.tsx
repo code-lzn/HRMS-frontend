@@ -21,9 +21,10 @@ import {
   PlusOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import TransferFormModal from './components/TransferForm';
-import { TransferRecord, transferList, transferHistory } from './mock';
+import { TransferRecord, TransferHistoryItem } from './mock';
+import { listUsingGet3, getHistoryUsingGet } from '@/api/transferController';
 
 const STATUS_BG_COLORS: Record<number, string> = {
   [TRANSFER_STATUS.DRAFT]: '#f9fafb',
@@ -51,16 +52,28 @@ const TransferPage: React.FC = () => {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyEmpId, setHistoryEmpId] = useState<number | undefined>();
 
-  const stats = useMemo(() => {
-    const pending = transferList.filter((i) => i.status === TRANSFER_STATUS.PENDING).length;
-    const effective = transferList.filter((i) => i.status === TRANSFER_STATUS.EFFECTIVE).length;
-    const rejected = transferList.filter((i) => i.status === TRANSFER_STATUS.REJECTED).length;
-    return {
-      pending,
-      effective,
-      rejected,
-      total: transferList.length,
-    };
+  const [stats, setStats] = useState({ pending: 0, effective: 0, rejected: 0, total: 0 });
+  const [historyData, setHistoryData] = useState<TransferHistoryItem[]>([]);
+
+  const loadStats = async () => {
+    try {
+      const res = await listUsingGet3({ current: 1, pageSize: 10000 });
+      if (res.code === 0 && res.data?.records) {
+        const records = res.data.records;
+        setStats({
+          pending: records.filter((i) => i.status === TRANSFER_STATUS.PENDING).length,
+          effective: records.filter((i) => i.status === TRANSFER_STATUS.EFFECTIVE).length,
+          rejected: records.filter((i) => i.status === TRANSFER_STATUS.REJECTED).length,
+          total: res.data.total || 0,
+        });
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    loadStats();
   }, []);
 
   const getInitial = (name: string) => name?.charAt(0) || '?';
@@ -187,7 +200,7 @@ const TransferPage: React.FC = () => {
   const statCards = [
     {
       label: '草稿',
-      count: transferList.filter((i) => i.status === TRANSFER_STATUS.DRAFT).length,
+      count: stats.total - stats.pending - stats.effective - stats.rejected,
       bgColor: STATUS_BG_COLORS[TRANSFER_STATUS.DRAFT],
       textColor: STATUS_TEXT_COLORS[TRANSFER_STATUS.DRAFT],
     },
@@ -211,7 +224,19 @@ const TransferPage: React.FC = () => {
     },
   ];
 
-  const historyData = historyEmpId ? transferHistory[historyEmpId] || [] : [];
+  useEffect(() => {
+    if (historyOpen && historyEmpId) {
+      getHistoryUsingGet({ employeeId: historyEmpId, current: 1, pageSize: 100 })
+        .then((res) => {
+          if (res.code === 0 && res.data?.records) {
+            setHistoryData(res.data.records as unknown as TransferHistoryItem[]);
+          } else {
+            setHistoryData([]);
+          }
+        })
+        .catch(() => setHistoryData([]));
+    }
+  }, [historyOpen, historyEmpId]);
 
   return (
     <PageContainer
@@ -280,30 +305,27 @@ const TransferPage: React.FC = () => {
         columns={columns}
         request={async (params) => {
           const { current, pageSize, keyword, status } = params as any;
-          let filtered = [...transferList];
-          if (activeTab !== 'all') {
-            const tabMap: Record<string, number> = {
-              draft: TRANSFER_STATUS.DRAFT,
-              pending: TRANSFER_STATUS.PENDING,
-              effective: TRANSFER_STATUS.EFFECTIVE,
-              rejected: TRANSFER_STATUS.REJECTED,
-            };
-            filtered = filtered.filter((i) => i.status === tabMap[activeTab]);
+          const tabMap: Record<string, number> = {
+            draft: TRANSFER_STATUS.DRAFT,
+            pending: TRANSFER_STATUS.PENDING,
+            effective: TRANSFER_STATUS.EFFECTIVE,
+            rejected: TRANSFER_STATUS.REJECTED,
+          };
+          const apiParams: API.listUsingGET3Params = {
+            current,
+            pageSize,
+            status: activeTab !== 'all' ? tabMap[activeTab] : status,
+          };
+          try {
+            const res = await listUsingGet3(apiParams);
+            if (res.code === 0 && res.data) {
+              return { data: res.data.records || [], success: true, total: res.data.total || 0 };
+            }
+            return { data: [], success: true, total: 0 };
+          } catch {
+            message.error('获取调岗列表失败');
+            return { data: [], success: true, total: 0 };
           }
-          if (keyword) {
-            const kw = String(keyword).toLowerCase();
-            filtered = filtered.filter(
-              (i) =>
-                i.employeeName.toLowerCase().includes(kw) || i.employeeNo.includes(kw),
-            );
-          }
-          if (status !== undefined && status !== null && status !== '') {
-            filtered = filtered.filter((i) => i.status === Number(status));
-          }
-          const total = filtered.length;
-          const page = current || 1;
-          const size = pageSize || 10;
-          return { data: filtered.slice((page - 1) * size, page * size), success: true, total };
         }}
         toolBarRender={() => [
           <Button
@@ -326,7 +348,7 @@ const TransferPage: React.FC = () => {
               }}
               items={[
                 { key: 'all', label: <>全部 <Badge count={stats.total} showZero color="#0891b2" /></> },
-                { key: 'draft', label: <>草稿 <Badge count={transferList.filter((i) => i.status === TRANSFER_STATUS.DRAFT).length} showZero color="#9ca3af" /></> },
+                { key: 'draft', label: <>草稿 <Badge count={stats.total - stats.pending - stats.effective - stats.rejected} showZero color="#9ca3af" /></> },
                 { key: 'pending', label: <>审批中 <Badge count={stats.pending} showZero color="#f59e0b" /></> },
                 { key: 'effective', label: <>已生效 <Badge count={stats.effective} showZero color="#22c55e" /></> },
                 { key: 'rejected', label: <>已拒绝 <Badge count={stats.rejected} showZero color="#ef4444" /></> },

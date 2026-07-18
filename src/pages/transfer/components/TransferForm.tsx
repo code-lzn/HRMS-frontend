@@ -14,6 +14,10 @@ import {
   message,
 } from 'antd';
 import React, { useEffect, useState } from 'react';
+import { createUsingPost3 } from '@/api/transferController';
+import { getEmployeeListUsingGet } from '@/api/employeeController';
+import { getDepartmentTreeUsingGet } from '@/api/departmentController';
+import { getPositionListUsingGet } from '@/api/positionController';
 
 const { TextArea } = Input;
 
@@ -22,35 +26,68 @@ interface TransferFormProps {
   onClose: () => void;
 }
 
-/** Mock 在职员工 */
-const mockEmployees = [
-  { value: 1001, label: '张三 (202401001)', department: '技术部', position: '前端工程师', jobLevel: 'P5', reportTo: '陈工' },
-  { value: 1003, label: '王五 (202401003)', department: '运营部', position: '运营专员', jobLevel: 'S3', reportTo: '赵经理' },
-  { value: 1008, label: '钱十一 (202401008)', department: '人事行政部', position: 'HR 专员', jobLevel: 'S3', reportTo: '刘经理' },
-];
-
-const mockDepartments = [
-  { value: 10, label: '技术部' },
-  { value: 20, label: '产品部' },
-  { value: 30, label: '运营部' },
-  { value: 40, label: '市场部' },
-  { value: 50, label: '财务部' },
-  { value: 60, label: '人事行政部' },
-];
-
-const mockPositions = [
-  { value: 101, label: '前端工程师' }, { value: 102, label: '后端工程师' }, { value: 103, label: '测试工程师' },
-  { value: 201, label: '产品经理' }, { value: 301, label: '运营专员' }, { value: 302, label: '运营经理' },
-  { value: 401, label: '市场专员' }, { value: 402, label: '市场主管' },
-  { value: 601, label: 'HR 专员' },
-];
+interface EmployeeOption {
+  value: number;
+  label: string;
+  department: string;
+  position: string;
+  jobLevel: string;
+  reportTo: string;
+}
 
 const jobLevels = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P9', 'P10', 'M1', 'M2', 'M3', 'M4', 'M5', 'S1', 'S2', 'S3', 'S4', 'S5'];
 
 const TransferFormModal: React.FC<TransferFormProps> = ({ open, onClose }) => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
-  const [selectedEmp, setSelectedEmp] = useState<(typeof mockEmployees)[number] | null>(null);
+  const [selectedEmp, setSelectedEmp] = useState<EmployeeOption | null>(null);
+
+  const [employeeOptions, setEmployeeOptions] = useState<EmployeeOption[]>([]);
+  const [departmentOptions, setDepartmentOptions] = useState<{ value: number; label: string }[]>([]);
+  const [positionOptions, setPositionOptions] = useState<{ value: number; label: string }[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    Promise.all([
+      getEmployeeListUsingGet({ current: 1, pageSize: 500 }),
+      getDepartmentTreeUsingGet(),
+      getPositionListUsingGet({ current: 1, pageSize: 500 }),
+    ])
+      .then(([empRes, deptRes, posRes]) => {
+        if (empRes.code === 0 && empRes.data?.records) {
+          setEmployeeOptions(
+            empRes.data.records.map((e) => ({
+              value: e.id || 0,
+              label: `${e.name} (${e.employeeNo})`,
+              department: e.departmentName || '',
+              position: e.positionName || '',
+              jobLevel: e.jobLevel || '',
+              reportTo: '',
+            })),
+          );
+        }
+        if (deptRes.code === 0 && deptRes.data) {
+          const flatten = (nodes: API.DepartmentTreeNode[]): { value: number; label: string }[] => {
+            const result: { value: number; label: string }[] = [];
+            for (const n of nodes) {
+              if (n.id != null) result.push({ value: n.id, label: n.name || '' });
+              if (n.children) result.push(...flatten(n.children));
+            }
+            return result;
+          };
+          setDepartmentOptions(flatten(deptRes.data));
+        }
+        if (posRes.code === 0 && posRes.data?.records) {
+          setPositionOptions(
+            posRes.data.records.map((p) => ({
+              value: p.id || 0,
+              label: p.name || '',
+            })),
+          );
+        }
+      })
+      .catch(() => {});
+  }, [open]);
 
   useEffect(() => {
     if (open) {
@@ -60,7 +97,7 @@ const TransferFormModal: React.FC<TransferFormProps> = ({ open, onClose }) => {
   }, [open, form]);
 
   const handleEmployeeChange = (empId: number) => {
-    const emp = mockEmployees.find((e) => e.value === empId);
+    const emp = employeeOptions.find((e) => e.value === empId);
     setSelectedEmp(emp || null);
   };
 
@@ -68,15 +105,25 @@ const TransferFormModal: React.FC<TransferFormProps> = ({ open, onClose }) => {
     try {
       setSubmitting(true);
       const values = await form.validateFields();
-      // 前端校验：新部门不能与当前部门相同
-      if (selectedEmp && values.toDepartmentId === undefined) {
-        // department相同 - 实际应通过后端来判断
+      const submitData = {
+        employeeId: values.employeeId,
+        toDepartmentId: values.toDepartmentId,
+        toPositionId: values.toPositionId,
+        toJobLevel: values.toJobLevel,
+        toDirectReportId: values.toDirectReportId,
+        salaryAdjustment: values.salaryAdjustment,
+        reason: values.reason,
+        submitDirectly: type === 'submit',
+      };
+      const res = await createUsingPost3(submitData);
+      if (res.code === 0) {
+        message.success(type === 'save' ? '草稿已保存' : '已提交调岗审批');
+        form.resetFields();
+        setSelectedEmp(null);
+        onClose();
+      } else {
+        message.error(res.message || '操作失败');
       }
-      console.log(type === 'save' ? '保存调岗草稿:' : '提交调岗审批:', values);
-      message.success(type === 'save' ? '草稿已保存' : '已提交调岗审批');
-      form.resetFields();
-      setSelectedEmp(null);
-      onClose();
     } catch {
       // validate error
     } finally {
@@ -147,7 +194,7 @@ const TransferFormModal: React.FC<TransferFormProps> = ({ open, onClose }) => {
                 showSearch
                 placeholder="搜索并选择在职员工"
                 size="large"
-                options={mockEmployees}
+                options={employeeOptions}
                 onChange={handleEmployeeChange}
                 filterOption={(input, option) => (option?.label as string)?.toLowerCase().includes(input.toLowerCase())}
               />
@@ -219,7 +266,7 @@ const TransferFormModal: React.FC<TransferFormProps> = ({ open, onClose }) => {
                       <Select
                         placeholder="选择新部门"
                         size="large"
-                        options={mockDepartments.filter((d) => d.label !== selectedEmp.department)}
+                        options={departmentOptions.filter((d) => d.label !== selectedEmp.department)}
                         style={{ width: '100%' }}
                       />
                     </Form.Item>
@@ -239,7 +286,7 @@ const TransferFormModal: React.FC<TransferFormProps> = ({ open, onClose }) => {
                       <Select
                         placeholder="选择新职位（可选）"
                         size="large"
-                        options={mockPositions}
+                        options={positionOptions}
                         allowClear
                         style={{ width: '100%' }}
                       />
@@ -271,7 +318,7 @@ const TransferFormModal: React.FC<TransferFormProps> = ({ open, onClose }) => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 12, alignItems: 'center' }}>
                   <div style={{ textAlign: 'center', padding: '12px', background: '#fff7ed', borderRadius: 8 }}>
                     <div style={{ fontSize: 12, color: '#92400e', marginBottom: 4 }}>原汇报人</div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: '#78350f' }}>{selectedEmp.reportTo}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: '#78350f' }}>{selectedEmp.reportTo || '-'}</div>
                   </div>
                   <div style={{ color: '#0891b2', fontSize: 20 }}>
                     <ArrowRightOutlined />
@@ -283,10 +330,7 @@ const TransferFormModal: React.FC<TransferFormProps> = ({ open, onClose }) => {
                         size="large"
                         allowClear
                         style={{ width: '100%' }}
-                        options={[
-                          { value: 100, label: '陈工' }, { value: 200, label: '王总' }, { value: 300, label: '赵经理' },
-                          { value: 400, label: '马总' }, { value: 500, label: '钱总监' }, { value: 600, label: '刘经理' },
-                        ]}
+                        options={employeeOptions.map((e) => ({ value: e.value, label: e.label.split('(')[0].trim() }))}
                       />
                     </Form.Item>
                   </div>
