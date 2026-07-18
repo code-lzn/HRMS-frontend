@@ -25,7 +25,8 @@ const DepartmentManagement: React.FC = () => {
     setSelectedId(id);
   }, []);
 
-  // 新增根部门
+  // 新增根部门（预留功能）
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleAddRoot = useCallback(() => {
     setModalMode('create');
     setModalDeptId(undefined);
@@ -78,8 +79,6 @@ const DepartmentManagement: React.FC = () => {
           <DepartmentTreePanel
             selectedId={selectedId}
             onSelect={handleSelect}
-            onAddRoot={handleAddRoot}
-            onAddChild={handleAddChild}
           />
         </Sider>
         <Content style={{ minHeight: 500 }}>
