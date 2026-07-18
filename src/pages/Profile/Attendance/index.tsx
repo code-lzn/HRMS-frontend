@@ -150,7 +150,6 @@ export default function AttendancePage() {
           value={currentMonth}
           onPanelChange={(d) => setCurrentMonth(d)}
           cellRender={cellRender}
-          loading={loading}
         />
         {/* 图例 */}
         <Row gutter={16} style={{ marginTop: 12 }}>

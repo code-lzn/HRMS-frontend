@@ -6,7 +6,7 @@ const useApproval = () => {
   const refreshPendingCount = useCallback(async () => {
     try {
       const res = await getPendingCount();
-      if (res?.data?.count !== undefined) setPendingCount(res.data.count);
+      if (res?.data?.total !== undefined) setPendingCount(res.data.total);
     } catch { /* 静默失败 */ }
   }, []);
   return { pendingCount, refreshPendingCount };
