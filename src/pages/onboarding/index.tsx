@@ -342,12 +342,12 @@ const OnboardingPage: React.FC = () => {
           try {
             const res = await listUsingGet(apiParams);
             if (res.code === 0 && res.data) {
-              return { data: res.data.records || [], success: true, total: res.data.total || 0 };
+              return { data: (res.data.records || []) as OnboardingRecord[], success: true, total: res.data.total || 0 };
             }
-            return { data: [], success: true, total: 0 };
+            return { data: [] as OnboardingRecord[], success: true, total: 0 };
           } catch {
             message.error('获取入职列表失败');
-            return { data: [], success: true, total: 0 };
+            return { data: [] as OnboardingRecord[], success: true, total: 0 };
           }
         }}
         toolBarRender={() => [

@@ -23,7 +23,7 @@ import {
   BellOutlined,
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ProbationFormModal from './components/ProbationForm';
 import { ProbationRecord, PendingProbationEmployee } from './mock';
 import { listUsingGet1, getPendingEmployeesUsingGet } from '@/api/probationController';
@@ -351,7 +351,7 @@ const ProbationPage: React.FC = () => {
         search={{ labelWidth: 'auto', defaultCollapsed: false, span: 8 }}
         columns={columns}
         request={async (params) => {
-          const { current, pageSize, keyword, status } = params as any;
+          const { current, pageSize, status } = params as any;
           const tabMap: Record<string, number> = {
             draft: PROBATION_STATUS.DRAFT,
             pending: PROBATION_STATUS.PENDING,
@@ -361,18 +361,17 @@ const ProbationPage: React.FC = () => {
           const apiParams: API.listUsingGET1Params = {
             current,
             pageSize,
-            keyword,
             status: activeTab !== 'all' ? tabMap[activeTab] : status,
           };
           try {
             const res = await listUsingGet1(apiParams);
             if (res.code === 0 && res.data) {
-              return { data: res.data.records || [], success: true, total: res.data.total || 0 };
+              return { data: (res.data.records || []) as ProbationRecord[], success: true, total: res.data.total || 0 };
             }
-            return { data: [], success: true, total: 0 };
+            return { data: [] as ProbationRecord[], success: true, total: 0 };
           } catch {
             message.error('获取转正列表失败');
-            return { data: [], success: true, total: 0 };
+            return { data: [] as ProbationRecord[], success: true, total: 0 };
           }
         }}
         toolBarRender={() => [

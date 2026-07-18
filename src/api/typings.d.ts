@@ -3423,6 +3423,1146 @@ declare namespace API {
     /** id */
     id: number;
   }
+  type MapOfstringAndlong = true;
+
+  type MapOfstringAndobject = true;
+
+  type MapOfstringAndobject1 = true;
+
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject = true;
+
+  type MapOfstringAndobject1 = true;
+
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject1 = true;
+
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject = true;
+
+  type MapOfstringAndobject1 = true;
+
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject1 = true;
+
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject1 = true;
+
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject = true;
+
+  type MapOfstringAndobject1 = true;
+
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject1 = true;
+
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject1 = true;
+
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject1 = true;
+
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject2 = true;
+
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject3 = true;
+
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject4 = true;
+
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndobject5 = true;
+
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
+  type MapOfstringAndstring = true;
+
+  type markAsPaidUsingPUTParams = {
+    /** id */
+    id: number;
+  }
   type PageOfAttendanceGroupListVO = {
     countId?: string;
     current?: number;

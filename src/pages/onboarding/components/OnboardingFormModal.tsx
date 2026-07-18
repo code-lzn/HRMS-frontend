@@ -106,7 +106,7 @@ const OnboardingFormModal: React.FC<OnboardingFormProps> = ({
             res.data.records.map((e) => ({
               value: e.id || 0,
               label: e.name || '',
-              departmentId: e.departmentId,
+              departmentId: (e as any).departmentId,
             })),
           );
         }

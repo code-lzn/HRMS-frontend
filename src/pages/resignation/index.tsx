@@ -23,7 +23,7 @@ import {
   ReloadOutlined,
   WarningOutlined,
 } from '@ant-design/icons';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ResignationFormModal from './components/ResignationForm';
 import { ResignationRecord } from './mock';
 import { listUsingGet2 } from '@/api/resignationController';
@@ -340,12 +340,12 @@ const ResignationPage: React.FC = () => {
           try {
             const res = await listUsingGet2(apiParams);
             if (res.code === 0 && res.data) {
-              return { data: res.data.records || [], success: true, total: res.data.total || 0 };
+              return { data: (res.data.records || []) as ResignationRecord[], success: true, total: res.data.total || 0 };
             }
-            return { data: [], success: true, total: 0 };
+            return { data: [] as ResignationRecord[], success: true, total: 0 };
           } catch {
             message.error('获取离职列表失败');
-            return { data: [], success: true, total: 0 };
+            return { data: [] as ResignationRecord[], success: true, total: 0 };
           }
         }}
         toolBarRender={() => [

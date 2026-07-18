@@ -21,7 +21,7 @@ import {
   PlusOutlined,
   ReloadOutlined,
 } from '@ant-design/icons';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import TransferFormModal from './components/TransferForm';
 import { TransferRecord, TransferHistoryItem } from './mock';
 import { listUsingGet3, getHistoryUsingGet } from '@/api/transferController';
@@ -319,12 +319,12 @@ const TransferPage: React.FC = () => {
           try {
             const res = await listUsingGet3(apiParams);
             if (res.code === 0 && res.data) {
-              return { data: res.data.records || [], success: true, total: res.data.total || 0 };
+              return { data: (res.data.records || []) as TransferRecord[], success: true, total: res.data.total || 0 };
             }
-            return { data: [], success: true, total: 0 };
+            return { data: [] as TransferRecord[], success: true, total: 0 };
           } catch {
             message.error('获取调岗列表失败');
-            return { data: [], success: true, total: 0 };
+            return { data: [] as TransferRecord[], success: true, total: 0 };
           }
         }}
         toolBarRender={() => [
