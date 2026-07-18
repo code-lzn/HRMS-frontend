@@ -6,13 +6,7 @@ import {
   HIRE_TYPE_MAP,
 } from '@/constants/enums';
 import { useEmployeeDetail } from '@/hooks/useEmployeeDetail';
-import {
-  ArrowLeftOutlined,
-  FileTextOutlined,
-  UserOutlined,
-  UserSwitchOutlined,
-  WalletOutlined,
-} from '@ant-design/icons';
+import { ArrowLeftOutlined, UserOutlined } from '@ant-design/icons';
 import { history, useAccess, useParams } from '@umijs/max';
 import { Button, Card, Descriptions, Result, Spin } from 'antd';
 import dayjs from 'dayjs';
@@ -27,9 +21,7 @@ const EmployeeDetail: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div
-        style={{ padding: '24px 32px', textAlign: 'center', paddingTop: 120 }}
-      >
+      <div style={{ padding: '120px 32px 24px', textAlign: 'center' }}>
         <Spin size="large" />
       </div>
     );
@@ -247,7 +239,6 @@ const EmployeeDetail: React.FC = () => {
           type={activeTab === 'personal' ? 'primary' : 'default'}
           onClick={() => setActiveTab('personal')}
           block
-          icon={<UserSwitchOutlined />}
         >
           个人信息
         </Button>
@@ -255,7 +246,6 @@ const EmployeeDetail: React.FC = () => {
           type={activeTab === 'work' ? 'primary' : 'default'}
           onClick={() => setActiveTab('work')}
           block
-          icon={<FileTextOutlined />}
         >
           工作信息
         </Button>
@@ -263,7 +253,6 @@ const EmployeeDetail: React.FC = () => {
           type={activeTab === 'salary' ? 'primary' : 'default'}
           onClick={() => setActiveTab('salary')}
           block
-          icon={<WalletOutlined />}
         >
           薪资合同
         </Button>
@@ -306,6 +295,7 @@ const EmployeeDetail: React.FC = () => {
                 <DesensitizedText
                   text={employee.personalInfo?.phone}
                   type="phone"
+                  revealable
                 />
               </Descriptions.Item>
               <Descriptions.Item label="邮箱">
@@ -322,6 +312,7 @@ const EmployeeDetail: React.FC = () => {
                   text={employee.personalInfo?.idCard}
                   type="idCard"
                   hasPermission={canViewSensitive}
+                  revealable
                 />
               </Descriptions.Item>
               <Descriptions.Item label="生日">
@@ -339,97 +330,62 @@ const EmployeeDetail: React.FC = () => {
       )}
 
       {activeTab === 'work' && (
-        <div style={{ display: 'flex', gap: 24 }}>
-          <Card title="工作信息" style={{ flex: 1, borderRadius: 12 }}>
-            <Descriptions column={1} bordered size="small">
-              <Descriptions.Item label="所属部门">
-                {employee.workInfo?.departmentName || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="职位">
-                {employee.workInfo?.positionName || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="职级">
-                {employee.workInfo?.jobLevel || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="直接汇报人">
-                {employee.workInfo?.directReportName ? (
-                  <a
-                    onClick={() =>
-                      history.push(
-                        `/employees/${employee.workInfo?.directReportId}`,
-                      )
-                    }
-                  >
-                    {employee.workInfo?.directReportName}
-                  </a>
-                ) : (
-                  '-'
-                )}
-              </Descriptions.Item>
-              <Descriptions.Item label="工作地点">
-                {employee.workInfo?.workLocation || '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="入职类型">
-                {HIRE_TYPE_MAP[employee.hireType!] || '-'}
-              </Descriptions.Item>
-            </Descriptions>
-          </Card>
-          <Card title="合同信息" style={{ flex: 1, borderRadius: 12 }}>
-            <Descriptions column={1} bordered size="small">
-              <Descriptions.Item label="合同类型">
-                {CONTRACT_TYPE_MAP[employee.salaryInfo?.contractType ?? -1] ||
-                  '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="合同到期日">
-                {formatDate(employee.salaryInfo?.contractExpireDate)}
-              </Descriptions.Item>
-              <Descriptions.Item label="试用期待遇比例">
-                {employee.salaryInfo?.probationRatio !== null &&
-                employee.salaryInfo?.probationRatio !== undefined
-                  ? `${(employee.salaryInfo.probationRatio * 100).toFixed(0)}%`
-                  : '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="薪资账套">
-                {employee.salaryInfo?.salaryAccountName || '-'}
-              </Descriptions.Item>
-            </Descriptions>
-          </Card>
-        </div>
+        <Card title="工作信息" style={{ borderRadius: 12 }}>
+          <Descriptions column={2} bordered size="small">
+            <Descriptions.Item label="所属部门">
+              {employee.workInfo?.departmentName || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="职位">
+              {employee.workInfo?.positionName || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="职级">
+              {employee.workInfo?.jobLevel || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="直接汇报人">
+              {employee.workInfo?.directReportName ? (
+                <a
+                  onClick={() =>
+                    history.push(
+                      `/employees/${employee.workInfo?.directReportId}`,
+                    )
+                  }
+                >
+                  {employee.workInfo?.directReportName}
+                </a>
+              ) : (
+                '-'
+              )}
+            </Descriptions.Item>
+            <Descriptions.Item label="工作地点">
+              {employee.workInfo?.workLocation || '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label="入职类型">
+              {HIRE_TYPE_MAP[employee.hireType!] || '-'}
+            </Descriptions.Item>
+          </Descriptions>
+        </Card>
       )}
 
       {activeTab === 'salary' && (
-        <div style={{ display: 'flex', gap: 24 }}>
-          <Card title="薪资信息" style={{ flex: 1, borderRadius: 12 }}>
-            <Descriptions column={1} bordered size="small">
-              <Descriptions.Item label="基本工资">
-                <DesensitizedText
-                  text={String(employee.salaryInfo?.baseSalary ?? '')}
-                  type="bankAccount"
-                />
-              </Descriptions.Item>
-              <Descriptions.Item label="银行账号">
-                <DesensitizedText
-                  text={employee.salaryInfo?.bankAccount}
-                  type="bankAccount"
-                />
-              </Descriptions.Item>
-              <Descriptions.Item label="开户行">
-                {employee.salaryInfo?.bankName || '-'}
-              </Descriptions.Item>
-            </Descriptions>
-          </Card>
-          <Card title="合同信息" style={{ flex: 1, borderRadius: 12 }}>
-            <Descriptions column={1} bordered size="small">
-              <Descriptions.Item label="合同类型">
-                {CONTRACT_TYPE_MAP[employee.salaryInfo?.contractType ?? -1] ||
-                  '-'}
-              </Descriptions.Item>
-              <Descriptions.Item label="合同到期日">
-                {formatDate(employee.salaryInfo?.contractExpireDate)}
-              </Descriptions.Item>
-            </Descriptions>
-          </Card>
-        </div>
+        <Card title="薪资信息" style={{ borderRadius: 12 }}>
+          <Descriptions column={2} bordered size="small">
+            <Descriptions.Item label="基本工资">
+              <DesensitizedText
+                text={String(employee.salaryInfo?.baseSalary ?? '')}
+                type="bankAccount"
+              />
+            </Descriptions.Item>
+            <Descriptions.Item label="银行账号">
+              <DesensitizedText
+                text={employee.salaryInfo?.bankAccount}
+                type="bankAccount"
+              />
+            </Descriptions.Item>
+            <Descriptions.Item label="开户行" span={2}>
+              {employee.salaryInfo?.bankName || '-'}
+            </Descriptions.Item>
+          </Descriptions>
+        </Card>
       )}
     </div>
   );

@@ -2,4 +2,10 @@
   border-radius: 8px;
   overflow: hidden;
   min-height: 600px;
+
+  // 抑制 antd Button 点击后 focus 蓝色边框
+  :global(.ant-btn:focus-visible) {
+    outline: none !important;
+    box-shadow: none !important;
+  }
 }

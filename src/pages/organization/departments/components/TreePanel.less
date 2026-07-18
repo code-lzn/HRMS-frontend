@@ -1,102 +1,120 @@
 .panel {
-  background: #fff;
-  border-radius: 4px;
-  padding: 16px;
+  background: transparent;
+  padding: 0;
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.title {
-  font-size: 15px;
-  font-weight: 600;
-}
-
 .search {
   margin-bottom: 12px;
+  border-radius: 6px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
 }
 
 .treeWrap {
   flex: 1;
   overflow-y: auto;
   min-height: 0;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 8px 4px;
 }
 
-.treeItem {
-  padding: 6px 8px;
-  border-radius: 4px;
+/* 每行 */
+.item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: none;
+  transition: background-color 0.15s;
+  margin-bottom: 2px;
+  position: relative;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+
+  &:hover .addIcon {
+    opacity: 1;
+  }
+}
+
+.itemSelected {
+  background-color: #e6f4ff !important;
+
+  &:hover {
+    background-color: #e6f4ff !important;
+  }
+}
+
+/* 左侧区域：bullet + name + code */
+.itemHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
   margin-bottom: 2px;
 }
 
-.treeItem:hover {
-  background-color: #f5f5f5;
-}
-
-.treeItemSelected {
-  background-color: #e6f4ff !important;
-}
-
-.treeItemSelected:hover {
-  background-color: #e6f4ff !important;
-}
-
-.treeTitle {
-  width: 100%;
-}
-
-.treeTitleContent {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.deptNameRow {
+/* 右侧底部区域：manager + count */
+.itemFooter {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.deptName {
-  font-weight: 500;
-  color: #333;
+.bullet {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
 }
 
-.deptCode {
+.bulletDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #d9d9d9;
+}
+
+.name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #262626;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.code {
+  font-size: 11px;
+  color: #bfbfbf;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.manager {
   font-size: 12px;
-  color: #999;
+  color: #8c8c8c;
 }
 
-.deptManager {
-  font-size: 12px;
-  color: #666;
-  background: #f0f0f0;
-  padding: 0 6px;
-  border-radius: 2px;
-}
-
-.deptCount {
-  font-size: 12px;
-  color: #999;
-  margin-left: auto;
-}
-
-.addIcon {
+.count {
   font-size: 12px;
   color: #1677ff;
-  cursor: pointer;
-  margin-left: 8px;
-}
-
-.addIcon:hover {
-  color: #4096ff;
+  background-color: #e6f4ff;
+  padding: 1px 10px;
+  border-radius: 10px;
+  white-space: nowrap;
+  font-weight: 500;
+  flex-shrink: 0;
 }

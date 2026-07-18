@@ -41,13 +41,13 @@ export async function getEmployeeList(
 
 // ========== 员工 CRUD（自动生成） ==========
 
-/** getEmployeeList GET /api/api/employees */
+/** getEmployeeList GET /api/employees */
 export async function getEmployeeListUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getEmployeeListUsingGETParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponsePageEmployeeListVO_>('/api/api/employees', {
+  return request<API.BaseResponsePageEmployeeListVO_>('/api/employees', {
     method: 'GET',
     params: {
       ...params,
@@ -56,12 +56,12 @@ export async function getEmployeeListUsingGet(
   });
 }
 
-/** createEmployee POST /api/api/employees */
+/** createEmployee POST /api/employees */
 export async function createEmployeeUsingPost(
   body: API.EmployeeCreateRequest,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseEmployeeCreateVO_>('/api/api/employees', {
+  return request<API.BaseResponseEmployeeCreateVO_>('/api/employees', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ export async function createEmployeeUsingPost(
   });
 }
 
-/** getEmployeeDetail GET /api/api/employees/${param0} */
+/** getEmployeeDetail GET /api/employees/${param0} */
 export async function getEmployeeDetailUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getEmployeeDetailUsingGETParams,
@@ -79,7 +79,7 @@ export async function getEmployeeDetailUsingGet(
 ) {
   const { id: param0, ...queryParams } = params;
   return request<API.BaseResponseEmployeeDetailVO_>(
-    `/api/api/employees/${param0}`,
+    `/api/employees/${param0}`,
     {
       method: 'GET',
       params: { ...queryParams },
@@ -88,7 +88,7 @@ export async function getEmployeeDetailUsingGet(
   );
 }
 
-/** updateEmployee PUT /api/api/employees/${param0} */
+/** updateEmployee PUT /api/employees/${param0} */
 export async function updateEmployeeUsingPut(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.updateEmployeeUsingPUTParams,
@@ -97,7 +97,7 @@ export async function updateEmployeeUsingPut(
 ) {
   const { id: param0, ...queryParams } = params;
   return request<API.BaseResponseEmployeeUpdateVO_>(
-    `/api/api/employees/${param0}`,
+    `/api/employees/${param0}`,
     {
       method: 'PUT',
       headers: {
@@ -110,12 +110,12 @@ export async function updateEmployeeUsingPut(
   );
 }
 
-/** getFieldPermissions GET /api/api/employees/field-permissions */
+/** getFieldPermissions GET /api/employees/field-permissions */
 export async function getFieldPermissionsUsingGet(options?: {
   [key: string]: any;
 }) {
   return request<API.BaseResponseFieldPermissionsVO_>(
-    '/api/api/employees/field-permissions',
+    '/api/employees/field-permissions',
     {
       method: 'GET',
       ...(options || {}),
@@ -123,10 +123,10 @@ export async function getFieldPermissionsUsingGet(options?: {
   );
 }
 
-/** getStatuses GET /api/api/employees/statuses */
+/** getStatuses GET /api/employees/statuses */
 export async function getStatusesUsingGet(options?: { [key: string]: any }) {
   return request<API.BaseResponseListMapStringObject_>(
-    '/api/api/employees/statuses',
+    '/api/employees/statuses',
     {
       method: 'GET',
       ...(options || {}),

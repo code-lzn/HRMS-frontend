@@ -1,4 +1,7 @@
-import { userLogoutUsingPost } from '@/api/userController';
+import {
+  getLoginUserUsingGet,
+  userLogoutUsingPost,
+} from '@/api/userController';
 import { clearCachedLoginUser, setCachedLoginUser } from '@/libs/loginCache';
 import { queryClient } from '@/libs/queryClient';
 import {
@@ -31,11 +34,10 @@ export async function getInitialState() {
     currentUser: undefined,
   };
 
-  // 登录/注册页不拦截
   const currentPath = window.location.pathname;
   const publicPaths = ['/user/login', '/user/register'];
 
-  // 从 sessionStorage 恢复（页面刷新不丢，但前端 dev server 重启会丢）
+  // 1. 优先从 sessionStorage 恢复
   try {
     const cached = sessionStorage.getItem('hrms_login_user');
     if (cached) {
@@ -44,6 +46,23 @@ export async function getInitialState() {
     }
   } catch {}
 
+  // 2. sessionStorage 为空，尝试调后端（带超时）
+  if (!initialState.currentUser) {
+    try {
+      const res: any = await Promise.race([
+        getLoginUserUsingGet(),
+        new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('timeout')), 3000);
+        }),
+      ]);
+      if (res?.data) {
+        initialState.currentUser = res.data as API.LoginUserVO;
+        setCachedLoginUser(initialState.currentUser);
+      }
+    } catch {}
+  }
+
+  // 3. 未登录且非公开页 → 跳转登录
   if (!publicPaths.includes(currentPath) && !initialState.currentUser) {
     window.location.href = `/user/login?redirect=${encodeURIComponent(
       currentPath,

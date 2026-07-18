@@ -1,32 +1,43 @@
 import { deleteDepartmentUsingDelete } from '@/api/departmentController';
-import { getEmployeeListUsingGet } from '@/api/employeeController';
 import { queryKeys } from '@/hooks/queryKeys';
 import { useDepartmentDetail } from '@/hooks/useDepartmentDetail';
-import {
-  DeleteOutlined,
-  EditOutlined,
-  PlusOutlined,
-  TeamOutlined,
-  UserOutlined,
-} from '@ant-design/icons';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAccess } from '@umijs/max';
 import {
-  Avatar,
   Button,
   Card,
   Col,
   Empty,
   Popconfirm,
   Row,
-  Space,
   Spin,
-  Table,
-  Tabs,
+  Tag,
   Typography,
   message,
 } from 'antd';
-import React, { useState } from 'react';
+import React from 'react';
+
+/** 字段行：左 label + 右 value（带底部分隔线） */
+const Field: React.FC<{
+  label: string;
+  value: React.ReactNode;
+  last?: boolean;
+}> = ({ label, value, last }) => (
+  <div
+    style={{
+      display: 'flex',
+      alignItems: 'flex-start',
+      padding: '14px 0',
+      borderBottom: last ? 'none' : '1px solid #f5f5f5',
+    }}
+  >
+    <div style={{ width: 100, flexShrink: 0, color: '#8c8c8c', fontSize: 14 }}>
+      {label}
+    </div>
+    <div style={{ flex: 1, fontSize: 14, color: '#262626' }}>{value}</div>
+  </div>
+);
 
 interface DepartmentDetailPanelProps {
   deptId: number;
@@ -47,21 +58,6 @@ const DepartmentDetailPanel: React.FC<DepartmentDetailPanelProps> = ({
   const queryClient = useQueryClient();
   const access = useAccess();
   const canManage = access.canManageOrganization;
-  const [tab, setTab] = useState('info');
-
-  const { data: employees, isLoading: employeesLoading } = useQuery({
-    queryKey: queryKeys.departments.list({ deptId }),
-    queryFn: async () => {
-      const res = await getEmployeeListUsingGet({
-        departmentIds: [deptId],
-        current: 1,
-        pageSize: 50,
-      });
-      return ((res.data as any)?.records ?? []) as API.EmployeeListVO[];
-    },
-    enabled: tab === 'members' && !!deptId,
-    staleTime: 30 * 1000,
-  });
 
   if (isLoading) {
     return (
@@ -77,10 +73,16 @@ const DepartmentDetailPanel: React.FC<DepartmentDetailPanelProps> = ({
 
   const handleDelete = async () => {
     try {
+      const parentId = dept.parentId;
       await deleteDepartmentUsingDelete({ id: deptId });
       message.success('删除成功');
       queryClient.invalidateQueries({ queryKey: queryKeys.departments.tree() });
-      onCancel();
+      // 删除后跳转到父部门（根部门则清空选中）
+      if (parentId) {
+        onSelectChild(parentId);
+      } else {
+        onCancel?.();
+      }
     } catch (error: any) {
       const code = error?.code;
       if (code === 30001) {
@@ -96,376 +98,153 @@ const DepartmentDetailPanel: React.FC<DepartmentDetailPanelProps> = ({
     }
   };
 
-  const infoTab = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <Card>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: 24,
-            paddingBottom: 16,
-            borderBottom: '1px solid #f0f0f0',
-          }}
-        >
-          <div>
-            <Typography.Title level={3} style={{ margin: 0 }}>
-              {dept.name}
-            </Typography.Title>
-            <Typography.Text
-              type="secondary"
-              style={{ fontSize: 14, marginTop: 4, display: 'block' }}
+  const childCount = dept.childCount ?? dept.children?.length ?? 0;
+
+  return (
+    <div
+      style={{
+        padding: '24px 32px',
+        height: '100%',
+        overflow: 'auto',
+        backgroundColor: '#fff',
+      }}
+    >
+      {/* 顶部操作栏 */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          marginBottom: 24,
+        }}
+      >
+        {canManage && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button icon={<PlusOutlined />} onClick={() => onAddChild(deptId)}>
+              新增子部门
+            </Button>
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              onClick={() => onEdit(deptId)}
             >
-              {dept.managerName && `${dept.managerName} `}
-              {dept.employeeCount ?? 0}人
-            </Typography.Text>
+              编辑
+            </Button>
+            <Popconfirm
+              title="确认删除该部门？"
+              onConfirm={handleDelete}
+              okText="确认"
+              cancelText="取消"
+              okButtonProps={{ danger: true }}
+            >
+              <Button danger>删除</Button>
+            </Popconfirm>
           </div>
-          {canManage && (
-            <Space>
-              <Button
-                type="primary"
-                size="small"
-                icon={<PlusOutlined />}
-                onClick={() => onAddChild(deptId)}
-              >
-                新增子部门
-              </Button>
-              <Button
-                size="small"
-                icon={<EditOutlined />}
-                onClick={() => onEdit(deptId)}
-              >
-                编辑
-              </Button>
-              <Popconfirm
-                title="确认删除该部门？"
-                onConfirm={handleDelete}
-                okText="确认"
-                cancelText="取消"
-                okButtonProps={{ danger: true }}
-              >
-                <Button danger size="small" icon={<DeleteOutlined />}>
-                  删除
-                </Button>
-              </Popconfirm>
-            </Space>
-          )}
-        </div>
+        )}
+      </div>
 
-        <Row gutter={[24, 16]}>
-          <Col span={12}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography.Text
-                type="secondary"
-                style={{ fontSize: 12, marginBottom: 4 }}
-              >
-                部门名称
-              </Typography.Text>
-              <Typography.Text style={{ fontSize: 14, fontWeight: 500 }}>
-                {dept.name || '-'}
-              </Typography.Text>
-            </div>
-          </Col>
-          <Col span={12}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography.Text
-                type="secondary"
-                style={{ fontSize: 12, marginBottom: 4 }}
-              >
-                部门编码
-              </Typography.Text>
-              <Typography.Text style={{ fontSize: 14, fontWeight: 500 }}>
-                {dept.code || '-'}
-              </Typography.Text>
-            </div>
-          </Col>
-          <Col span={12}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography.Text
-                type="secondary"
-                style={{ fontSize: 12, marginBottom: 4 }}
-              >
-                上级部门
-              </Typography.Text>
-              <Typography.Text style={{ fontSize: 14 }}>
-                {dept.parentName || '-'}
-              </Typography.Text>
-            </div>
-          </Col>
-          <Col span={12}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography.Text
-                type="secondary"
-                style={{ fontSize: 12, marginBottom: 4 }}
-              >
-                排序序号
-              </Typography.Text>
-              <Typography.Text style={{ fontSize: 14 }}>
-                {dept.sortOrder ?? '-'}
-              </Typography.Text>
-            </div>
-          </Col>
-          <Col span={12}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography.Text
-                type="secondary"
-                style={{ fontSize: 12, marginBottom: 4 }}
-              >
-                部门负责人
-              </Typography.Text>
-              <Typography.Text style={{ fontSize: 14 }}>
-                {dept.managerName || '-'}
-              </Typography.Text>
-            </div>
-          </Col>
-          <Col span={12}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography.Text
-                type="secondary"
-                style={{ fontSize: 12, marginBottom: 4 }}
-              >
-                在职人数
-              </Typography.Text>
-              <Typography.Text
-                style={{ fontSize: 14, color: '#1677ff', fontWeight: 500 }}
-              >
-                {dept.employeeCount ?? 0}人
-              </Typography.Text>
-            </div>
-          </Col>
-          <Col span={24}>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography.Text
-                type="secondary"
-                style={{ fontSize: 12, marginBottom: 4 }}
-              >
-                部门描述
-              </Typography.Text>
-              <Typography.Text style={{ fontSize: 14 }}>
-                {dept.description || '-'}
-              </Typography.Text>
-            </div>
-          </Col>
-        </Row>
-      </Card>
+      {/* 编码标题 */}
+      <div style={{ marginBottom: 24 }}>
+        <Typography.Text style={{ fontSize: 14, color: '#8c8c8c' }}>
+          编码：
+        </Typography.Text>
+        <Typography.Text strong style={{ fontSize: 14, color: '#262626' }}>
+          {dept.code || '-'}
+        </Typography.Text>
+      </div>
 
-      <Card>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: 16,
-            paddingBottom: 12,
-            borderBottom: '1px solid #f0f0f0',
-          }}
-        >
-          <Typography.Text strong style={{ fontSize: 16 }}>
-            直属子部门
-          </Typography.Text>
-          <Typography.Text type="secondary" style={{ fontSize: 14 }}>
-            {dept.childCount ?? dept.children?.length ?? 0}个
-          </Typography.Text>
-        </div>
-        {dept.children && dept.children.length > 0 ? (
-          <Row gutter={[16, 16]}>
-            {dept.children.map((child: API.DepartmentVO) => (
-              <Col span={8} key={child.id}>
-                <Card
-                  size="small"
-                  hoverable
-                  onClick={() => child.id && onSelectChild(child.id)}
-                  style={{
-                    borderRadius: 8,
-                    cursor: 'pointer',
-                    border: '1px solid #f0f0f0',
-                  }}
-                >
-                  <div
+      {/* 基本信息列表 */}
+      <div style={{ marginBottom: 32 }}>
+        <Field label="部门名称" value={dept.name || '-'} />
+        <Field label="部门编码" value={dept.code || '-'} />
+        <Field label="上级部门" value={dept.parentName || '-'} />
+        <Field label="部门负责人" value={dept.managerName || '-'} />
+        <Field label="排序序号" value={dept.sortOrder ?? '-'} />
+        <Field label="部门描述" value={dept.description || '-'} />
+        <Field
+          label="在职人数"
+          value={
+            <span style={{ color: '#1677ff', fontWeight: 500 }}>
+              {dept.employeeCount ?? 0} 人
+            </span>
+          }
+          last
+        />
+      </div>
+
+      {/* 直属子部门 */}
+      {childCount > 0 && (
+        <div>
+          <div style={{ marginBottom: 16 }}>
+            <Typography.Text strong style={{ fontSize: 15 }}>
+              直属子部门
+            </Typography.Text>
+            <span style={{ marginLeft: 8, color: '#8c8c8c', fontSize: 14 }}>
+              {childCount} 个
+            </span>
+          </div>
+
+          {dept.children && dept.children.length > 0 ? (
+            <Row gutter={[16, 16]}>
+              {dept.children.map((child: API.DepartmentVO) => (
+                <Col span={12} key={child.id}>
+                  <Card
+                    size="small"
+                    hoverable
+                    onClick={() => child.id && onSelectChild(child.id)}
                     style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: 12,
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                      border: '1px solid #f0f0f0',
                     }}
+                    bodyStyle={{ padding: '16px 20px' }}
                   >
-                    <Avatar
-                      icon={<TeamOutlined />}
-                      style={{ backgroundColor: '#e6f7ff', color: '#1677ff' }}
-                      size={40}
-                    />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 6,
-                        }}
-                      >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 12,
+                      }}
+                    >
+                      <div style={{ minWidth: 0, flex: 1 }}>
                         <Typography.Text
-                          style={{ fontSize: 14, fontWeight: 500 }}
+                          strong
+                          style={{ fontSize: 14, color: '#262626' }}
+                          ellipsis
                         >
                           {child.name}
                         </Typography.Text>
-                        {child.code && (
-                          <Typography.Text
-                            type="secondary"
-                            style={{ fontSize: 12 }}
-                          >
-                            {child.code}
-                          </Typography.Text>
+                        {child.managerName && (
+                          <div style={{ marginTop: 4 }}>
+                            <Typography.Text
+                              type="secondary"
+                              style={{ fontSize: 12 }}
+                              ellipsis
+                            >
+                              {child.managerName}
+                            </Typography.Text>
+                          </div>
                         )}
                       </div>
-                      {child.managerName && (
-                        <Typography.Text
-                          type="secondary"
-                          style={{
-                            fontSize: 12,
-                            marginTop: 4,
-                            display: 'block',
-                          }}
-                        >
-                          {child.managerName}
-                        </Typography.Text>
-                      )}
-                      <Typography.Text
+                      <Tag
+                        color="blue"
                         style={{
-                          fontSize: 12,
-                          color: '#1677ff',
-                          marginTop: 4,
-                          display: 'block',
+                          marginRight: 0,
+                          borderRadius: 10,
+                          padding: '0 10px',
+                          flexShrink: 0,
                         }}
                       >
                         {child.employeeCount ?? 0}人
-                      </Typography.Text>
+                      </Tag>
                     </div>
-                  </div>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        ) : (
-          <div style={{ textAlign: 'center', padding: 32 }}>
-            <Empty
-              description="暂无子部门"
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-            />
-          </div>
-        )}
-      </Card>
-    </div>
-  );
-
-  const membersTab = (
-    <div>
-      {employeesLoading ? (
-        <div style={{ textAlign: 'center', padding: 40 }}>
-          <Spin />
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          ) : null}
         </div>
-      ) : employees && employees.length > 0 ? (
-        <Table
-          dataSource={employees}
-          rowKey="id"
-          pagination={false}
-          size="small"
-          style={{ marginTop: 0 }}
-          columns={[
-            {
-              title: '姓名',
-              dataIndex: 'name',
-              width: 100,
-              render: (name: string) => (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Avatar
-                    icon={<UserOutlined />}
-                    style={{ backgroundColor: '#e6f7ff', color: '#1677ff' }}
-                    size={32}
-                  />
-                  <span>{name}</span>
-                </div>
-              ),
-            },
-            {
-              title: '工号',
-              dataIndex: 'employeeNo',
-              width: 100,
-            },
-            {
-              title: '职位',
-              dataIndex: 'positionName',
-              width: 120,
-            },
-            {
-              title: '职级',
-              dataIndex: 'level',
-              width: 80,
-            },
-            {
-              title: '在职状态',
-              dataIndex: 'status',
-              width: 100,
-              render: (status: string) => {
-                const statusMap: Record<
-                  string,
-                  { color: string; text: string }
-                > = {
-                  PROBATION: { color: '#faad14', text: '试用期' },
-                  REGULAR: { color: '#52c41a', text: '正式' },
-                  PENDING_RESIGN: { color: '#faad14', text: '待离职' },
-                  RESIGNED: { color: '#d9d9d9', text: '已离职' },
-                };
-                const info = statusMap[status] || {
-                  color: '#d9d9d9',
-                  text: status,
-                };
-                return (
-                  <span
-                    style={{
-                      color: info.color,
-                      backgroundColor: `${info.color}15`,
-                      padding: '2px 8px',
-                      borderRadius: 4,
-                      fontSize: 12,
-                    }}
-                  >
-                    {info.text}
-                  </span>
-                );
-              },
-            },
-            {
-              title: '入职日期',
-              dataIndex: 'hireDate',
-              width: 120,
-            },
-          ]}
-        />
-      ) : (
-        <Card
-          size="small"
-          bordered={false}
-          style={{ backgroundColor: '#fafafa' }}
-        >
-          <Empty
-            description="该部门暂无员工"
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-          />
-        </Card>
       )}
-    </div>
-  );
-
-  return (
-    <div style={{ padding: 24, height: '100%', overflow: 'auto' }}>
-      <Tabs
-        activeKey={tab}
-        onChange={setTab}
-        items={[
-          { key: 'info', label: '部门信息', children: infoTab },
-          { key: 'members', label: '部门成员', children: membersTab },
-        ]}
-        tabBarStyle={{ marginBottom: 0 }}
-      />
     </div>
   );
 };
