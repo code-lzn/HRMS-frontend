@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Descriptions, Button, Input, DatePicker, Tag, Space, Card, message, Modal, Tooltip } from 'antd';
-import { EditOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons';
+import { Descriptions, Button, Input, Tag, Card, message, Modal } from 'antd';
+import { EditOutlined, UserOutlined } from '@ant-design/icons';
 import type { ProfileUpdateDTO } from '@/services/profile/typings';
 import { updateProfile } from '@/services/profile';
 import { useProfile } from '@/hooks/useProfile';
-import dayjs from 'dayjs';
+import { PageContainer } from '@ant-design/pro-components';
 
 export default function ProfilePage() {
   const { profile, loading, fetchProfile } = useProfile();
@@ -60,108 +60,177 @@ export default function ProfilePage() {
     }
   };
 
-  const isLocked = (field: string): boolean => profile?.lockedFields?.includes(field) ?? false;
-
-  const renderField = (_label: string, field: string, value: any, locked: boolean) => {
-    if (editing && !locked) {
-      if (field === 'birthday') {
-        return (
-          <DatePicker
-            value={(editData as any).birthday ? dayjs((editData as any).birthday) : null}
-            onChange={(d) => setEditData({ ...editData, birthday: d?.format('YYYY-MM-DD') } as any)}
-          />
-        );
-      }
-      return (
-        <Input
-          value={(editData as any)[field] ?? ''}
-          onChange={(e) => setEditData({ ...editData, [field]: e.target.value })}
-        />
-      );
-    }
-    if (locked) {
-      return (
-        <Tooltip title="如需修改请联系 HR">
-          <span style={{ color: '#999', cursor: 'not-allowed' }}>{value ?? '-'}</span>
-        </Tooltip>
-      );
-    }
-    return <span>{value ?? '-'}</span>;
+  const getInitial = (name: string) => {
+    return name ? name.charAt(0).toUpperCase() : '?';
   };
 
-  if (!profile) return <Card loading={loading} />;
+  if (!profile) return <PageContainer><Card loading={loading} /></PageContainer>;
 
   return (
-    <Card
-      title="我的档案"
-      extra={
-        editing ? (
-          <Space>
-            <Button icon={<SaveOutlined />} type="primary" onClick={handleSave} loading={saving}>
-              保存
-            </Button>
-            <Button icon={<CloseOutlined />} onClick={handleCancel}>
-              取消
-            </Button>
-          </Space>
-        ) : (
-          <Button icon={<EditOutlined />} onClick={handleEdit}>
-            编辑
-          </Button>
-        )
-      }
+    <PageContainer
+      header={{
+        title: (
+          <div>
+            <div style={{ fontSize: 22, fontWeight: 600 }}>我的档案</div>
+            <div style={{ fontSize: 14, color: '#999', marginTop: 4 }}>查看和管理您的个人信息</div>
+          </div>
+        ),
+      }}
     >
-      <Descriptions column={2} bordered size="small">
-        <Descriptions.Item label="工号">{profile.employeeNo}</Descriptions.Item>
-        <Descriptions.Item label="姓名">
-          {renderField('姓名', 'name', profile.name, isLocked('name'))}
-        </Descriptions.Item>
-        <Descriptions.Item label="性别">{profile.genderDesc}</Descriptions.Item>
-        <Descriptions.Item label="手机号">
-          {renderField('手机号', 'phone', profile.phone, true)}
-        </Descriptions.Item>
-        <Descriptions.Item label="邮箱">
-          {renderField('邮箱', 'email', profile.email, false)}
-        </Descriptions.Item>
-        <Descriptions.Item label="身份证号">
-          {renderField('身份证号', 'idCard', profile.idCard, true)}
-        </Descriptions.Item>
-        <Descriptions.Item label="生日">
-          {renderField('生日', 'birthday', profile.birthday, false)}
-        </Descriptions.Item>
-        <Descriptions.Item label="现居住地址">
-          {renderField('现居住地址', 'address', profile.address, false)}
-        </Descriptions.Item>
-        <Descriptions.Item label="紧急联系人">
-          {renderField('紧急联系人', 'emergencyContact', profile.emergencyContact, false)}
-        </Descriptions.Item>
-        <Descriptions.Item label="紧急联系人电话">
-          {renderField('紧急联系人电话', 'emergencyPhone', profile.emergencyPhone, false)}
-        </Descriptions.Item>
-        <Descriptions.Item label="所属部门">
-          {renderField('所属部门', 'departmentName', profile.departmentName, isLocked('departmentName'))}
-        </Descriptions.Item>
-        <Descriptions.Item label="职位">
-          {renderField('职位', 'positionName', profile.positionName, isLocked('positionName'))}
-        </Descriptions.Item>
-        <Descriptions.Item label="职级">
-          {renderField('职级', 'jobLevel', profile.jobLevel, isLocked('jobLevel'))}
-        </Descriptions.Item>
-        <Descriptions.Item label="在职状态">
-          <Tag
-            color={
-              profile.status === 2
-                ? 'green'
-                : profile.status === 1
-                  ? 'blue'
-                  : 'red'
-            }
+      <Card
+        style={{ borderRadius: 12, border: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', marginBottom: 24 }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          <div
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 32,
+              fontWeight: 600,
+              color: '#fff',
+            }}
           >
-            {profile.statusDesc}
-          </Tag>
-        </Descriptions.Item>
-        <Descriptions.Item label="入职日期">{profile.hireDate}</Descriptions.Item>
-      </Descriptions>
-    </Card>
+            {getInitial(profile.name)}
+          </div>
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 600 }}>{profile.name}</div>
+            <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{ fontSize: 14, color: '#999' }}>{profile.employeeNo}</span>
+              <Tag color="blue" style={{ background: '#dbeafe', color: '#2563eb', borderRadius: 4, fontSize: 12 }}>
+                {profile.departmentName}
+              </Tag>
+              <Tag color="green" style={{ background: '#dcfce7', color: '#16a34a', borderRadius: 4, fontSize: 12 }}>
+                {profile.statusDesc}
+              </Tag>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+        <Card
+          style={{ borderRadius: 12, border: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
+          title={
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 16, fontWeight: 600 }}>基本信息</span>
+              <span style={{ fontSize: 12, color: '#999', fontWeight: 400 }}>如需修改请联系HR</span>
+            </div>
+          }
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ padding: '12px 16px', background: '#f9fafb', borderRadius: 8 }}>
+              <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>工号</div>
+              <div style={{ fontSize: 14, fontWeight: 500 }}>{profile.employeeNo}</div>
+            </div>
+            <div style={{ padding: '12px 16px', background: '#f9fafb', borderRadius: 8 }}>
+              <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>部门</div>
+              <div style={{ fontSize: 14, fontWeight: 500 }}>{profile.departmentName}</div>
+            </div>
+            <div style={{ padding: '12px 16px', background: '#f9fafb', borderRadius: 8 }}>
+              <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>职位</div>
+              <div style={{ fontSize: 14, fontWeight: 500 }}>{profile.positionName}</div>
+            </div>
+            <div style={{ padding: '12px 16px', background: '#f9fafb', borderRadius: 8 }}>
+              <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>入职日期</div>
+              <div style={{ fontSize: 14, fontWeight: 500 }}>{profile.hireDate}</div>
+            </div>
+            <div style={{ padding: '12px 16px', background: '#f9fafb', borderRadius: 8 }}>
+              <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>手机号</div>
+              <div style={{ fontSize: 14, fontWeight: 500 }}>{profile.phone?.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')}</div>
+            </div>
+            <div style={{ padding: '12px 16px', background: '#f9fafb', borderRadius: 8 }}>
+              <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>薪资</div>
+              <div style={{ fontSize: 14, fontWeight: 500 }}>****</div>
+            </div>
+          </div>
+        </Card>
+
+        <Card
+          style={{ borderRadius: 12, border: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
+          title={
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: 16, fontWeight: 600 }}>联系信息</span>
+              <Button
+                type="link"
+                size="small"
+                icon={<EditOutlined />}
+                style={{ color: '#6366f1', padding: 0 }}
+                onClick={editing ? handleCancel : handleEdit}
+              >
+                {editing ? '取消' : '编辑'}
+              </Button>
+            </div>
+          }
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ padding: '12px 16px', background: '#f9fafb', borderRadius: 8 }}>
+              <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>邮箱</div>
+              {editing ? (
+                <Input
+                  value={(editData as any).email ?? ''}
+                  onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                  size="small"
+                />
+              ) : (
+                <div style={{ fontSize: 14, fontWeight: 500 }}>{profile.email || '-'}</div>
+              )}
+            </div>
+            <div style={{ padding: '12px 16px', background: '#f9fafb', borderRadius: 8 }}>
+              <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>现居住地址</div>
+              {editing ? (
+                <Input
+                  value={(editData as any).address ?? ''}
+                  onChange={(e) => setEditData({ ...editData, address: e.target.value })}
+                  size="small"
+                />
+              ) : (
+                <div style={{ fontSize: 14, fontWeight: 500 }}>{profile.address || '-'}</div>
+              )}
+            </div>
+            <div style={{ padding: '12px 16px', background: '#f9fafb', borderRadius: 8 }}>
+              <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>紧急联系人</div>
+              {editing ? (
+                <Input
+                  value={(editData as any).emergencyContact ?? ''}
+                  onChange={(e) => setEditData({ ...editData, emergencyContact: e.target.value })}
+                  size="small"
+                />
+              ) : (
+                <div style={{ fontSize: 14, fontWeight: 500 }}>{profile.emergencyContact || '-'}</div>
+              )}
+            </div>
+            <div style={{ padding: '12px 16px', background: '#f9fafb', borderRadius: 8 }}>
+              <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>紧急联系电话</div>
+              {editing ? (
+                <Input
+                  value={(editData as any).emergencyPhone ?? ''}
+                  onChange={(e) => setEditData({ ...editData, emergencyPhone: e.target.value })}
+                  size="small"
+                />
+              ) : (
+                <div style={{ fontSize: 14, fontWeight: 500 }}>
+                  {profile.emergencyPhone?.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') || '-'}
+                </div>
+              )}
+            </div>
+            {editing && (
+              <Button
+                type="primary"
+                onClick={handleSave}
+                loading={saving}
+                style={{ marginTop: 8, background: '#6366f1', borderColor: '#6366f1', borderRadius: 8 }}
+              >
+                保存
+              </Button>
+            )}
+          </div>
+        </Card>
+      </div>
+    </PageContainer>
   );
 }

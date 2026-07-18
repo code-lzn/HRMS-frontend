@@ -1,26 +1,25 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Card, Button, Calendar, Statistic, Row, Col, Space, Tag, message, Badge, Popover } from 'antd';
-import { ClockCircleOutlined, ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { Card, Button, Tag, message } from 'antd';
+import { ArrowLeftOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import type { AttendanceCalendarVO, ClockResultVO, AttendanceStatus, DayItem } from '@/services/profile/typings';
-import { getAttendanceCalendar, clock } from '@/services/profile';
+import type { AttendanceCalendarVO, AttendanceStatus, DayItem } from '@/services/profile/typings';
+import { getAttendanceCalendar } from '@/services/profile';
+import { PageContainer } from '@ant-design/pro-components';
 
-const STATUS_MAP: Record<AttendanceStatus, { color: string; label: string; dot: string }> = {
-  NORMAL: { color: '#52c41a', label: '正常', dot: '●' },
-  LATE: { color: '#fa8c16', label: '迟到', dot: '●' },
-  EARLY: { color: '#fa8c16', label: '早退', dot: '●' },
-  ABSENT: { color: '#f5222d', label: '旷工', dot: '●' },
-  LEAVE: { color: '#1890ff', label: '请假', dot: '●' },
-  MISSING: { color: '#bfbfbf', label: '缺卡', dot: '●' },
-  WEEKEND: { color: '#d9d9d9', label: '休息日', dot: '-' },
+const STATUS_MAP: Record<AttendanceStatus, { bgColor: string; dotColor: string; label: string }> = {
+  NORMAL: { bgColor: '#dcfce7', dotColor: '#22c55e', label: '正常' },
+  LATE: { bgColor: '#ffedd5', dotColor: '#f97316', label: '迟到' },
+  EARLY: { bgColor: '#ffedd5', dotColor: '#f97316', label: '早退' },
+  ABSENT: { bgColor: '#fee2e2', dotColor: '#ef4444', label: '旷工' },
+  LEAVE: { bgColor: '#dbeafe', dotColor: '#3b82f6', label: '请假' },
+  MISSING: { bgColor: '#fef3c7', dotColor: '#fbbf24', label: '缺卡' },
+  WEEKEND: { bgColor: '#f3f4f6', dotColor: '#d1d5db', label: '休息日' },
 };
 
 export default function AttendancePage() {
   const [currentMonth, setCurrentMonth] = useState(dayjs());
   const [data, setData] = useState<AttendanceCalendarVO | null>(null);
   const [loading, setLoading] = useState(false);
-  const [clocking, setClocking] = useState(false);
-  const [todayRecord, setTodayRecord] = useState<DayItem | null>(null);
 
   const fetchData = useCallback(async (month: dayjs.Dayjs) => {
     setLoading(true);
@@ -28,9 +27,6 @@ export default function AttendancePage() {
       const ym = month.format('YYYY-MM');
       const res = await getAttendanceCalendar(ym);
       setData(res);
-      const today = dayjs().format('YYYY-MM-DD');
-      const td = res.days.find((d) => d.date === today);
-      setTodayRecord(td || null);
     } finally {
       setLoading(false);
     }
@@ -38,126 +34,178 @@ export default function AttendancePage() {
 
   useEffect(() => { fetchData(currentMonth); }, [currentMonth, fetchData]);
 
-  const handleClock = async (type: 'IN' | 'OUT') => {
-    setClocking(true);
-    try {
-      const res: ClockResultVO = await clock(type);
-      message.success(`${res.statusDesc} (${dayjs(res.clockTime).format('HH:mm:ss')})`);
-      fetchData(currentMonth);
-    } catch (err: any) {
-      message.error(err?.response?.data?.message || '打卡失败');
-    } finally {
-      setClocking(false);
+  const summary = data?.summary;
+
+  const generateCalendarDays = () => {
+    const year = currentMonth.year();
+    const month = currentMonth.month();
+    const firstDay = dayjs(`${year}-${month + 1}-01`);
+    const startDay = firstDay.startOf('week');
+    const endDay = firstDay.endOf('month').endOf('week');
+
+    const days: { date: dayjs.Dayjs; dayInfo?: DayItem; isCurrentMonth: boolean }[] = [];
+    let current = startDay;
+
+    while (current.isBefore(endDay) || current.isSame(endDay, 'day')) {
+      const dateStr = current.format('YYYY-MM-DD');
+      const dayInfo = data?.days.find((d) => d.date === dateStr);
+      days.push({
+        date: current,
+        dayInfo,
+        isCurrentMonth: current.month() === month,
+      });
+      current = current.add(1, 'day');
     }
+
+    return days;
   };
 
-  const cellRender = (date: dayjs.Dayjs) => {
-    const dateStr = date.format('YYYY-MM-DD');
-    const day = data?.days.find((d) => d.date === dateStr);
-    const isToday = dateStr === dayjs().format('YYYY-MM-DD');
-
-    if (!day) return null;
-
-    const statusInfo = STATUS_MAP[day.status] || { color: '#999', label: day.status, dot: '●' };
-
-    const popContent = day.status !== 'WEEKEND' ? (
-      <div style={{ minWidth: 120 }}>
-        <p><strong>{day.date}</strong> ({day.weekday})</p>
-        <p>状态: <Tag color={statusInfo.color}>{day.statusDesc}</Tag></p>
-        {day.clockIn && <p>上班: {day.clockIn}</p>}
-        {day.clockOut && <p>下班: {day.clockOut}</p>}
-      </div>
-    ) : null;
-
-    return (
-      <Popover content={popContent}>
-        <div style={{ textAlign: 'center', padding: '4px 0', background: isToday ? '#e6f7ff' : undefined }}>
-          <div style={{ fontSize: 12, color: statusInfo.color }}>{statusInfo.dot}</div>
-          <div style={{ fontSize: 14 }}>{date.date()}</div>
-        </div>
-      </Popover>
-    );
-  };
-
-  const now = dayjs();
+  const weekDays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
   return (
-    <div>
-      {/* 打卡区 */}
-      <Card style={{ marginBottom: 16 }}>
-        <Row align="middle" justify="space-between">
-          <Col>
-            <div style={{ fontSize: 24, fontWeight: 'bold' }}>{now.format('YYYY年MM月DD日')}</div>
-            <div style={{ color: '#999' }}>{now.format('dddd')}</div>
-          </Col>
-          <Col>
-            <Space size="large">
-              <Badge status={todayRecord?.clockIn ? 'success' : 'default'} text={
-                todayRecord?.clockIn ? `上班: ${todayRecord.clockIn}` : '上班未打卡'
-              } />
-              <Button
-                icon={<ClockCircleOutlined />}
-                onClick={() => handleClock('IN')}
-                loading={clocking}
-                disabled={clocking || !!todayRecord?.clockIn}
-                type={todayRecord?.clockIn ? 'default' : 'primary'}
-              >
-                {todayRecord?.clockIn ? '已打卡' : '上班打卡'}
-              </Button>
-              <Badge status={todayRecord?.clockOut ? 'success' : 'default'} text={
-                todayRecord?.clockOut ? `下班: ${todayRecord.clockOut}` : '下班未打卡'
-              } />
-              <Button
-                icon={<ClockCircleOutlined />}
-                onClick={() => handleClock('OUT')}
-                loading={clocking}
-                disabled={clocking || !!todayRecord?.clockOut}
-                type={todayRecord?.clockOut ? 'default' : 'primary'}
-              >
-                {todayRecord?.clockOut ? '已打卡' : '下班打卡'}
-              </Button>
-            </Space>
-          </Col>
-        </Row>
-      </Card>
+    <PageContainer
+      header={{
+        title: (
+          <div>
+            <div style={{ fontSize: 22, fontWeight: 600 }}>我的考勤</div>
+            <div style={{ fontSize: 14, color: '#999', marginTop: 4 }}>查看考勤记录，申请请假或补卡</div>
+          </div>
+        ),
+      }}
+    >
+      <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
+        <Card
+          style={{ flex: 1, borderRadius: 12, border: 'none', boxShadow: 'none', background: '#f0fdf4' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ fontSize: 36, fontWeight: 700, color: '#22c55e' }}>{summary?.actualWorkDays || 0}</div>
+            <div>
+              <div style={{ fontSize: 14, color: '#666' }}>出勤天数</div>
+            </div>
+          </div>
+        </Card>
+        <Card
+          style={{ flex: 1, borderRadius: 12, border: 'none', boxShadow: 'none', background: '#fef9c3' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ fontSize: 36, fontWeight: 700, color: '#ca8a04' }}>{summary?.leaveDays || 0}</div>
+            <div>
+              <div style={{ fontSize: 14, color: '#666' }}>请假天数</div>
+            </div>
+          </div>
+        </Card>
+        <Card
+          style={{ flex: 1, borderRadius: 12, border: 'none', boxShadow: 'none', background: '#ffedd5' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ fontSize: 36, fontWeight: 700, color: '#f97316' }}>{summary?.lateCount || 0}</div>
+            <div>
+              <div style={{ fontSize: 14, color: '#666' }}>迟到次数</div>
+            </div>
+          </div>
+        </Card>
+        <Card
+          style={{ flex: 1, borderRadius: 12, border: 'none', boxShadow: 'none', background: '#fee2e2' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ fontSize: 36, fontWeight: 700, color: '#ef4444' }}>{summary?.absentCount || 0}</div>
+            <div>
+              <div style={{ fontSize: 14, color: '#666' }}>缺卡次数</div>
+            </div>
+          </div>
+        </Card>
+      </div>
 
-      {/* 统计区 */}
-      {data?.summary && (
-        <Row gutter={16} style={{ marginBottom: 16 }}>
-          <Col span={4}><Card><Statistic title="应出勤" value={data.summary.shouldWorkDays} suffix="天" /></Card></Col>
-          <Col span={4}><Card><Statistic title="实际出勤" value={data.summary.actualWorkDays} suffix="天" /></Card></Col>
-          <Col span={4}><Card><Statistic title="迟到" value={data.summary.lateCount} suffix="次" valueStyle={{ color: '#fa8c16' }} /></Card></Col>
-          <Col span={4}><Card><Statistic title="早退" value={data.summary.earlyCount} suffix="次" /></Card></Col>
-          <Col span={4}><Card><Statistic title="旷工" value={data.summary.absentCount} suffix="天" valueStyle={{ color: '#f5222d' }} /></Card></Col>
-          <Col span={4}><Card><Statistic title="请假" value={data.summary.leaveDays} suffix="天" /></Card></Col>
-        </Row>
-      )}
-
-      {/* 日历区 */}
       <Card
-        title="考勤日历"
-        extra={
-          <Space>
-            <Button icon={<ArrowLeftOutlined />} onClick={() => setCurrentMonth(currentMonth.subtract(1, 'month'))} />
-            <span>{currentMonth.format('YYYY年MM月')}</span>
-            <Button icon={<ArrowRightOutlined />} onClick={() => setCurrentMonth(currentMonth.add(1, 'month'))} />
-            <Button type="link">补卡申请</Button>
-          </Space>
+        style={{ borderRadius: 12, border: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+            <Button
+              type="text"
+              icon={<ArrowLeftOutlined />}
+              onClick={() => setCurrentMonth(currentMonth.subtract(1, 'month'))}
+              style={{ border: 'none' }}
+            />
+            <span style={{ fontSize: 16, fontWeight: 600 }}>
+              {currentMonth.year()}年{currentMonth.month() + 1}月
+            </span>
+            <Button
+              type="text"
+              icon={<ArrowRightOutlined />}
+              onClick={() => setCurrentMonth(currentMonth.add(1, 'month'))}
+              style={{ border: 'none' }}
+            />
+          </div>
         }
       >
-        <Calendar
-          fullscreen
-          value={currentMonth}
-          onPanelChange={(d) => setCurrentMonth(d)}
-          cellRender={cellRender}
-        />
-        {/* 图例 */}
-        <Row gutter={16} style={{ marginTop: 12 }}>
-          {Object.entries(STATUS_MAP).slice(0, 6).map(([key, val]) => (
-            <Col key={key}><span style={{ color: val.color }}>{val.dot}</span> {val.label}</Col>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8, marginBottom: 12 }}>
+          {weekDays.map((day) => (
+            <div key={day} style={{ textAlign: 'center', fontSize: 13, color: '#999', padding: '8px 0' }}>
+              {day}
+            </div>
           ))}
-        </Row>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
+          {generateCalendarDays().map(({ date, dayInfo, isCurrentMonth }) => {
+            const isToday = date.isSame(dayjs(), 'day');
+            const status = dayInfo?.status || 'WEEKEND';
+            const statusInfo = STATUS_MAP[status] || STATUS_MAP.WEEKEND;
+            const isWeekend = date.day() === 0 || date.day() === 6;
+
+            return (
+              <div
+                key={date.format('YYYY-MM-DD')}
+                style={{
+                  aspectRatio: '1',
+                  borderRadius: 8,
+                  background: isCurrentMonth
+                    ? (isWeekend && !dayInfo ? '#f9fafb' : statusInfo.bgColor)
+                    : 'transparent',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  position: 'relative',
+                  border: isToday ? '2px solid #3b82f6' : '2px solid transparent',
+                  opacity: isCurrentMonth ? 1 : 0.3,
+                }}
+              >
+                <div style={{ fontSize: 14, fontWeight: 500, color: isCurrentMonth ? '#333' : '#ccc' }}>
+                  {date.date()}
+                </div>
+                {isCurrentMonth && dayInfo && dayInfo.status !== 'WEEKEND' && (
+                  <div
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      backgroundColor: statusInfo.dotColor,
+                      marginTop: 4,
+                    }}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 24, marginTop: 20, flexWrap: 'wrap' }}>
+          {Object.entries(STATUS_MAP).filter(([k]) => k !== 'WEEKEND').map(([key, val]) => (
+            <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: '50%',
+                  backgroundColor: val.dotColor,
+                }}
+              />
+              <span style={{ fontSize: 12, color: '#666' }}>{val.label}</span>
+            </div>
+          ))}
+        </div>
       </Card>
-    </div>
+    </PageContainer>
   );
 }

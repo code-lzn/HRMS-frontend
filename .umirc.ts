@@ -89,6 +89,8 @@ export default defineConfig({
         { name: '我的请假', path: '/profile/leaves', component: './Profile/Leaves' },
         { name: '我的薪资', path: '/profile/salary', component: './Profile/Salary' },
         { name: '账号安全', path: '/profile/security', component: './Profile/Security' },
+        { name: '修改密码', path: '/profile/security/password', component: './Profile/Security/Password', hideInMenu: true },
+        { name: '修改手机号', path: '/profile/security/phone', component: './Profile/Security/Phone', hideInMenu: true },
       ],
     },
     // ========== 原有页面 ==========

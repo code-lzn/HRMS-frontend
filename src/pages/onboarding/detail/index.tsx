@@ -137,6 +137,7 @@ const OnboardingDetailPage: React.FC = () => {
   const isApprovedPending = status === ONBOARDING_STATUS.APPROVED_PENDING_JOIN;
   const isJoined = status === ONBOARDING_STATUS.JOINED;
   const isRejected = status === ONBOARDING_STATUS.REJECTED;
+  const isAbandoned = status === ONBOARDING_STATUS.ABANDONED;
   const canSubmit = isDraft && isCreator;
   const canCancel = isPending && isCreator;
   const canConfirm = isApprovedPending;
@@ -242,7 +243,7 @@ const OnboardingDetailPage: React.FC = () => {
       </Card>
 
       {/* 审批进度 */}
-      {(isPending || isApprovedPending || isRejected) && detail.approvalProgress && (
+      {(isPending || isApprovedPending || isRejected || isAbandoned) && detail.approvalProgress && (
         <Card title="审批进度" style={{ marginBottom: 16 }}>
           <ApprovalTimeline
             nodes={detail.approvalProgress.nodes}
