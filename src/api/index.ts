@@ -15,7 +15,9 @@ import * as fileController from './fileController';
 import * as hrAttendanceController from './hrAttendanceController';
 import * as leaveController from './leaveController';
 import * as makeupPunchController from './makeupPunchController';
+import * as mutationLogController from './mutationLogController';
 import * as onboardingController from './onboardingController';
+import * as overtimeController from './overtimeController';
 import * as permissionController from './permissionController';
 import * as positionController from './positionController';
 import * as profileController from './profileController';
@@ -34,6 +36,7 @@ export default {
   attendanceController,
   leaveController,
   makeupPunchController,
+  overtimeController,
   attendanceRuleController,
   attendanceStatsController,
   dashboardController,
@@ -43,6 +46,7 @@ export default {
   fileController,
   testHealth,
   hrAttendanceController,
+  mutationLogController,
   onboardingController,
   permissionController,
   positionController,
