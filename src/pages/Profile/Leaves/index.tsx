@@ -3,14 +3,19 @@ import { Card, Tag, Button, message, Modal } from 'antd';
 import dayjs from 'dayjs';
 import type { LeaveRecord } from '@/services/profile/typings';
 import { getLeaves, cancelLeave } from '@/services/profile';
+import { getBalancesUsingGet } from '@/api/leaveController';
 import { PageContainer } from '@ant-design/pro-components';
 import { PlusOutlined } from '@ant-design/icons';
+import { useNavigate } from '@umijs/max';
 
-const LEAVE_BALANCE = [
-  { type: 'annual', name: '年假余额', used: 5, total: 15, bgColor: '#eff6ff', barColor: '#3b82f6', textColor: '#3b82f6' },
-  { type: 'sick', name: '病假余额', used: 1, total: 10, bgColor: '#fef2f2', barColor: '#ef4444', textColor: '#dc2626' },
-  { type: 'compensatory', name: '调休余额', used: 2, total: 4, bgColor: '#faf5ff', barColor: '#a855f7', textColor: '#9333ea' },
-];
+const BALANCE_COLORS: Record<string, { bg: string; bar: string; text: string }> = {
+  年假: { bg: '#eff6ff', bar: '#3b82f6', text: '#3b82f6' },
+  病假: { bg: '#fef2f2', bar: '#ef4444', text: '#dc2626' },
+  调休: { bg: '#faf5ff', bar: '#a855f7', text: '#9333ea' },
+  事假: { bg: '#fff7ed', bar: '#f97316', text: '#ea580c' },
+  婚假: { bg: '#fdf2f8', bar: '#ec4899', text: '#be185d' },
+  产假: { bg: '#ecfdf5', bar: '#10b981', text: '#047857' },
+};
 
 const LEAVE_TYPE_COLORS: Record<string, { bg: string; color: string }> = {
   年假: { bg: '#dbeafe', color: '#2563eb' },
@@ -21,22 +26,35 @@ const LEAVE_TYPE_COLORS: Record<string, { bg: string; color: string }> = {
   产假: { bg: '#d1fae5', color: '#047857' },
 };
 
-const STATUS_COLORS: Record<number, { bg: string; color: string; text: string }> = {
-  1: { bg: '#fef3c7', color: '#d97706', text: '审批中' },
-  2: { bg: '#dcfce7', color: '#16a34a', text: '已批准' },
-  3: { bg: '#fee2e2', color: '#dc2626', text: '已拒绝' },
-  4: { bg: '#e5e7eb', color: '#6b7280', text: '已撤回' },
+const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
+  审批中: { bg: '#fef3c7', color: '#d97706' },
+  已通过: { bg: '#dcfce7', color: '#16a34a' },
+  已拒绝: { bg: '#fee2e2', color: '#dc2626' },
+  已取消: { bg: '#e5e7eb', color: '#6b7280' },
+  草稿: { bg: '#f3f4f6', color: '#6b7280' },
 };
 
 export default function LeavesPage() {
+  const navigate = useNavigate();
   const [data, setData] = useState<LeaveRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const [balances, setBalances] = useState<any[]>([]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getLeaves({});
-      setData(res.records || []);
+      const [leavesRes, balanceRes] = await Promise.all([
+        getLeaves({}),
+        getBalancesUsingGet({}),
+      ]);
+      setData(leavesRes.records || []);
+      const bd = (balanceRes as any)?.data;
+      const items = bd?.balances || [];
+      setBalances([
+        { leaveType: 1, leaveTypeDesc: '年假', ...items.find((b: any) => b.leaveType === 1), totalDays: items.find((b: any) => b.leaveType === 1)?.totalDays ?? 0, usedDays: items.find((b: any) => b.leaveType === 1)?.usedDays ?? 0, remainingDays: items.find((b: any) => b.leaveType === 1)?.remainingDays ?? 0 },
+        { leaveType: 2, leaveTypeDesc: '病假', ...items.find((b: any) => b.leaveType === 2), totalDays: items.find((b: any) => b.leaveType === 2)?.totalDays ?? 0, usedDays: items.find((b: any) => b.leaveType === 2)?.usedDays ?? 0, remainingDays: items.find((b: any) => b.leaveType === 2)?.remainingDays ?? 0 },
+        { leaveType: 7, leaveTypeDesc: '调休', ...items.find((b: any) => b.leaveType === 7), totalDays: items.find((b: any) => b.leaveType === 7)?.totalDays ?? 0, usedDays: items.find((b: any) => b.leaveType === 7)?.usedDays ?? 0, remainingDays: items.find((b: any) => b.leaveType === 7)?.remainingDays ?? 0 },
+      ]);
     } catch {
       // silent
     } finally {
@@ -72,6 +90,7 @@ export default function LeavesPage() {
             key="apply"
             type="primary"
             icon={<PlusOutlined />}
+            onClick={() => navigate('/attendance/leave')}
             style={{ background: '#3b82f6', borderColor: '#3b82f6', borderRadius: 8, padding: '6px 16px' }}
           >
             申请请假
@@ -80,32 +99,38 @@ export default function LeavesPage() {
       }}
     >
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
-        {LEAVE_BALANCE.map((item) => (
-          <Card
-            key={item.type}
-            style={{ borderRadius: 12, border: 'none', boxShadow: 'none', background: item.bgColor }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-              <span style={{ fontSize: 14, color: '#374151' }}>{item.name}</span>
-              <span style={{ fontSize: 20, fontWeight: 700, color: item.textColor }}>
-                {item.total - item.used}天
-              </span>
-            </div>
-            <div style={{ width: '100%', height: 6, background: '#fff', borderRadius: 3, overflow: 'hidden' }}>
-              <div
-                style={{
-                  width: `${(item.used / item.total) * 100}%`,
-                  height: '100%',
-                  background: item.barColor,
-                  borderRadius: 3,
-                }}
-              />
-            </div>
-            <div style={{ marginTop: 8, fontSize: 12, color: '#9ca3af' }}>
-              已用 {item.used} 天 / 共 {item.total} 天
-            </div>
-          </Card>
-        ))}
+        {balances.map((item: any) => {
+          const colors = BALANCE_COLORS[item.leaveTypeDesc] || BALANCE_COLORS['年假'];
+          const total = item.totalDays ?? 0;
+          const used = item.usedDays ?? 0;
+          const remaining = item.remainingDays ?? 0;
+          return (
+            <Card
+              key={item.leaveType}
+              style={{ borderRadius: 12, border: 'none', boxShadow: 'none', background: colors.bg }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                <span style={{ fontSize: 14, color: '#374151' }}>{item.leaveTypeDesc}余额</span>
+                <span style={{ fontSize: 20, fontWeight: 700, color: colors.text }}>
+                  {remaining}天
+                </span>
+              </div>
+              <div style={{ width: '100%', height: 6, background: '#fff', borderRadius: 3, overflow: 'hidden' }}>
+                <div
+                  style={{
+                    width: total > 0 ? `${(used / total) * 100}%` : '0%',
+                    height: '100%',
+                    background: colors.bar,
+                    borderRadius: 3,
+                  }}
+                />
+              </div>
+              <div style={{ marginTop: 8, fontSize: 12, color: '#9ca3af' }}>
+                已用 {used} 天 / 共 {total} 天
+              </div>
+            </Card>
+          );
+        })}
       </div>
 
       <Card
@@ -120,8 +145,8 @@ export default function LeavesPage() {
           ) : (
             data.map((record) => {
               const typeColor = LEAVE_TYPE_COLORS[record.leaveTypeDesc] || { bg: '#e5e7eb', color: '#6b7280' };
-              const statusColor = STATUS_COLORS[record.status] || STATUS_COLORS[1];
-              const isPending = record.status === 1;
+              const statusColor = STATUS_COLORS[record.statusDesc] || { bg: '#f3f4f6', color: '#6b7280' };
+              const isPending = record.statusDesc === '审批中';
 
               return (
                 <div
@@ -159,11 +184,11 @@ export default function LeavesPage() {
                           border: 'none',
                         }}
                       >
-                        {statusColor.text}
+                        {record.statusDesc}
                       </Tag>
                     </div>
                     <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>
-                      {record.startTime?.slice(0, 10)} ~ {record.endTime?.slice(0, 10)} &nbsp; 共 {record.duration} 天
+                      {record.startTime?.slice(0, 10)} ~ {record.endTime?.slice(0, 10)} &nbsp; 共 {record.leaveDays} 天
                     </div>
                     <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 4 }}>
                       {record.reason}
@@ -178,20 +203,11 @@ export default function LeavesPage() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <Button
-                      type="link"
-                      size="small"
-                      style={{ color: '#3b82f6' }}
-                    >
+                    <Button type="link" size="small" style={{ color: '#3b82f6' }}>
                       查看进度
                     </Button>
                     {isPending && (
-                      <Button
-                        type="link"
-                        danger
-                        size="small"
-                        onClick={() => handleCancel(record)}
-                      >
+                      <Button type="link" danger size="small" onClick={() => handleCancel(record)}>
                         取消申请
                       </Button>
                     )}

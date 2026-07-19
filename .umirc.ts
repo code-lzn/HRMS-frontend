@@ -214,6 +214,12 @@ export default defineConfig({
       component: '../app/user/register/page',
       layout: false,
     },
+    {
+      name: '重置密码',
+      path: '/user/reset-password',
+      component: '../app/user/reset-password/page',
+      layout: false,
+    },
   ],
   npmClient: 'pnpm',
   utoopack: {},

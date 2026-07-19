@@ -1,8 +1,8 @@
 import {
   getBalancesUsingGet,
   queryRequestsUsingGet,
-  submitLeaveRequestUsingPost,
 } from '@/api/leaveController';
+import request from '@/libs/request';
 import {
   CalendarOutlined,
   PlusOutlined,
@@ -91,16 +91,25 @@ const LeaveManagement: React.FC = () => {
   const raw = (listResp as any)?.data?.records;
   const list: LeaveRow[] = Array.isArray(raw) ? raw : [];
 
+  const LEAVE_TYPE_MAP: Record<string, number> = {
+    年假: 1, 病假: 2, 事假: 3, 婚假: 4, 产假: 5, 丧假: 6, 调休: 7,
+  };
+
   // 提交请假
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
       const [start, end] = values.dateRange ?? [];
-      await submitLeaveRequestUsingPost({
-        ...values,
-        startDate: start?.format('YYYY-MM-DD'),
-        endDate: end?.format('YYYY-MM-DD'),
-      } as any);
+      await request('/api/leave/requests', {
+        method: 'POST',
+        data: {
+          leaveType: LEAVE_TYPE_MAP[values.type] ?? 3,
+          startTime: start?.format('YYYY-MM-DDTHH:mm:ss'),
+          endTime: end?.format('YYYY-MM-DDTHH:mm:ss'),
+          reason: values.reason,
+          submitDirectly: true,
+        },
+      });
       message.success('请假申请已提交');
       setModalOpen(false);
       form.resetFields();

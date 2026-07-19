@@ -222,6 +222,9 @@ const ApprovalPending: React.FC = () => {
                       </div>
                       <div style={{ marginTop: 4, fontSize: 13, color: '#999' }}>
                         当前节点：{item.nodeName}
+                        {item.delegatorName && (
+                          <Tag color="purple" style={{ fontSize: 11, marginLeft: 8, borderRadius: 4 }}>{item.delegatorName} 委托</Tag>
+                        )}
                       </div>
                     </div>
                   </div>

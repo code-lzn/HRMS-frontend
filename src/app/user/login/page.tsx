@@ -18,9 +18,17 @@ const UserLoginPage: React.FC = () => {
   const location = useLocation();
   const { setInitialState } = useModel('@@initialState');
 
-  // 获取登录后回跳地址
+  // 获取登录后回跳地址（仅取 path，防止完整 URL 被 navigate 当成相对路径追加）
   const searchParams = new URLSearchParams(location.search);
-  const redirect = searchParams.get('redirect') || '/';
+  let redirect = searchParams.get('redirect') || '/';
+  if (redirect.startsWith('http://') || redirect.startsWith('https://')) {
+    try {
+      const u = new URL(redirect);
+      redirect = u.pathname + u.search;
+    } catch {
+      redirect = '/';
+    }
+  }
 
   /**
    * 提交
@@ -30,14 +38,20 @@ const UserLoginPage: React.FC = () => {
       const res = await userLoginUsingPost(values);
       if (res.data) {
         message.success('登录成功');
-        // 同步更新本地缓存，避免路由切换时再次调 getLoginUser
+        // 同步更新本地缓存（含 JWT Token），避免路由切换时再次调 getLoginUser
         setCachedLoginUser(res.data as API.LoginUserVO);
         // 更新全局登录用户状态
         setInitialState((pre: any) => ({
           ...pre,
           currentUser: res.data,
         }));
-        navigate(redirect, { replace: true });
+        // 首次登录强制修改密码
+        const data = res.data as API.LoginUserVO;
+        if (data.pwdReset === 1) {
+          navigate(`/user/reset-password?redirect=${encodeURIComponent(redirect)}`, { replace: true });
+        } else {
+          navigate(redirect, { replace: true });
+        }
         form.resetFields();
       }
     } catch (e: any) {

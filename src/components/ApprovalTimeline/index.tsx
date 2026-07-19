@@ -1,5 +1,6 @@
 import { NODE_STATUS, NODE_STATUS_COLOR } from '@/constants';
 import { Tag, Timeline } from 'antd';
+import { SwapOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 export interface ApprovalTimelineProps {
@@ -24,9 +25,13 @@ const ApprovalTimeline: React.FC<ApprovalTimelineProps> = ({ nodes, currentNodeO
                 <Tag color={NODE_STATUS_COLOR[node.status ?? 0]} style={{ marginLeft: 8 }}>{node.statusDesc || '-'}</Tag>
               </div>
               <div style={{ color: '#666', fontSize: 13, marginTop: 4 }}>
-                {isDelegated && node.originalApproverName
-                  ? `审批人：${node.approverName}（${node.originalApproverName} 委托）`
-                  : `审批人：${node.approverName || '-'}`}
+                <span>审批人：{node.originalApproverName && isDelegated ? node.originalApproverName : node.approverName || '-'}</span>
+                {isDelegated && node.originalApproverName && (
+                  <Tag color="orange" style={{ marginLeft: 6, fontSize: 11, borderRadius: 4 }}>委托</Tag>
+                )}
+                {isDelegated && node.originalApproverName && (
+                  <span>{node.approverName}</span>
+                )}
               </div>
               {node.comment && <div style={{ color: '#999', fontSize: 12, marginTop: 4, background: '#fafafa', padding: '4px 8px', borderRadius: 4 }}>审批意见：{node.comment}</div>}
               {node.operateTime && <div style={{ color: '#bbb', fontSize: 12, marginTop: 4 }}>{dayjs(node.operateTime).format('YYYY-MM-DD HH:mm')}</div>}

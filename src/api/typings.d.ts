@@ -981,6 +981,7 @@ declare namespace API {
   };
 
   type getEmployeeListUsingGETParams = {
+    all?: boolean;
     current?: number;
     departmentIds?: number[];
     hireDateEnd?: string;
@@ -1247,6 +1248,8 @@ declare namespace API {
   type LoginUserVO = {
     createTime?: string;
     id?: number;
+    pwdReset?: number;
+    token?: string;
     updateTime?: string;
     userAvatar?: string;
     userName?: string;

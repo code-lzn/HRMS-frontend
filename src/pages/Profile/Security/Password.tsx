@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Card, Form, Input, Button, message, Progress } from 'antd';
 import { changePassword } from '@/services/profile';
+import { clearCachedLoginUser } from '@/libs/loginCache';
 import { PageContainer } from '@ant-design/pro-components';
 import { useNavigate } from '@umijs/max';
 
@@ -33,6 +34,8 @@ export default function ChangePasswordPage() {
       message.success('密码修改成功，请重新登录');
       form.resetFields();
       setPwdStrength(null);
+      clearCachedLoginUser();
+      navigate('/user/login', { replace: true });
     } finally {
       setLoading(false);
     }

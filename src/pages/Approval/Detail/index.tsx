@@ -1,5 +1,5 @@
 import { getApprovalDetail, approve, rejectApproval, transferApproval } from '@/api/approvalController';
-import { getEmployeeList } from '@/api/employeeController';
+import request from '@/libs/request';
 import { PageContainer } from '@ant-design/pro-components';
 import { history, useParams } from '@umijs/max';
 import { Button, Card, Divider, Input, Select, Tag, Avatar, message, Modal } from 'antd';
@@ -92,10 +92,10 @@ const ApprovalDetail: React.FC = () => {
       return;
     }
     try {
-      const res = await getEmployeeList({ current: 1, pageSize: 20, keyword: kw });
+      const res = await request('/api/employees/search', { params: { keyword: kw } });
       setEmpOptions(
-        (res?.data?.records || []).map((e: any) => ({
-          label: `${e.name} (${e.departmentName || ''})`,
+        (res?.data || []).map((e: any) => ({
+          label: `${e.name} (${e.positionName || ''})`,
           value: e.id,
         })),
       );

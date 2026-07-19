@@ -95,9 +95,19 @@ function getMockResponse(
   return null;
 }
 
-// 请求拦截器
+// 请求拦截器 — 携带 JWT Token（支持多标签页独立登录）
 myAxios.interceptors.request.use(
   function (config) {
+    // 从 sessionStorage 读取当前标签页的 Token，附加到 Authorization 头
+    try {
+      const token = sessionStorage.getItem('hrms_token');
+      if (token) {
+        if (!config.headers) {
+          config.headers = {} as any;
+        }
+        (config.headers as any)['Authorization'] = `Bearer ${token}`;
+      }
+    } catch {}
     return config;
   },
   function (error) {
@@ -114,7 +124,14 @@ myAxios.interceptors.response.use(
         !response.request?.responseURL?.includes('user/get/login') &&
         !window.location.pathname.includes('/user/login')
       ) {
-        window.location.href = `/user/login?redirect=${window.location.href}`;
+        // 清除当前标签页的登录缓存（不会影响其他标签页）
+        try {
+          sessionStorage.removeItem('hrms_login_user');
+          sessionStorage.removeItem('hrms_token');
+        } catch {}
+        // 用 pathname+search 代替 href，避免登录后 navigate 误将完整 URL 当相对路径
+        const redirectPath = window.location.pathname + window.location.search;
+        window.location.href = `/user/login?redirect=${encodeURIComponent(redirectPath)}`;
       }
     } else if (data?.code !== 0) {
       const err: any = new Error(data?.message ?? '服务器错误');

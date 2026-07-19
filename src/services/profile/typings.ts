@@ -75,9 +75,9 @@ export interface LeaveRecord {
   leaveTypeDesc: string;
   startTime: string;
   endTime: string;
-  duration: number;
+  leaveDays: number;
   reason: string;
-  status: number;       // 1=审批中 2=已通过 3=已拒绝 4=已撤回
+  status: number;
   statusDesc: string;
   approvalProgress: ApprovalProgress;
   createTime: string;

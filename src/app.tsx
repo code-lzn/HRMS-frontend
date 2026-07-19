@@ -35,7 +35,7 @@ export async function getInitialState() {
   };
 
   const currentPath = window.location.pathname;
-  const publicPaths = ['/user/login', '/user/register'];
+  const publicPaths = ['/user/login', '/user/register', '/user/reset-password'];
 
   // 1. 优先从 sessionStorage 恢复
   try {

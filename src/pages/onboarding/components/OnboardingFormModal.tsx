@@ -11,6 +11,7 @@ import {
   Segmented,
   Select,
   Tag,
+  TreeSelect,
   Divider,
   message,
 } from 'antd';
@@ -25,6 +26,7 @@ import {
 import { getDepartmentTreeUsingGet } from '@/api/departmentController';
 import { getPositionListUsingGet } from '@/api/positionController';
 import { getEmployeeListUsingGet } from '@/api/employeeController';
+import { buildTree } from '@/hooks/useDepartmentTree';
 
 interface OnboardingFormProps {
   open: boolean;
@@ -58,7 +60,7 @@ const OnboardingFormModal: React.FC<OnboardingFormProps> = ({
   const [selectedPositionId, setSelectedPositionId] = React.useState<number | undefined>();
   const [previewEmpNo, setPreviewEmpNo] = React.useState<string>('');
 
-  const [departmentOptions, setDepartmentOptions] = useState<{ value: number; label: string }[]>([]);
+  const [departmentTree, setDepartmentTree] = useState<{ value: number; title: string; children?: any[] }[]>([]);
   const [positionOptions, setPositionOptions] = useState<PositionOption[]>([]);
   const [employeeOptions, setEmployeeOptions] = useState<EmployeeOption[]>([]);
 
@@ -71,15 +73,15 @@ const OnboardingFormModal: React.FC<OnboardingFormProps> = ({
     getDepartmentTreeUsingGet()
       .then((res) => {
         if (res.code === 0 && res.data) {
-          const flatten = (nodes: API.DepartmentTreeNode[]): { value: number; label: string }[] => {
-            const result: { value: number; label: string }[] = [];
-            for (const n of nodes) {
-              if (n.id != null) result.push({ value: n.id, label: n.name || '' });
-              if (n.children) result.push(...flatten(n.children));
-            }
-            return result;
-          };
-          setDepartmentOptions(flatten(res.data));
+          // 后端返回平铺列表，先组装成树再转为 TreeSelect 格式
+          const tree = buildTree(res.data);
+          const toTreeData = (nodes: API.DepartmentTreeNode[]): any[] =>
+            nodes.map((n) => ({
+              value: n.id as number,
+              title: n.name || '',
+              children: n.children?.length ? toTreeData(n.children) : undefined,
+            }));
+          setDepartmentTree(toTreeData(tree));
         }
       })
       .catch(() => {});
@@ -364,14 +366,15 @@ const OnboardingFormModal: React.FC<OnboardingFormProps> = ({
               label="所属部门"
               rules={[{ required: true, message: '请选择所属部门' }]}
             >
-              <Select
+              <TreeSelect
                 showSearch
                 placeholder="请选择部门"
                 size="large"
-                options={departmentOptions}
+                treeData={departmentTree}
                 onChange={handleDepartmentChange as any}
-                filterOption={(input, option) =>
-                  (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
+                treeDefaultExpandAll
+                filterTreeNode={(input, node) =>
+                  (node?.title as string)?.toLowerCase().includes(input.toLowerCase())
                 }
               />
             </Form.Item>

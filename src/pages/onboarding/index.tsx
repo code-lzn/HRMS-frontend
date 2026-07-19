@@ -25,7 +25,7 @@ import dayjs from 'dayjs';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import OnboardingFormDrawer from './components/OnboardingFormModal';
 import { OnboardingRecord } from './mock';
-import { listUsingGet, confirmJoinUsingPost } from '@/api/onboardingController';
+import { listUsingGet, confirmJoinUsingPost, cancelUsingPost1 } from '@/api/onboardingController';
 
 const STATUS_BG_COLORS: Record<number, string> = {
   [ONBOARDING_STATUS.DRAFT]: '#f9fafb',
@@ -212,7 +212,16 @@ const OnboardingPage: React.FC = () => {
                   Modal.confirm({
                     title: '确认撤回',
                     content: '撤回后申请将变更为草稿状态',
-                    onOk: () => message.success('已撤回'),
+                    onOk: async () => {
+                      try {
+                        await cancelUsingPost1({ id: record.id });
+                        message.success('已撤回');
+                        actionRef.current?.reload();
+                        loadStats();
+                      } catch {
+                        message.error('撤回失败');
+                      }
+                    },
                   });
                 }}
                 style={{ padding: 0 }}
