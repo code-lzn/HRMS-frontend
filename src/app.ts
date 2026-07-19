@@ -2,6 +2,7 @@ import { getCurrentPermissionsUsingGet } from '@/api/permissionController';
 import { getLoginUserUsingGet, userLogoutUsingPost } from '@/api/userController';
 import RightContent from '@/components/RightContent';
 import React from 'react';
+import '@/global.css';
 
 const originalError = console.error;
 console.error = (...args: any[]) => {
@@ -48,7 +49,6 @@ export async function getInitialState() {
       getCurrentPermissionsUsingGet(),
     ]);
 
-    // 1. 用户基本信息
     if (userRes.status === 'fulfilled' && userRes.value?.data) {
       const userData = userRes.value.data;
       initialState.currentUser = userData;
@@ -56,7 +56,6 @@ export async function getInitialState() {
       initialState.avatar = userData.userAvatar || '';
     }
 
-    // 2. 权限 API 数据暂存
     const permOk = permRes.status === 'fulfilled' && permRes.value?.data;
     if (permOk) {
       const pd = permRes.value.data;
@@ -66,36 +65,30 @@ export async function getInitialState() {
       initialState.roleCode = pd.roleCode ?? '';
     }
 
-    // 3. 统一规范化：确保 currentUser 与 initialState 顶层完全一致
     if (initialState.currentUser) {
       const cu = initialState.currentUser;
       const pd: any = permOk ? permRes.value.data : null;
 
-      // 3a. 决定 roleId（唯一权威：roleName > 权限API > userAPI > 兜底5）
       const resolvedRoleId: number =
         (pd?.roleId != null ? Number(pd.roleId) : 0) ||
         Number(cu.roleId) ||
         ROLE_NAME_TO_ID[cu.roleName] ||
         5;
 
-      // 3b. roleCode 由 roleId 推导
       const resolvedRoleCode: string =
         pd?.roleCode || cu.roleCode || ROLE_ID_TO_CODE[resolvedRoleId] || 'employee';
 
-      // 3c. 权限码：API + user + 角色默认 三者取并集，防止后端返回不完整导致丢权限
       const defaultCodes: string[] = ROLE_DEFAULT_PERMISSIONS[resolvedRoleId] ?? [];
       const apiCodes: string[] = (pd && Array.isArray(pd.permissionCodes)) ? pd.permissionCodes : [];
       const userCodes: string[] = (cu.permissionCodes && Array.isArray(cu.permissionCodes)) ? cu.permissionCodes : [];
       const mergedCodes: string[] = [...new Set([...apiCodes, ...userCodes, ...defaultCodes])];
       const resolvedCodes: string[] = mergedCodes;
 
-      // 3d. 写入 currentUser
       cu.roleId = resolvedRoleId;
-      cu.dataScope = resolvedRoleId;    // 强制与 roleId 一致（解决 dataScope 为 1 时跳过条件判断的bug）
+      cu.dataScope = resolvedRoleId;
       cu.roleCode = resolvedRoleCode;
       cu.permissionCodes = resolvedCodes;
 
-      // 4. 强制回写 initialState 顶层（无条件，确保与 currentUser 100% 一致）
       initialState.dataScope = resolvedRoleId;
       initialState.roleCode = resolvedRoleCode;
       initialState.permissionCodes = resolvedCodes;
@@ -103,7 +96,6 @@ export async function getInitialState() {
         initialState.dataScopeDesc = pd?.dataScopeDesc || cu.dataScopeDesc || '';
       }
     }
-    // currentUser 不存在 → 未登录，保持默认值
   } catch (error) {
     // 未登录，保持默认
   }
@@ -116,6 +108,9 @@ export const layout = () => {
     menu: {
       locale: false,
     },
+    headerRender: false,
+    menuHeaderRender: false,
+    headerHeight: 56,
     rightRender: (initialState: any, setInitialState: any, runtimeConfig: any) => {
       return React.createElement(RightContent, {
         initialState,
