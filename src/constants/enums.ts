@@ -137,6 +137,32 @@ export const VERIFY_TYPE_MAP: Record<number, string> = {
   2: '登录密码',
 };
 
+// ==================== 考勤班次类型 ====================
+export const SHIFT_TYPE_MAP: Record<number, string> = {
+  1: '固定班',
+  2: '弹性班',
+  3: '排班制',
+};
+
+export const SHIFT_TYPE_OPTIONS = [
+  { label: '固定班', value: 1 },
+  { label: '弹性班', value: 2 },
+  { label: '排班制', value: 3 },
+];
+
+// ==================== 考勤规则类型 ====================
+export const ATTENDANCE_RULE_TYPE_MAP: Record<number, string> = {
+  1: '按部门',
+  2: '按职位',
+  3: '按个人',
+};
+
+export const ATTENDANCE_RULE_TYPE_OPTIONS = [
+  { label: '按部门', value: 1 },
+  { label: '按职位', value: 2 },
+  { label: '按个人', value: 3 },
+];
+
 // ==================== 角色常量 ====================
 export const ROLES = {
   ADMIN: 'admin',
