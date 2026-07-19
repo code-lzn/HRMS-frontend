@@ -80,6 +80,9 @@ const Statistics: React.FC = () => {
   const chartRef1 = useRef<HTMLDivElement>(null);
   const chartRef2 = useRef<HTMLDivElement>(null);
   const chartRef3 = useRef<HTMLDivElement>(null);
+  const chartInstance1 = useRef<echarts.ECharts | null>(null);
+  const chartInstance2 = useRef<echarts.ECharts | null>(null);
+  const chartInstance3 = useRef<echarts.ECharts | null>(null);
 
   useEffect(() => {
     if (isPersonal) {
@@ -87,19 +90,22 @@ const Statistics: React.FC = () => {
     } else {
       fetchDepartmentList();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (!isPersonal && departments.length > 0) {
       fetchAdminData();
     }
-  }, [selectedMonth, selectedDept, departments, isPersonal]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMonth, selectedDept, isPersonal, departments]);
 
   useEffect(() => {
     if (isPersonal) {
       fetchPersonalData();
     }
-  }, [selectedMonth]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMonth, isPersonal]);
 
   const fetchDepartmentList = async () => {
     try {
@@ -122,9 +128,9 @@ const Statistics: React.FC = () => {
     setLoading(true);
     try {
       const [trendRes, leaveRes, lateEarlyRes, deptStatsRes] = await Promise.all([
-        getAttendanceTrendUsingGet({ departmentId: selectedDept ? Number(selectedDept) : 0, months: 6 }),
-        getLeaveTypeDistributionUsingGet({ month: selectedMonth }),
-        getLateEarlyRankingUsingGet({ month: selectedMonth }),
+        getAttendanceTrendUsingGet({ departmentId: selectedDept ? Number(selectedDept) : 0, months: 6, endMonth: selectedMonth }),
+        getLeaveTypeDistributionUsingGet({ month: selectedMonth, departmentId: selectedDept ? Number(selectedDept) : undefined }),
+        getLateEarlyRankingUsingGet({ month: selectedMonth, departmentId: selectedDept ? Number(selectedDept) : undefined }),
         getDepartmentStatsUsingGet({ month: selectedMonth }),
       ]);
       if (trendRes.code === 0 && trendRes.data) {
@@ -139,6 +145,7 @@ const Statistics: React.FC = () => {
       }
       if (deptStatsRes.code === 0 && deptStatsRes.data) {
         setLateEarlyData(deptStatsRes.data.map((d: DepartmentStats) => ({
+          departmentId: d.departmentId,
           departmentName: d.departmentName, lateCount: d.lateCount, earlyCount: d.earlyCount,
         })));
         setDepartmentStats(deptStatsRes.data);
@@ -182,93 +189,106 @@ const Statistics: React.FC = () => {
     finally { setLoading(false); }
   };
 
-  // 出勤率趋势图
+  // 出勤率趋势图 — 管理员 & 个人通用
   useEffect(() => {
-    if (chartRef1.current && trendData.months.length > 0) {
-      const chart = echarts.init(chartRef1.current);
-      chart.setOption({
-        title: { text: '近6个月出勤率趋势', left: 'center', fontSize: 14 },
-        xAxis: { type: 'category', data: trendData.months },
-        yAxis: { type: 'value', max: 100, axisLabel: { formatter: '{value}%' } },
-        series: [{
-          type: 'line', data: trendData.rates, smooth: true,
-          lineStyle: { color: '#1890ff', width: 3 },
-          areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(24,144,255,0.3)' },
-            { offset: 1, color: 'rgba(24,144,255,0.05)' },
-          ]) },
-        }],
-      });
-      return () => chart.dispose();
+    if (!chartRef1.current || trendData.months.length === 0) return;
+    if (!chartInstance1.current) {
+      chartInstance1.current = echarts.init(chartRef1.current);
     }
+    chartInstance1.current.setOption({
+      title: { text: '近6个月出勤率趋势', left: 'center', fontSize: 14 },
+      xAxis: { type: 'category', data: trendData.months },
+      yAxis: { type: 'value', max: 100, axisLabel: { formatter: '{value}%' } },
+      series: [{
+        type: 'line', data: trendData.rates, smooth: true,
+        lineStyle: { color: '#1890ff', width: 3 },
+        areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+          { offset: 0, color: 'rgba(24,144,255,0.3)' },
+          { offset: 1, color: 'rgba(24,144,255,0.05)' },
+        ]) },
+      }],
+    }, true);
+    return () => {
+      chartInstance1.current?.dispose();
+      chartInstance1.current = null;
+    };
   }, [trendData]);
 
   // 每日状态柱状图（个人视图）
   useEffect(() => {
-    if (isPersonal && chartRef2.current && dailyRecords.length > 0) {
-      const chart = echarts.init(chartRef2.current);
-      const dates = dailyRecords.map((r: any) => dayjs(r.attendanceDate).format('MM-DD'));
-      const statusTexts = dailyRecords.map((r: any) => {
-        const key = STATUS_NUM_MAP[r.status] || 'NORMAL';
-        return STATUS_TEXT_MAP[key] || '未知';
-      });
-      const statusCounts: Record<string, number> = {};
-      statusTexts.forEach((s: string) => { statusCounts[s] = (statusCounts[s] || 0) + 1; });
-
-      chart.setOption({
-        title: { text: `${selectedMonth} 每日出勤状态`, left: 'center', fontSize: 14 },
-        tooltip: { trigger: 'axis' },
-        xAxis: { type: 'category', data: dates, axisLabel: { rotate: 45, fontSize: 10 } },
-        yAxis: { type: 'value', minInterval: 1 },
-        series: [{
-          type: 'bar',
-          data: dailyRecords.map((r: any) => ({
-            value: 1,
-            itemStyle: { color: STATUS_COLOR_MAP[STATUS_NUM_MAP[r.status]] || '#bfbfbf' },
-          })),
-          barMaxWidth: 20,
-        }],
-        grid: { bottom: 60 },
-      });
-      return () => chart.dispose();
+    if (!isPersonal || !chartRef2.current || dailyRecords.length === 0) return;
+    if (!chartInstance2.current) {
+      chartInstance2.current = echarts.init(chartRef2.current);
     }
+    const dates = dailyRecords.map((r: any) => dayjs(r.attendanceDate).format('MM-DD'));
+    chartInstance2.current.setOption({
+      title: { text: `${selectedMonth} 每日出勤状态`, left: 'center', fontSize: 14 },
+      tooltip: { trigger: 'axis' },
+      xAxis: { type: 'category', data: dates, axisLabel: { rotate: 45, fontSize: 10 } },
+      yAxis: { type: 'value', minInterval: 1 },
+      series: [{
+        type: 'bar',
+        data: dailyRecords.map((r: any) => ({
+          value: 1,
+          itemStyle: { color: STATUS_COLOR_MAP[STATUS_NUM_MAP[r.status]] || '#bfbfbf' },
+        })),
+        barMaxWidth: 20,
+      }],
+      grid: { bottom: 60 },
+    }, true);
+    return () => {
+      chartInstance2.current?.dispose();
+      chartInstance2.current = null;
+    };
   }, [dailyRecords, isPersonal, selectedMonth]);
 
   // 管理员：请假类型饼图
   useEffect(() => {
-    if (!isPersonal && chartRef2.current && leaveData.leaveTypes.length > 0) {
-      const chart = echarts.init(chartRef2.current);
-      chart.setOption({
-        title: { text: '当月请假类型占比', left: 'center', fontSize: 14 },
-        series: [{
-          type: 'pie', radius: ['40%', '70%'],
-          data: leaveData.leaveTypes.map((name, i) => ({
-            name, value: leaveData.percentages[i] || 0,
-            itemStyle: { color: ['#52c41a', '#faad14', '#1890ff', '#722ed1', '#ff4d4f', '#fa8c16', '#bfbfbf'][i % 7] },
-          })),
-          label: { formatter: '{b}: {c}%' },
-        }],
-      });
-      return () => chart.dispose();
+    if (isPersonal || !chartRef2.current || leaveData.leaveTypes.length === 0) return;
+    if (!chartInstance2.current) {
+      chartInstance2.current = echarts.init(chartRef2.current);
     }
+    chartInstance2.current.setOption({
+      title: { text: '当月请假类型占比', left: 'center', fontSize: 14 },
+      series: [{
+        type: 'pie', radius: ['40%', '70%'],
+        data: leaveData.leaveTypes.map((name, i) => ({
+          name, value: leaveData.percentages[i] || 0,
+          itemStyle: { color: ['#52c41a', '#faad14', '#1890ff', '#722ed1', '#ff4d4f', '#fa8c16', '#bfbfbf'][i % 7] },
+        })),
+        label: { formatter: '{b}: {c}%' },
+      }],
+    }, true);
+    return () => {
+      chartInstance2.current?.dispose();
+      chartInstance2.current = null;
+    };
   }, [leaveData, isPersonal]);
 
   // 管理员：迟到早退柱状图
   useEffect(() => {
-    if (!isPersonal && chartRef3.current && lateEarlyData.length > 0) {
-      const chart = echarts.init(chartRef3.current);
-      chart.setOption({
-        title: { text: '各部门迟到早退人次', left: 'center', fontSize: 14 },
-        xAxis: { type: 'category', data: lateEarlyData.map((d) => d.departmentName) },
-        yAxis: { type: 'value' },
-        series: [
-          { name: '迟到', type: 'bar', data: lateEarlyData.map((d) => d.lateCount), itemStyle: { color: '#faad14' } },
-          { name: '早退', type: 'bar', data: lateEarlyData.map((d) => d.earlyCount), itemStyle: { color: '#fa8c16' } },
-        ],
-      });
-      return () => chart.dispose();
+    if (isPersonal || !chartRef3.current || lateEarlyData.length === 0) return;
+    const filtered = selectedDept
+      ? lateEarlyData.filter((d: any) => String(d.departmentId) === selectedDept)
+      : lateEarlyData;
+    if (filtered.length === 0) return;
+    if (!chartInstance3.current) {
+      chartInstance3.current = echarts.init(chartRef3.current);
     }
-  }, [lateEarlyData, isPersonal]);
+    chartInstance3.current.setOption({
+      title: { text: '各部门迟到早退人次', left: 'center', fontSize: 14 },
+      xAxis: { type: 'category', data: filtered.map((d: any) => d.departmentName) },
+      yAxis: { type: 'value' },
+      series: [
+        { name: '迟到', type: 'bar', data: filtered.map((d: any) => d.lateCount), itemStyle: { color: '#faad14' } },
+        { name: '早退', type: 'bar', data: filtered.map((d: any) => d.earlyCount), itemStyle: { color: '#fa8c16' } },
+      ],
+    }, true);
+    return () => {
+      chartInstance3.current?.dispose();
+      chartInstance3.current = null;
+    };
+  }, [lateEarlyData, isPersonal, selectedDept]);
 
   const deptColumns = [
     { title: '部门名称', dataIndex: 'departmentName', key: 'departmentName' },
@@ -369,12 +389,18 @@ const Statistics: React.FC = () => {
             <Select placeholder="选择部门" style={{ width: 150 }} value={selectedDept}
               onChange={setSelectedDept} allowClear options={departments} />
           )}
-          <Select placeholder="选择月份" style={{ width: 120 }} value={selectedMonth}
-            onChange={setSelectedMonth}
-            options={Array.from({ length: 6 }, (_, i) => {
-              const date = dayjs().subtract(i, 'month');
-              return { value: date.format('YYYY-MM'), label: date.format('YYYY年M月') };
-            })} />
+          <Select placeholder="选择月份" style={{ width: 150 }} value={selectedMonth}
+            onChange={setSelectedMonth} showSearch
+            options={(() => {
+              const currentYear = dayjs().year();
+              const opts: { value: string; label: string }[] = [];
+              for (let y = currentYear - 5; y <= currentYear + 5; y++) {
+                for (let m = 1; m <= 12; m++) {
+                  opts.push({ value: `${y}-${String(m).padStart(2, '0')}`, label: `${y}年${m}月` });
+                }
+              }
+              return opts;
+            })()} />
           <Button type="primary" icon={<DownloadOutlined />}>导出Excel</Button>
         </Space>
       </div>
@@ -433,16 +459,31 @@ const Statistics: React.FC = () => {
         {!isPersonal && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 24 }}>
             <Card style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-              <div ref={chartRef1} style={{ height: 280 }} />
+              <div ref={chartRef1} key={`trend-${isPersonal}`} style={{ height: 280 }} />
             </Card>
             <Card style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-              <div ref={chartRef2} style={{ height: 280 }} />
+              <div style={{ position: 'relative', height: 280 }}>
+                <div ref={chartRef2} key={`leave-${isPersonal}`} style={{ height: 280 }} />
+                {leaveData.leaveTypes.length === 0 && !loading && (
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: 16, pointerEvents: 'none' }}>
+                    暂无请假
+                  </div>
+                )}
+              </div>
             </Card>
             <Card style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-              <div ref={chartRef3} style={{ height: 280 }} />
+              <div style={{ position: 'relative', height: 280 }}>
+                <div ref={chartRef3} key={`lateEarly-${isPersonal}`} style={{ height: 280 }} />
+                {lateEarlyData.length === 0 && !loading && (
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: 16, pointerEvents: 'none' }}>
+                    暂无数据
+                  </div>
+                )}
+              </div>
             </Card>
             <Card title="部门考勤概况" style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-              <Table columns={deptColumns} dataSource={departmentStats}
+              <Table columns={deptColumns}
+                dataSource={selectedDept ? departmentStats.filter(d => String(d.departmentId) === selectedDept) : departmentStats}
                 rowKey="departmentId" pagination={false} size="small" />
             </Card>
           </div>

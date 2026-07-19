@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Card, Button, Tag, Table, Space, Spin, message, Select, Alert } from 'antd';
+import { Card, Button, Tag, Table, Space, Spin, message, Select, Alert, Modal, Form, DatePicker, TimePicker, Input, Radio } from 'antd';
 import { ClockCircleOutlined, CalendarOutlined, PlusOutlined, CheckCircleOutlined } from '@ant-design/icons';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import usePermission from '@/hooks/usePermission';
 import request from '@/libs/request';
 import { getDepartmentTreeUsingGet } from '@/api/departmentController';
+import { getCalendarUsingGet } from '@/api/attendanceController';
+import { applyUsingPost1 as applyMakeupPunch } from '@/api/makeupPunchController';
 
 const STATUS_COLOR_MAP: Record<string, string> = {
   NORMAL: '#52c41a',
@@ -65,6 +67,7 @@ const Attendance: React.FC = () => {
   useEffect(() => {
     fetchTodayStatus();
     fetchDepartmentList();
+    loadCalendarData(currentMonth);
   }, []);
 
   const fetchDepartmentList = async () => {
@@ -113,11 +116,9 @@ const Attendance: React.FC = () => {
       if (data.code === 0) {
         message.success(type === 'in' ? '上班打卡成功' : '下班打卡成功');
         fetchTodayStatus();
-      } else {
-        message.error(data.message || '打卡失败');
       }
-    } catch (e) {
-      message.error('打卡失败');
+    } catch (e: any) {
+      message.error(e.message || '打卡失败');
     }
   };
 
@@ -129,6 +130,21 @@ const Attendance: React.FC = () => {
   const [attendanceData, setAttendanceData] = useState<{ list: any[]; total: number }>({ list: [], total: 0 });
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+
+  // 补卡申请
+  const [makeupModalOpen, setMakeupModalOpen] = useState(false);
+  const [makeupForm] = Form.useForm();
+  const [makeupLoading, setMakeupLoading] = useState(false);
+  const [makeupAvailableDates, setMakeupAvailableDates] = useState<string[]>([]);
+
+  const loadCalendarData = useCallback(async (month: string) => {
+    try {
+      const res = await getCalendarUsingGet({ month });
+      if (res?.code === 0 && res.data) {
+        setMakeupAvailableDates(res.data.makeupAvailableDates || []);
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   const fetchAttendanceData = useCallback(async () => {
     setLoading(true);
@@ -359,7 +375,14 @@ const Attendance: React.FC = () => {
               )}
               <Button onClick={handlePrevMonth}>上月</Button>
               <Button onClick={handleNextMonth}>下月</Button>
-              <Button type="primary" icon={<PlusOutlined />} onClick={() => message.info('请前往补卡申请页面提交补卡')}>
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => {
+                if (makeupAvailableDates.length > 0) {
+                  makeupForm.setFieldsValue({
+                    punchDate: dayjs(makeupAvailableDates[0]),
+                  });
+                }
+                setMakeupModalOpen(true);
+              }}>
                 申请补卡
               </Button>
             </Space>
@@ -399,6 +422,72 @@ const Attendance: React.FC = () => {
             style={{ borderRadius: 8 }}
           />
         </Card>
+
+        {/* 申请补卡 Modal */}
+        <Modal
+          title="申请补卡"
+          open={makeupModalOpen}
+          onOk={async () => {
+            try {
+              const values = await makeupForm.validateFields();
+              setMakeupLoading(true);
+              await applyMakeupPunch({
+                punchDate: values.punchDate.format('YYYY-MM-DD'),
+                punchTime: values.punchTime?.format('HH:mm'),
+                punchType: values.punchType,
+                reason: values.reason,
+              });
+              message.success('补卡申请已提交');
+              setMakeupModalOpen(false);
+              makeupForm.resetFields();
+              loadCalendarData(currentMonth);
+            } catch (e: any) {
+              if (e.message) message.error(e.message);
+            } finally {
+              setMakeupLoading(false);
+            }
+          }}
+          onCancel={() => {
+            setMakeupModalOpen(false);
+            makeupForm.resetFields();
+          }}
+          confirmLoading={makeupLoading}
+          destroyOnClose
+        >
+          <Form form={makeupForm} layout="vertical" style={{ marginTop: 16 }}>
+            <Form.Item
+              name="punchDate"
+              label="补卡日期"
+              rules={[{ required: true, message: '请选择补卡日期' }]}
+            >
+              <DatePicker style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item
+              name="punchType"
+              label="打卡类型"
+              rules={[{ required: true, message: '请选择打卡类型' }]}
+            >
+              <Radio.Group>
+                <Radio value={0}>上班打卡</Radio>
+                <Radio value={1}>下班打卡</Radio>
+              </Radio.Group>
+            </Form.Item>
+            <Form.Item
+              name="punchTime"
+              label="打卡时间"
+              rules={[{ required: true, message: '请选择打卡时间' }]}
+            >
+              <TimePicker style={{ width: '100%' }} format="HH:mm" />
+            </Form.Item>
+            <Form.Item
+              name="reason"
+              label="补卡原因"
+              rules={[{ required: true, message: '请输入补卡原因' }]}
+            >
+              <Input.TextArea rows={3} placeholder="请输入补卡原因" />
+            </Form.Item>
+          </Form>
+        </Modal>
       </Spin>
     </div>
   );

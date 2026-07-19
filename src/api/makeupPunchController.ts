@@ -50,3 +50,35 @@ export async function getMyMakeupPunchesUsingGet(options?: {
     },
   );
 }
+
+/** getApprovalProgress GET /api/attendance/makeup/${param0}/progress */
+export async function getMakeupProgressUsingGet(
+  params: { id: number },
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseMakeupPunchProgressVO_>(
+    `/api/attendance/makeup/${param0}/progress`,
+    {
+      method: 'GET',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}
+
+/** cancel POST /api/attendance/makeup/cancel/${param0} */
+export async function cancelMakeupUsingPost(
+  params: { id: number },
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseBoolean_>(
+    `/api/attendance/makeup/cancel/${param0}`,
+    {
+      method: 'POST',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}

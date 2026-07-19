@@ -519,6 +519,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseMakeupPunchProgressVO_ = {
+    code?: number;
+    data?: MakeupPunchProgressVO;
+    message?: string;
+  };
+
   type BaseResponseMapStringLong_ = {
     code?: number;
     data?: Record<string, any>;
@@ -1090,6 +1096,8 @@ declare namespace API {
     departmentId: number;
     /** months */
     months?: number;
+    /** endMonth */
+    endMonth?: string;
   };
 
   type getBatchDetailUsingGETParams = {
@@ -1178,11 +1186,15 @@ declare namespace API {
   type getLateEarlyRankingUsingGETParams = {
     /** month */
     month: string;
+    /** departmentId */
+    departmentId?: number;
   };
 
   type getLeaveTypeDistributionUsingGETParams = {
     /** month */
     month: string;
+    /** departmentId */
+    departmentId?: number;
   };
 
   type getMonthRecordsUsingGETParams = {
@@ -1373,6 +1385,7 @@ declare namespace API {
     leaveType?: number;
     reason?: string;
     startDate?: string;
+    timeSlot?: number;
   };
 
   type LeaveBalanceVO = {
@@ -1408,6 +1421,8 @@ declare namespace API {
     startDate?: string;
     status?: number;
     statusText?: string;
+    timeSlot?: number;
+    timeSlotText?: string;
     totalDays?: number;
   };
 
@@ -1519,6 +1534,59 @@ declare namespace API {
     reason?: string;
     status?: number;
     statusText?: string;
+  };
+
+  type MakeupPunchProgressVO = {
+    makeupPunch?: MakeupPunchVO;
+    progressNodes?: MakeupPunchProgressNode[];
+  };
+
+  type OvertimeApplyRequest = {
+    overtimeDate?: string;
+    startTime?: string;
+    endTime?: string;
+    overtimeHours?: number;
+    overtimeType?: number;
+    reason?: string;
+  };
+
+  type OvertimeVO = {
+    approveComment?: string;
+    approveTime?: string;
+    approverId?: number;
+    createTime?: string;
+    employeeId?: number;
+    employeeName?: string;
+    endTime?: string;
+    id?: number;
+    overtimeDate?: string;
+    overtimeHours?: number;
+    overtimeType?: number;
+    overtimeTypeText?: string;
+    reason?: string;
+    startTime?: string;
+    status?: number;
+    statusText?: string;
+  };
+
+  type BaseResponseListOvertimeVO_ = {
+    code?: number;
+    data?: OvertimeVO[];
+    message?: string;
+  };
+
+  type BaseResponseOvertimeVO_ = {
+    code?: number;
+    data?: OvertimeVO;
+    message?: string;
+  };
+
+  type MakeupPunchProgressNode = {
+    nodeName?: string;
+    status?: number;
+    operatorName?: string;
+    operateTime?: string;
+    comment?: string;
   };
 
   type MapStringLong_ = true;
