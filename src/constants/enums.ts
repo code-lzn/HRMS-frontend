@@ -80,6 +80,89 @@ export const LOCKED_FIELD_MESSAGES: Record<string, string> = {
   workLocation: '修改工作地点需走调岗流程',
 };
 
+// ==================== 工资项目类型 ====================
+export const SALARY_ITEM_TYPE_MAP: Record<number, string> = {
+  1: '固定收入',
+  2: '变动收入',
+  3: '考勤扣款',
+  4: '社保扣除',
+  5: '公积金扣除',
+  6: '个税',
+};
+
+// ==================== 账套适用范围 ====================
+export const SCOPE_TYPE_MAP: Record<number, string> = {
+  1: '部门',
+  2: '职位',
+  3: '职级',
+};
+
+// ==================== 核算批次状态 ====================
+export const BATCH_STATUS_MAP: Record<number, { label: string; color: string }> = {
+  1: { label: '草稿', color: 'default' },
+  2: { label: '计算中', color: 'processing' },
+  3: { label: '待确认', color: 'warning' },
+  4: { label: '审批中', color: 'orange' },
+  5: { label: '已通过', color: 'success' },
+  6: { label: '已驳回', color: 'error' },
+  7: { label: '已发放', color: 'blue' },
+};
+
+// ==================== 异常级别 ====================
+export const ABNORMAL_LEVEL_MAP: Record<number, { label: string; color: string }> = {
+  0: { label: '正常', color: 'default' },
+  1: { label: '黄色预警', color: 'warning' },
+  2: { label: '红色预警', color: 'error' },
+  3: { label: '红色阻断', color: 'red' },
+};
+
+// ==================== 调薪变更类型 ====================
+export const SALARY_CHANGE_TYPE_MAP: Record<number, string> = {
+  1: '调薪',
+  2: '账套变更',
+  3: '基数调整',
+  4: '转正调薪',
+  5: '调岗调薪',
+};
+
+// ==================== 个税计征标志 ====================
+export const TAXABLE_MAP: Record<number, string> = {
+  0: '不计税',
+  1: '计税',
+};
+
+// ==================== 工资条验证类型 ====================
+export const VERIFY_TYPE_MAP: Record<number, string> = {
+  1: '短信验证码',
+  2: '登录密码',
+};
+
+// ==================== 考勤班次类型 ====================
+export const SHIFT_TYPE_MAP: Record<number, string> = {
+  1: '固定班',
+  2: '弹性班',
+  3: '排班制',
+};
+
+export const SHIFT_TYPE_OPTIONS = [
+  { label: '固定班', value: 1 },
+  { label: '弹性班', value: 2 },
+  { label: '排班制', value: 3 },
+];
+
+// ==================== 考勤规则类型 ====================
+export const ATTENDANCE_RULE_TYPE_MAP: Record<number, string> = {
+  1: '按部门',
+  2: '按职位',
+  3: '按个人',
+};
+
+export const ATTENDANCE_RULE_TYPE_OPTIONS = [
+  { label: '按部门', value: 1 },
+  { label: '按职位', value: 2 },
+  { label: '按个人', value: 3 },
+];
+
 // ==================== 角色常量 ====================
 export const ROLES = {
   ADMIN: 'admin',

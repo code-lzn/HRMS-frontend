@@ -1,4 +1,7 @@
-import { getEmployeeListUsingGet } from '@/api/employeeController';
+import {
+  getEmployeeListUsingGet,
+  getExportUrl,
+} from '@/api/employeeController';
 import ExportButton from '@/components/ExportButton';
 import StatusTag from '@/components/StatusTag';
 import { useDepartmentTree } from '@/hooks/useDepartmentTree';
@@ -104,9 +107,12 @@ const EmployeeList: React.FC = () => {
         current: page,
         pageSize,
       });
-      setEmployees(((res.data as any)?.records ?? []) as EmployeeRow[]);
-      setTotal((res.data as any)?.total ?? 0);
-    } catch {
+      const data = (res as any)?.data ?? res;
+      setEmployees((data?.records ?? []) as EmployeeRow[]);
+      setTotal(data?.total ?? 0);
+    } catch (e: any) {
+      console.error('员工列表加载失败:', e);
+      message.error(e?.message || '加载失败');
       setEmployees([]);
       setTotal(0);
     } finally {
@@ -138,7 +144,38 @@ const EmployeeList: React.FC = () => {
 
   // ---- 导出 ----
   const handleExport = async () => {
-    message.info('导出功能需要后端提供文件下载接口');
+    const params = new URLSearchParams();
+    if (keyword) params.set('keyword', keyword);
+    if (departmentIds.length)
+      departmentIds.forEach((id) => params.append('departmentIds', String(id)));
+    if (positionIds.length)
+      positionIds.forEach((id) => params.append('positionIds', String(id)));
+    if (statuses.length)
+      statuses.forEach((s) => params.append('statuses', String(s)));
+    if (hireDateRange?.[0]) params.set('hireDateStart', hireDateRange[0]);
+    if (hireDateRange?.[1]) params.set('hireDateEnd', hireDateRange[1]);
+
+    try {
+      const res = await fetch(
+        `http://localhost:8123${getExportUrl()}?${params.toString()}`,
+        {
+          credentials: 'include',
+        },
+      );
+      if (!res.ok) throw new Error('导出失败');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `员工档案_${dayjs().format('YYYYMMDD')}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      message.success('导出成功');
+    } catch {
+      message.error('导出失败');
+    }
   };
 
   // ---- 列 ----
@@ -278,7 +315,7 @@ const EmployeeList: React.FC = () => {
               关键词
             </Typography.Text>
             <Input
-              placeholder="姓名/工号/手机号"
+              placeholder="输入姓名或工号搜索"
               prefix={<SearchOutlined />}
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}

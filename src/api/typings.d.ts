@@ -2603,6 +2603,259 @@ declare namespace API {
     workLocation?: string;
   };
 
+  // ==================== 薪资管理 ====================
+
+  type SalaryAccountVO = {
+    id?: number;
+    name?: string;
+    scopeType?: number;
+    scopeTypeLabel?: string;
+    scopeIds?: string;
+    effectiveDate?: string;
+    createTime?: string;
+    updateTime?: string;
+    items?: SalaryItemVO[];
+  };
+
+  type SalaryItemVO = {
+    id?: number;
+    accountId?: number;
+    name?: string;
+    itemType?: number;
+    itemTypeLabel?: string;
+    formula?: string;
+    sortOrder?: number;
+    isTaxable?: number;
+    createTime?: string;
+    updateTime?: string;
+  };
+
+  type SalaryItemDetailVO = {
+    name?: string;
+    amount?: number;
+    type?: number;
+  };
+
+  type EmployeeSalaryVO = {
+    id?: number;
+    employeeId?: number;
+    accountId?: number;
+    accountName?: string;
+    baseSalary?: number;
+    allowanceBase?: number;
+    socialSecurityBase?: number;
+    housingFundBase?: number;
+    performanceBase?: number;
+    effectiveDate?: string;
+    createTime?: string;
+    updateTime?: string;
+  };
+
+  type SalaryChangeHistoryVO = {
+    id?: number;
+    employeeId?: number;
+    changeType?: number;
+    changeTypeLabel?: string;
+    oldValue?: string;
+    newValue?: string;
+    effectiveDate?: string;
+    operatorId?: number;
+    remark?: string;
+    createTime?: string;
+  };
+
+  type SalaryBatchVO = {
+    id?: number;
+    batchNo?: string;
+    salaryMonth?: string;
+    status?: number;
+    statusLabel?: string;
+    totalEmployees?: number;
+    totalGrossPay?: number;
+    totalNetPay?: number;
+    totalTax?: number;
+    createBy?: number;
+    createTime?: string;
+    updateTime?: string;
+  };
+
+  type SalaryDetailVO = {
+    id?: number;
+    batchId?: number;
+    employeeId?: number;
+    salaryItems?: SalaryItemDetailVO[];
+    grossPay?: number;
+    socialSecurity?: number;
+    housingFund?: number;
+    incomeTax?: number;
+    totalDeductions?: number;
+    netPay?: number;
+    isAbnormal?: number;
+    abnormalLabel?: string;
+    abnormalReason?: string;
+    manualAdjustment?: number;
+    adjustmentReason?: string;
+    createTime?: string;
+  };
+
+  type PayslipVO = {
+    id?: number;
+    batchNo?: string;
+    salaryMonth?: string;
+    employeeName?: string;
+    employeeNo?: string;
+    departmentName?: string;
+    incomeItems?: SalaryItemDetailVO[];
+    deductionItems?: SalaryItemDetailVO[];
+    grossPay?: number;
+    totalDeductions?: number;
+    netPay?: number;
+    payslipViewed?: number;
+    createTime?: string;
+  };
+
+  // ==================== 薪资请求 DTO ====================
+
+  type SalaryAccountQueryRequest = {
+    current?: number;
+    pageSize?: number;
+    sortField?: string;
+    sortOrder?: string;
+    name?: string;
+    scopeType?: number;
+  };
+
+  type SalaryAccountAddRequest = {
+    name?: string;
+    scopeType?: number;
+    scopeIds?: number[];
+    effectiveDate?: string;
+    items?: SalaryItemAddRequest[];
+  };
+
+  type SalaryAccountUpdateRequest = {
+    id?: number;
+    name?: string;
+    scopeType?: number;
+    scopeIds?: number[];
+    effectiveDate?: string;
+  };
+
+  type SalaryItemAddRequest = {
+    name?: string;
+    itemType?: number;
+    formula?: string;
+    sortOrder?: number;
+    isTaxable?: number;
+  };
+
+  type SalaryItemUpdateRequest = {
+    id?: number;
+    name?: string;
+    itemType?: number;
+    formula?: string;
+    sortOrder?: number;
+    isTaxable?: number;
+  };
+
+  type SalaryItemSortRequest = {
+    itemIds?: number[];
+  };
+
+  type EmployeeSalaryUpdateRequest = {
+    accountId?: number;
+    baseSalary?: number;
+    allowanceBase?: number;
+    socialSecurityBase?: number;
+    housingFundBase?: number;
+    performanceBase?: number;
+    effectiveDate?: string;
+    remark?: string;
+  };
+
+  type SalaryBatchQueryRequest = {
+    current?: number;
+    pageSize?: number;
+    sortField?: string;
+    sortOrder?: string;
+    salaryMonth?: string;
+    status?: number;
+  };
+
+  type SalaryBatchCreateRequest = {
+    salaryMonth?: string;
+  };
+
+  type SalaryBatchRejectRequest = {
+    reason?: string;
+  };
+
+  type SalaryDetailQueryRequest = {
+    current?: number;
+    pageSize?: number;
+    sortField?: string;
+    sortOrder?: string;
+    batchId?: number;
+    employeeId?: number;
+    isAbnormal?: number;
+  };
+
+  type SalaryDetailAdjustRequest = {
+    adjustment?: number;
+    reason?: string;
+  };
+
+  type PayslipVerifyRequest = {
+    verifyType?: number;
+    verifyCode?: string;
+  };
+
+  // ==================== 薪资分页响应 ====================
+  type PageSalaryBatchVO_ = {
+    records?: SalaryBatchVO[];
+    total?: number;
+    current?: number;
+    size?: number;
+  };
+
+  type PageSalaryDetailVO_ = {
+    records?: SalaryDetailVO[];
+    total?: number;
+    current?: number;
+    size?: number;
+  };
+
+  // ==================== 薪资统计 ====================
+  type BaseResponseListMapStringObject_ = {
+    code?: number;
+    data?: Record<string, any>[];
+    message?: string;
+  };
+
+  type BaseResponseListSalaryAccountVO_ = {
+    code?: number;
+    data?: SalaryAccountVO[];
+    message?: string;
+  };
+
+  type BaseResponseSalaryAccountVO_ = {
+    code?: number;
+    data?: SalaryAccountVO;
+    message?: string;
+  };
+
+  type BaseResponseListSalaryItemVO_ = {
+    code?: number;
+    data?: SalaryItemVO[];
+    message?: string;
+  };
+
+  type BaseResponseEmployeeSalaryVO_ = {
+    code?: number;
+    data?: EmployeeSalaryVO;
+    message?: string;
+  };
+
   // === 手写扩展类型 ===
   type BaseResponseOfApprovalDelegate = {
     code?: number;
@@ -2664,6 +2917,37 @@ declare namespace API {
     data?: EmployeeSalaryVO;
     message?: string;
   }
+
+  type BaseResponseListSalaryChangeHistoryVO_ = {
+    code?: number;
+    data?: SalaryChangeHistoryVO[];
+    message?: string;
+  };
+
+  type BaseResponsePageSalaryBatchVO_ = {
+    code?: number;
+    data?: PageSalaryBatchVO_;
+    message?: string;
+  };
+
+  type BaseResponseSalaryBatchVO_ = {
+    code?: number;
+    data?: SalaryBatchVO;
+    message?: string;
+  };
+
+  type BaseResponsePageSalaryDetailVO_ = {
+    code?: number;
+    data?: PageSalaryDetailVO_;
+    message?: string;
+  };
+
+  type BaseResponseListPayslipVO_ = {
+    code?: number;
+    data?: PayslipVO[];
+    message?: string;
+  };
+
   type BaseResponseOfEmployeeUpdateVO = {
     code?: number;
     data?: EmployeeUpdateVO;
@@ -2709,6 +2993,13 @@ declare namespace API {
     data?: PayslipVO[];
     message?: string;
   }
+
+  type BaseResponsePayslipVO_ = {
+    code?: number;
+    data?: PayslipVO;
+    message?: string;
+  };
+
   type BaseResponseOfListOfPendingEmployeeVO = {
     code?: number;
     data?: PendingEmployeeVO[];

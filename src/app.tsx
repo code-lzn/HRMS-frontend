@@ -6,13 +6,13 @@ import { clearCachedLoginUser, setCachedLoginUser } from '@/libs/loginCache';
 import { queryClient } from '@/libs/queryClient';
 import {
   LogoutOutlined,
-  UserOutlined,
   UserSwitchOutlined,
 } from '@ant-design/icons';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useModel, useNavigate } from '@umijs/max';
-import { Avatar, Dropdown, message } from 'antd';
+import { Dropdown, message } from 'antd';
 import { createElement } from 'react';
+import HRMSAssistant from '@/components/HRMSAssistant';
 
 const originalError = console.error;
 console.error = (...args: any[]) => {
@@ -117,7 +117,6 @@ const RightContent: React.FC = () => {
         }}
       >
         <span style={{ fontSize: 14 }}>{currentUser.userName}</span>
-        <Avatar size={28} icon={<UserOutlined />} />
       </div>
     </Dropdown>
   );
@@ -135,5 +134,10 @@ export const layout = () => {
 };
 
 export function rootContainer(container: any) {
-  return createElement(QueryClientProvider, { client: queryClient }, container);
+  return createElement(
+    QueryClientProvider,
+    { client: queryClient },
+    container,
+    createElement(HRMSAssistant),
+  );
 }

@@ -6,6 +6,7 @@ import * as departmentController from './departmentController';
 import * as employeeController from './employeeController';
 import * as fileController from './fileController';
 import * as positionController from './positionController';
+import * as salaryController from './salaryController';
 import * as testHealth from './testHealth';
 import * as userController from './userController';
 export default {
@@ -13,6 +14,7 @@ export default {
   employeeController,
   positionController,
   fileController,
+  salaryController,
   testHealth,
   userController,
 };
