@@ -2,10 +2,9 @@ import axios from 'axios';
 
 // 创建 Axios 实例
 // 开发环境走 Umi 代理（解决 SameSite 跨域 Cookie 问题），生产环境直连后端
-const DEV_BASE_URL = 'http://localhost:8123';
 const PROD_BASE_URL = 'http://localhost:8123';
 const myAxios = axios.create({
-  baseURL: process.env.NODE_ENV === 'production' ? PROD_BASE_URL : DEV_BASE_URL,
+  baseURL: process.env.NODE_ENV === 'production' ? PROD_BASE_URL : '/',
   timeout: 60000,
   withCredentials: true,
 });

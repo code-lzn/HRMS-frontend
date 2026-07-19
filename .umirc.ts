@@ -36,6 +36,17 @@ export default defineConfig({
       ],
     },
     {
+      name: '考勤管理',
+      path: '/attendance',
+      routes: [
+        { path: '/attendance', redirect: '/attendance/clock' },
+        { name: '打卡中心', path: '/attendance/clock', component: './Attendance/index' },
+        { name: '考勤规则', path: '/attendance/rules', component: './Attendance/RuleConfig' },
+        { name: '请假管理', path: '/attendance/leave', component: './Attendance/LeaveManagement' },
+        { name: '考勤统计', path: '/attendance/statistics', component: './Attendance/Statistics' },
+      ],
+    },
+    {
       name: '我的人事异动',
       path: '/my-changes',
       component: './MyChanges',
@@ -44,9 +55,10 @@ export default defineConfig({
       name: 'HR中控台',
       path: '/hr',
       access: 'canSeeHRConsole',
+      layout: '@/layouts/HRLayout',
       routes: [
         { path: '/hr', redirect: '/hr/onboarding' },
-        { name: '入职办理', path: '/hr/onboarding', component: './HR/Onboarding' },
+        { name: '入职管理', path: '/hr/onboarding', component: './HR/Onboarding' },
         { name: '转正管理', path: '/hr/probation', component: './HR/Probation' },
         { name: '调岗管理', path: '/hr/transfer', component: './HR/Transfer' },
         { name: '离职管理', path: '/hr/resignation', component: './HR/Resignation' },
@@ -125,10 +137,10 @@ export default defineConfig({
   ],
   npmClient: 'pnpm',
   utoopack: {},
-  // proxy: {
-  //   '/api': {
-  //     target: 'http://localhost:8123',
-  //     changeOrigin: true,
-  //   },
-  // },
+  proxy: {
+    '/api': {
+      target: 'http://localhost:8123',
+      changeOrigin: true,
+    },
+  },
 });

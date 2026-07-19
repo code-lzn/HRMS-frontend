@@ -66,7 +66,7 @@ const MyAttendance: React.FC = () => {
   const handlePunch = async (punchType: number) => {
     setPunchLoading(true);
     try {
-      const res = await punchUsingPost({ punchType, location: '' });
+      const res = await punchUsingPost({ punchType });
       if (res?.code === 0) {
         message.success(punchType === 0 ? '上班打卡成功' : '下班打卡成功');
         loadTodayStatus();
@@ -357,13 +357,7 @@ const MyAttendance: React.FC = () => {
             label="补卡日期"
             rules={[{ required: true, message: '请选择补卡日期' }]}
           >
-            <DatePicker
-              style={{ width: '100%' }}
-              disabledDate={(current) => {
-                const available = calendarData?.makeupAvailableDates ?? [];
-                return !available.includes(current.format('YYYY-MM-DD'));
-              }}
-            />
+            <DatePicker style={{ width: '100%' }} />
           </Form.Item>
           <Form.Item
             name="punchType"

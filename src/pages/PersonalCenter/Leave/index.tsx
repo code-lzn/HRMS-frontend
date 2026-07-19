@@ -1,9 +1,11 @@
 import { applyUsingPost, cancelUsingPost, getBalanceUsingGet, getMyLeavesUsingGet } from '@/api/leaveController';
 import { getApprovalProgressUsingGet } from '@/api/leaveController';
+import { getMyMakeupPunchesUsingGet, getMakeupProgressUsingGet, cancelMakeupUsingPost } from '@/api/makeupPunchController';
+import { getMyOvertimesUsingGet, cancelOvertimeUsingPost } from '@/api/overtimeController';
 import { CalendarOutlined, CoffeeOutlined, MedicineBoxOutlined, ScheduleOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, Card, Col, DatePicker, Form, Input, message, Modal, Row, Select, Space, Statistic, Tag, Timeline } from 'antd';
+import { Button, Card, Col, DatePicker, Form, Input, message, Modal, Radio, Row, Select, Space, Statistic, Tag, Timeline } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -119,6 +121,7 @@ const MyLeave: React.FC = () => {
         startDate: values.startDate.format('YYYY-MM-DD HH:mm'),
         endDate: values.endDate.format('YYYY-MM-DD HH:mm'),
         reason: values.reason,
+        timeSlot: values.timeSlot ?? 0,
       });
       if (res?.code === 0) {
         message.success('请假申请已提交');
@@ -131,24 +134,43 @@ const MyLeave: React.FC = () => {
     }
   };
 
-  const handleViewProgress = async (record: API.LeaveVO) => {
+  const handleViewProgress = async (record: any) => {
     setSelectedLeave(record);
     setProgressModalOpen(true);
     try {
-      const res = await getApprovalProgressUsingGet({ id: record.id! });
-      setProgressData(res?.data ?? null);
+      if (record._recordType === 'overtime') {
+        setProgressData({ leave: record, progressNodes: [] });
+      } else if (record._recordType === 'makeup') {
+        const res = await getMakeupProgressUsingGet({ id: record._rawId ?? record.id! });
+        const data = res?.data;
+        setProgressData(data
+          ? { leave: { ...record, leaveTypeText: record.leaveTypeText }, progressNodes: data.progressNodes }
+          : null);
+      } else {
+        const res = await getApprovalProgressUsingGet({ id: record.id! });
+        setProgressData(res?.data ?? null);
+      }
     } catch {
       setProgressData(null);
     }
   };
 
-  const handleCancel = (record: API.LeaveVO) => {
+  const handleCancel = (record: any) => {
+    const isMakeup = record._recordType === 'makeup';
+    const isOvertime = record._recordType === 'overtime';
+    const label = isMakeup ? '补卡' : isOvertime ? '加班' : '请假';
     Modal.confirm({
       title: '确认取消',
-      content: `确定要取消此请假申请吗？`,
+      content: `确定要取消此${label}申请吗？`,
       onOk: async () => {
         try {
-          await cancelUsingPost({ id: record.id! });
+          if (isMakeup) {
+            await cancelMakeupUsingPost({ id: record._rawId ?? record.id! });
+          } else if (isOvertime) {
+            await cancelOvertimeUsingPost({ id: record._rawId ?? record.id! });
+          } else {
+            await cancelUsingPost({ id: record.id! });
+          }
           message.success('已取消');
           actionRef.current?.reload();
         } catch (e: any) {
@@ -213,13 +235,58 @@ const MyLeave: React.FC = () => {
         columns={columns}
         request={async () => {
           try {
-            const res = await getMyLeavesUsingGet();
-            return { data: res?.data ?? [], success: true, total: res?.data?.length ?? 0 };
+            const [leaveRes, makeupRes, overtimeRes] = await Promise.all([
+              getMyLeavesUsingGet(),
+              getMyMakeupPunchesUsingGet(),
+              getMyOvertimesUsingGet(),
+            ]);
+
+            const leaveData = (leaveRes?.data ?? []).map((r: any) => ({
+              ...r,
+              _recordType: 'leave' as const,
+            }));
+
+            const makeupData = ((makeupRes?.data ?? []) as any[]).map((r: any) => ({
+              id: r.id,
+              leaveType: -1,
+              leaveTypeText: `补卡(${r.punchTypeText})`,
+              startDate: r.punchDate,
+              endDate: r.punchDate,
+              totalDays: 0.5,
+              reason: r.reason,
+              status: r.status,
+              statusText: r.statusText,
+              createTime: r.createTime,
+              employeeName: r.employeeName,
+              _recordType: 'makeup' as const,
+              _rawId: r.id,
+            }));
+
+            const overtimeData = ((overtimeRes?.data ?? []) as any[]).map((r: any) => ({
+              id: r.id,
+              leaveType: -2,
+              leaveTypeText: `加班(${r.overtimeTypeText})`,
+              startDate: r.overtimeDate,
+              endDate: r.overtimeDate,
+              totalDays: r.overtimeHours ?? 0,
+              reason: r.reason,
+              status: r.status,
+              statusText: r.statusText,
+              createTime: r.createTime,
+              employeeName: r.employeeName,
+              _recordType: 'overtime' as const,
+              _rawId: r.id,
+            }));
+
+            const merged = [...leaveData, ...makeupData, ...overtimeData].sort((a, b) =>
+              (b.createTime || '').localeCompare(a.createTime || ''),
+            );
+            return { data: merged, success: true, total: merged.length };
           } catch {
             return { data: [], success: false };
           }
         }}
-        rowKey="id"
+        rowKey={(r: any) => `${r._recordType ?? 'leave'}-${r.id}`}
         search={false}
         toolBarRender={() => [
           <Button
@@ -274,6 +341,17 @@ const MyLeave: React.FC = () => {
             />
           </Form.Item>
           <Form.Item
+            name="timeSlot"
+            label="时段"
+            initialValue={0}
+          >
+            <Radio.Group>
+              <Radio value={0}>全天</Radio>
+              <Radio value={1}>上午</Radio>
+              <Radio value={2}>下午</Radio>
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item
             name="reason"
             label="原因"
             rules={[{ required: true, message: '请输入请假原因' }]}
@@ -294,12 +372,16 @@ const MyLeave: React.FC = () => {
         {selectedLeave && (
           <div style={{ marginBottom: 16 }}>
             <p>
-              <strong>请假类型：</strong>
+              <strong>{(selectedLeave as any)._recordType === 'makeup' ? '补卡类型' : (selectedLeave as any)._recordType === 'overtime' ? '加班类型' : '请假类型'}：</strong>
               <Tag color="blue">{selectedLeave.leaveTypeText}</Tag>
             </p>
             <p>
               <strong>时间：</strong>
-              {selectedLeave.startDate} ~ {selectedLeave.endDate}（{selectedLeave.totalDays}天）
+              {(selectedLeave as any)._recordType === 'makeup'
+                ? selectedLeave.startDate
+                : (selectedLeave as any)._recordType === 'overtime'
+                ? `${selectedLeave.startDate}（${selectedLeave.totalDays}h）`
+                : `${selectedLeave.startDate} ~ ${selectedLeave.endDate}（${selectedLeave.totalDays}天）`}
             </p>
             <p>
               <strong>原因：</strong>

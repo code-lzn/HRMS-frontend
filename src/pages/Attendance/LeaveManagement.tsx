@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, Tag, Table, Modal, Form, Input, Select, DatePicker, Space, message, Spin, Timeline } from 'antd';
-import { PlusOutlined, CalendarOutlined, UserOutlined, FileTextOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { Card, Button, Tag, Table, Modal, Form, Input, Select, DatePicker, Space, message, Spin, Timeline, Radio } from 'antd';
+import { PlusOutlined, CalendarOutlined } from '@ant-design/icons';
 import { useNavigate } from '@umijs/max';
 import dayjs from 'dayjs';
 import {
@@ -10,15 +10,19 @@ import {
   cancelUsingPost,
   getApprovalProgressUsingGet,
 } from '@/api/leaveController';
+import { getMyMakeupPunchesUsingGet, getMakeupProgressUsingGet, cancelMakeupUsingPost } from '@/api/makeupPunchController';
+import { getMyOvertimesUsingGet, cancelOvertimeUsingPost } from '@/api/overtimeController';
 
-const LEAVE_TYPES = [
-  { value: 'annual', label: '年假', color: '#52c41a' },
-  { value: 'sick', label: '病假', color: '#faad14' },
-  { value: 'personal', label: '事假', color: '#fa8c16' },
-  { value: 'marriage', label: '婚假', color: '#722ed1' },
-  { value: 'maternity', label: '产假', color: '#eb2f96' },
-  { value: 'funeral', label: '丧假', color: '#666' },
-  { value: 'compensatory', label: '调休', color: '#1890ff' },
+const LEAVE_TYPES: { value: any; label: string; color: string }[] = [
+  { value: 2, label: '年假', color: '#52c41a' },
+  { value: 1, label: '病假', color: '#faad14' },
+  { value: 0, label: '事假', color: '#fa8c16' },
+  { value: 3, label: '婚假', color: '#722ed1' },
+  { value: 4, label: '产假', color: '#eb2f96' },
+  { value: 5, label: '丧假', color: '#666' },
+  { value: 6, label: '调休', color: '#1890ff' },
+  { value: 'makeup', label: '补卡', color: '#13c2c2' },
+  { value: 'overtime', label: '加班', color: '#fa541c' },
 ];
 
 const APPROVAL_RULES = [
@@ -38,6 +42,7 @@ const STATUS_MAP: Record<string, { color: string; text: string }> = {
 
 interface LeaveRecord {
   id: number;
+  recordType: 'leave' | 'makeup' | 'overtime';
   leaveType: string;
   startDate: string;
   endDate: string;
@@ -46,6 +51,8 @@ interface LeaveRecord {
   approverName: string;
   createTime: string;
   status: string;
+  punchTypeText?: string;
+  overtimeTypeText?: string;
 }
 
 interface LeaveBalance {
@@ -71,22 +78,60 @@ const LeaveManagement: React.FC = () => {
 
   const fetchLeaveRecords = async () => {
     try {
-      const res = await getMyLeavesUsingGet();
-      if (res.code === 0 && res.data) {
-        setLeaveRecords(res.data.map((r: any) => ({
-          id: r.id,
-          leaveType: r.leaveType,
-          startDate: r.startDate,
-          endDate: r.endDate,
-          days: r.days,
-          reason: r.reason,
-          approverName: r.approverName || '待分配',
-          createTime: r.createTime,
-          status: r.status === 1 ? 'approved' : (r.status === 2 ? 'rejected' : (r.status === 0 ? 'approving' : 'pending')),
-        })));
-      }
+      const [leaveRes, makeupRes, overtimeRes] = await Promise.all([
+        getMyLeavesUsingGet(),
+        getMyMakeupPunchesUsingGet(),
+        getMyOvertimesUsingGet(),
+      ]);
+
+      const leaveList: LeaveRecord[] = (leaveRes.code === 0 && leaveRes.data ? leaveRes.data : []).map((r: any) => ({
+        id: r.id,
+        recordType: 'leave' as const,
+        leaveType: r.leaveType,
+        startDate: r.startDate,
+        endDate: r.endDate,
+        days: r.days ?? r.totalDays ?? 0,
+        reason: r.reason,
+        approverName: r.employeeName || '待分配',
+        overtimeTypeText: (r as any).timeSlotText,
+        createTime: r.createTime,
+        status: r.status === 1 ? 'approved' : (r.status === 2 ? 'rejected' : (r.status === 0 ? 'approving' : 'pending')),
+      }));
+
+      const makeupList: LeaveRecord[] = (makeupRes.code === 0 && makeupRes.data ? makeupRes.data : []).map((r: any) => ({
+        id: r.id,
+        recordType: 'makeup' as const,
+        leaveType: 'makeup',
+        startDate: r.punchDate,
+        endDate: r.punchDate,
+        days: 0.5,
+        reason: r.reason,
+        approverName: r.employeeName || '待分配',
+        createTime: r.createTime,
+        status: r.status === 1 ? 'approved' : (r.status === 2 ? 'rejected' : (r.status === 0 ? 'approving' : 'pending')),
+        punchTypeText: r.punchTypeText,
+      }));
+
+      const overtimeList: LeaveRecord[] = (overtimeRes.code === 0 && overtimeRes.data ? overtimeRes.data : []).map((r: any) => ({
+        id: r.id,
+        recordType: 'overtime' as const,
+        leaveType: 'overtime',
+        startDate: r.overtimeDate,
+        endDate: r.overtimeDate,
+        days: r.overtimeHours ?? 0,
+        reason: r.reason,
+        approverName: r.employeeName || '待分配',
+        createTime: r.createTime,
+        status: r.status === 1 ? 'approved' : (r.status === 2 ? 'rejected' : (r.status === 0 ? 'approving' : 'pending')),
+        overtimeTypeText: r.overtimeTypeText,
+      }));
+
+      const merged = [...leaveList, ...makeupList, ...overtimeList].sort((a, b) =>
+        (b.createTime || '').localeCompare(a.createTime || ''),
+      );
+      setLeaveRecords(merged);
     } catch (e) {
-      console.error('获取请假记录失败:', e);
+      console.error('获取记录失败:', e);
     }
   };
 
@@ -112,16 +157,28 @@ const LeaveManagement: React.FC = () => {
     setSelectedRecord(record);
     setProgressOpen(true);
     try {
-      const res = await getApprovalProgressUsingGet({ id: record.id });
-      setProgressData(res?.data ?? null);
+      if (record.recordType === 'makeup') {
+        const res = await getMakeupProgressUsingGet({ id: record.id });
+        setProgressData(res?.data ?? null);
+      } else {
+        const res = await getApprovalProgressUsingGet({ id: record.id });
+        setProgressData(res?.data ?? null);
+      }
     } catch {
       setProgressData(null);
     }
   };
 
-  const handleCancel = async (id: number) => {
+  const handleCancel = async (record: LeaveRecord) => {
     try {
-      const res = await cancelUsingPost({ id });
+      let res: any;
+      if (record.recordType === 'makeup') {
+        res = await cancelMakeupUsingPost({ id: record.id });
+      } else if (record.recordType === 'overtime') {
+        res = await cancelOvertimeUsingPost({ id: record.id });
+      } else {
+        res = await cancelUsingPost({ id: record.id });
+      }
       if (res.code === 0) {
         message.success('已取消申请');
         fetchLeaveRecords();
@@ -142,6 +199,7 @@ const LeaveManagement: React.FC = () => {
         days: values.days,
         reason: values.reason,
         handoverPerson: values.handover,
+        timeSlot: values.timeSlot ?? 0,
       };
 
       const res = await applyUsingPost(data);
@@ -216,27 +274,44 @@ const LeaveManagement: React.FC = () => {
               {leaveRecords.map((record) => {
                 const typeInfo = LEAVE_TYPES.find((t) => t.value === record.leaveType);
                 const statusInfo = STATUS_MAP[record.status] || { color: '#999', text: '未知' };
+                const isMakeup = record.recordType === 'makeup';
+                const isOvertime = record.recordType === 'overtime';
                 return (
-                  <div key={record.id} style={{ padding: 16, backgroundColor: '#fff', borderRadius: 8, border: '1px solid #f0f0f0' }}>
+                  <div key={`${record.recordType}-${record.id}`} style={{ padding: 16, backgroundColor: '#fff', borderRadius: 8, border: '1px solid #f0f0f0' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{ width: 48, height: 48, borderRadius: 8, backgroundColor: `${typeInfo?.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <CalendarOutlined style={{ fontSize: 24, color: typeInfo?.color }} />
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                          <Tag color={typeInfo?.color}>{typeInfo?.label}</Tag>
-                          <span style={{ fontSize: 14, fontWeight: 500 }}>{record.startDate} ~ {record.endDate}</span>
-                          <span style={{ fontSize: 14, color: '#999' }}>共{record.days}天</span>
+                          <Tag color={typeInfo?.color}>
+                            {isMakeup ? `${typeInfo?.label}(${record.punchTypeText})`
+                              : isOvertime ? `${typeInfo?.label}(${record.overtimeTypeText})`
+                              : typeInfo?.label}
+                          </Tag>
+                          <span style={{ fontSize: 14, fontWeight: 500 }}>
+                            {isMakeup ? record.startDate
+                              : isOvertime ? record.startDate
+                              : `${record.startDate} ~ ${record.endDate}`}
+                          </span>
+                          {record.overtimeTypeText && record.overtimeTypeText !== '全天' && (
+                            <Tag color="orange">{record.overtimeTypeText}</Tag>
+                          )}
+                          <span style={{ fontSize: 14, color: '#999' }}>
+                            {isOvertime ? `${record.days}h` : (isMakeup ? '' : `共${record.days}天`)}
+                          </span>
                         </div>
                         <div style={{ fontSize: 13, color: '#666', marginBottom: 4 }}>事由：{record.reason}</div>
-                        <div style={{ fontSize: 12, color: '#999' }}>审批人：{record.approverName} · 申请时间：{record.createTime}</div>
+                        <div style={{ fontSize: 12, color: '#999' }}>申请人：{record.approverName} · 申请时间：{record.createTime}</div>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                         <Tag color={statusInfo?.color}>{statusInfo?.text}</Tag>
                         <Space>
-                          <Button type="link" size="small" onClick={() => handleViewProgress(record)}>查看进度</Button>
+                          {!isOvertime && (
+                            <Button type="link" size="small" onClick={() => handleViewProgress(record)}>查看进度</Button>
+                          )}
                           {(record.status === 'approving' || record.status === 'pending') && (
-                            <Button size="small" danger onClick={() => handleCancel(record.id)}>撤回</Button>
+                            <Button size="small" danger onClick={() => handleCancel(record)}>撤回</Button>
                           )}
                         </Space>
                       </div>
@@ -263,12 +338,18 @@ const LeaveManagement: React.FC = () => {
       >
         {selectedRecord && (
           <div style={{ marginBottom: 16 }}>
-            <p><strong>请假类型：</strong>
+            <p><strong>{selectedRecord.recordType === 'makeup' ? '补卡类型' : '请假类型'}：</strong>
               <Tag color={LEAVE_TYPES.find(t => t.value === selectedRecord.leaveType)?.color}>
-                {LEAVE_TYPES.find(t => t.value === selectedRecord.leaveType)?.label}
+                {selectedRecord.recordType === 'makeup'
+                  ? `补卡(${selectedRecord.punchTypeText})`
+                  : LEAVE_TYPES.find(t => t.value === selectedRecord.leaveType)?.label}
               </Tag>
             </p>
-            <p><strong>时间：</strong>{selectedRecord.startDate} ~ {selectedRecord.endDate}（{selectedRecord.days}天）</p>
+            <p><strong>时间：</strong>
+              {selectedRecord.recordType === 'makeup'
+                ? selectedRecord.startDate
+                : `${selectedRecord.startDate} ~ ${selectedRecord.endDate}（${selectedRecord.days}天）`}
+            </p>
             <p><strong>原因：</strong>{selectedRecord.reason}</p>
             <p><strong>状态：</strong>
               <Tag color={STATUS_MAP[selectedRecord.status]?.color}>{STATUS_MAP[selectedRecord.status]?.text}</Tag>
@@ -324,6 +405,14 @@ const LeaveManagement: React.FC = () => {
               <DatePicker style={{ width: '100%' }} />
             </Form.Item>
           </div>
+
+          <Form.Item label="时段" name="timeSlot" initialValue={0}>
+            <Radio.Group>
+              <Radio value={0}>全天</Radio>
+              <Radio value={1}>上午</Radio>
+              <Radio value={2}>下午</Radio>
+            </Radio.Group>
+          </Form.Item>
 
           <Form.Item label="请假天数" name="days">
             <Input disabled style={{ backgroundColor: '#f5f5f5' }} placeholder="根据起止日期自动计算" />
