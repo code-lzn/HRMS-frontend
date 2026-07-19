@@ -16,8 +16,8 @@ import { usePositionList } from '@/hooks/usePosition';
 import {
   ClockCircleOutlined,
   DeleteOutlined,
-  EditOutlined,
   PlusOutlined,
+  SearchOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
@@ -25,6 +25,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Button,
   Card,
+  DatePicker,
   Empty,
   Form,
   Input,
@@ -37,13 +38,14 @@ import {
   Space,
   Table,
   Tag,
-  TimePicker,
   TreeSelect,
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import React, { useState } from 'react';
+
+const { RangePicker } = DatePicker;
 
 interface RuleItem {
   ruleType: number;
@@ -57,6 +59,8 @@ interface GroupRow {
   shiftTypeDesc: string;
   startTime: string;
   endTime: string;
+  coreStartTime: string;
+  coreEndTime: string;
   lateThreshold: number;
   earlyLeaveThreshold: number;
   ruleSummary: string;
@@ -171,6 +175,10 @@ const AttendanceGroups: React.FC = () => {
   const [form] = Form.useForm();
   const watchShiftType = Form.useWatch('shiftType', form);
 
+  // ---- 筛选状态 ----
+  const [filterKeyword, setFilterKeyword] = useState('');
+  const [filterShiftType, setFilterShiftType] = useState<number | undefined>();
+
   // ---- 数据源（用于规则选择） ----
   const { data: treeData } = useDepartmentTree();
   const { data: positionPage } = usePositionList({ current: 1, pageSize: 999 });
@@ -192,11 +200,23 @@ const AttendanceGroups: React.FC = () => {
 
   // ---- 列表 ----
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['attendance', 'groups'],
-    queryFn: async () => queryAttendanceGroupsUsingGet({ page: 1, size: 50 }),
+    queryKey: ['attendance', 'groups', filterKeyword, filterShiftType],
+    queryFn: async () =>
+      queryAttendanceGroupsUsingGet({
+        keyword: filterKeyword || undefined,
+        shiftType: filterShiftType,
+        page: 1,
+        size: 50,
+      }),
   });
   const raw = (data as any)?.data?.records;
   const list: GroupRow[] = Array.isArray(raw) ? raw : [];
+
+  // 辅助：从两个独立时间值构建 RangePicker 的 value
+  const toRange = (s?: string, e?: string) => {
+    if (!s || !e) return undefined;
+    return [dayjs(s, 'HH:mm'), dayjs(e, 'HH:mm')] as [any, any];
+  };
 
   // ---- 打开新增 ----
   const handleAdd = () => {
@@ -206,8 +226,7 @@ const AttendanceGroups: React.FC = () => {
     form.setFieldsValue({
       lateThreshold: 15,
       earlyLeaveThreshold: 15,
-      restStartTime: dayjs('12:00', 'HH:mm'),
-      restEndTime: dayjs('13:00', 'HH:mm'),
+      restTimeRange: [dayjs('12:00', 'HH:mm'), dayjs('13:00', 'HH:mm')],
       rules: [],
     });
     setModalOpen(true);
@@ -221,7 +240,6 @@ const AttendanceGroups: React.FC = () => {
       const res = await getAttendanceGroupDetailUsingGet({ id: record.id });
       const detail = (res as any)?.data as API.AttendanceGroupVO | undefined;
       if (detail) {
-        // 将后端 rules 按 ruleType 分组，每组一条规则（多选 targetIds）
         const groupedRules: Record<number, number[]> = {};
         (detail.rules || []).forEach((r: any) => {
           const rt = r.ruleType;
@@ -238,36 +256,20 @@ const AttendanceGroups: React.FC = () => {
         form.setFieldsValue({
           name: detail.name,
           shiftType: detail.shiftType,
-          startTime: detail.startTime
-            ? dayjs(detail.startTime, 'HH:mm')
-            : undefined,
-          endTime: detail.endTime ? dayjs(detail.endTime, 'HH:mm') : undefined,
-          restStartTime: detail.restStartTime
-            ? dayjs(detail.restStartTime, 'HH:mm')
-            : undefined,
-          restEndTime: detail.restEndTime
-            ? dayjs(detail.restEndTime, 'HH:mm')
-            : undefined,
-          flexStartTime: detail.flexStartTime
-            ? dayjs(detail.flexStartTime, 'HH:mm')
-            : undefined,
-          flexEndTime: detail.flexEndTime
-            ? dayjs(detail.flexEndTime, 'HH:mm')
-            : undefined,
+          workTimeRange: toRange(detail.startTime, detail.endTime),
+          coreTimeRange: toRange(detail.coreStartTime, detail.coreEndTime),
+          restTimeRange: toRange(detail.restStartTime, detail.restEndTime),
+          flexTimeRange: toRange(detail.flexStartTime, detail.flexEndTime),
           lateThreshold: detail.lateThreshold,
           earlyLeaveThreshold: detail.earlyLeaveThreshold,
           rules: rulesList.length > 0 ? rulesList : [],
         });
       }
     } catch {
-      // 接口暂不可用时用列表数据兜底
       form.setFieldsValue({
         name: record.name,
         shiftType: record.shiftType,
-        startTime: record.startTime
-          ? dayjs(record.startTime, 'HH:mm')
-          : undefined,
-        endTime: record.endTime ? dayjs(record.endTime, 'HH:mm') : undefined,
+        workTimeRange: toRange(record.startTime, record.endTime),
         lateThreshold: record.lateThreshold,
         earlyLeaveThreshold: record.earlyLeaveThreshold,
         rules: [],
@@ -281,26 +283,41 @@ const AttendanceGroups: React.FC = () => {
     try {
       const values = await form.validateFields();
 
-      // 将 dayjs TimePicker 值转为 HH:mm 字符串
+      // 将 dayjs 转为 HH:mm 字符串
       const fmt = (v: any) => (dayjs.isDayjs(v) ? v.format('HH:mm') : v);
+      const fmtRange = (r: [any, any] | undefined) =>
+        r ? ([fmt(r[0]), fmt(r[1])] as [string, string]) : undefined;
+
       const payload: Record<string, any> = {
         name: values.name,
         shiftType: values.shiftType,
-        startTime: fmt(values.startTime),
-        endTime: fmt(values.endTime),
-        restStartTime: values.restStartTime
-          ? fmt(values.restStartTime)
-          : undefined,
-        restEndTime: values.restEndTime ? fmt(values.restEndTime) : undefined,
-        flexStartTime: values.flexStartTime
-          ? fmt(values.flexStartTime)
-          : undefined,
-        flexEndTime: values.flexEndTime ? fmt(values.flexEndTime) : undefined,
         lateThreshold: values.lateThreshold ?? 15,
         earlyLeaveThreshold: values.earlyLeaveThreshold ?? 15,
       };
 
-      // 将多选规则展开为后端需要的单个 targetId 规则列表
+      // 弹性班提交 coreStartTime/coreEndTime，固定班/排班制提交 startTime/endTime
+      if (values.shiftType === 2) {
+        const cr = fmtRange(values.coreTimeRange);
+        payload.coreStartTime = cr?.[0];
+        payload.coreEndTime = cr?.[1];
+        payload.workHours = values.workHours;
+      } else {
+        const wr = fmtRange(values.workTimeRange);
+        payload.startTime = wr?.[0];
+        payload.endTime = wr?.[1];
+      }
+
+      // 中午休息
+      const rr = fmtRange(values.restTimeRange);
+      payload.restStartTime = rr?.[0];
+      payload.restEndTime = rr?.[1];
+
+      // 弹性范围
+      const fr = fmtRange(values.flexTimeRange);
+      payload.flexStartTime = fr?.[0];
+      payload.flexEndTime = fr?.[1];
+
+      // 展开多选规则
       const expandRules = (rules: RuleItem[] | undefined) => {
         if (!rules || rules.length === 0) return [];
         const result: { ruleType: number; targetId: number }[] = [];
@@ -312,7 +329,6 @@ const AttendanceGroups: React.FC = () => {
         return result;
       };
 
-      // 规则处理：编辑模式不传 rules 则不更新规则
       const expandedRules = expandRules(values.rules);
       if (expandedRules.length > 0) {
         payload.rules = expandedRules;
@@ -352,19 +368,21 @@ const AttendanceGroups: React.FC = () => {
       title: '考勤组名称',
       dataIndex: 'name',
       key: 'name',
-      width: 160,
+      width: 140,
+      ellipsis: true,
       render: (v: string) => (
-        <Space>
-          <ClockCircleOutlined style={{ color: '#1677ff' }} />
+        <span>
+          <ClockCircleOutlined style={{ color: '#1677ff', marginRight: 4 }} />
           <strong>{v}</strong>
-        </Space>
+        </span>
       ),
     },
     {
       title: '班次类型',
       dataIndex: 'shiftTypeDesc',
       key: 'shiftType',
-      width: 100,
+      width: 80,
+      align: 'center',
       render: (v: string, record) => (
         <Tag
           color={
@@ -380,30 +398,51 @@ const AttendanceGroups: React.FC = () => {
       ),
     },
     {
-      title: '上班时间',
-      dataIndex: 'startTime',
-      key: 'startTime',
-      width: 100,
+      title: '工作时间',
+      key: 'workTime',
+      width: 190,
       align: 'center',
-      render: (v: string) => v || '-',
-    },
-    {
-      title: '下班时间',
-      dataIndex: 'endTime',
-      key: 'endTime',
-      width: 100,
-      align: 'center',
-      render: (v: string) => v || '-',
+      render: (_: any, record) => {
+        const isFlex = record.shiftType === 2;
+        const timeText = isFlex
+          ? `${record.coreStartTime || '-'}~${record.coreEndTime || '-'}`
+          : `${record.startTime || '-'}~${record.endTime || '-'}`;
+        if (isFlex) {
+          return (
+            <span>
+              <Tag
+                color="orange"
+                style={{ margin: 0, fontSize: 11, padding: '0 4px' }}
+              >
+                核心
+              </Tag>
+              <span
+                style={{
+                  marginLeft: 4,
+                  fontVariantNumeric: 'tabular-nums' as any,
+                }}
+              >
+                {timeText}
+              </span>
+            </span>
+          );
+        }
+        return (
+          <span style={{ fontVariantNumeric: 'tabular-nums' as any }}>
+            {timeText}
+          </span>
+        );
+      },
     },
     {
       title: '适用人员',
       dataIndex: 'ruleSummary',
       key: 'ruleSummary',
-      width: 180,
+      width: 160,
       ellipsis: true,
       render: (v: string) => (
-        <Typography.Text title={v}>
-          <TeamOutlined style={{ marginRight: 6 }} />
+        <Typography.Text title={v} style={{ fontSize: 13 }}>
+          <TeamOutlined style={{ marginRight: 4 }} />
           {v || '-'}
         </Typography.Text>
       ),
@@ -412,7 +451,7 @@ const AttendanceGroups: React.FC = () => {
       title: '迟到阈值',
       dataIndex: 'lateThreshold',
       key: 'lateThreshold',
-      width: 100,
+      width: 80,
       align: 'center',
       render: (v: number) =>
         v !== null && v !== undefined ? `${v} 分钟` : '-',
@@ -421,7 +460,7 @@ const AttendanceGroups: React.FC = () => {
       title: '早退阈值',
       dataIndex: 'earlyLeaveThreshold',
       key: 'earlyLeaveThreshold',
-      width: 100,
+      width: 80,
       align: 'center',
       render: (v: number) =>
         v !== null && v !== undefined ? `${v} 分钟` : '-',
@@ -429,14 +468,14 @@ const AttendanceGroups: React.FC = () => {
     {
       title: '操作',
       key: 'action',
-      width: 140,
-      fixed: 'right',
+      width: 120,
+      align: 'center',
       render: (_, record) => (
         <Space>
           <Button
-            type="link"
             size="small"
-            icon={<EditOutlined />}
+            shape="round"
+            style={{ color: '#1677ff', borderColor: '#1677ff' }}
             onClick={() => handleEdit(record)}
           >
             编辑
@@ -448,7 +487,7 @@ const AttendanceGroups: React.FC = () => {
             cancelText="取消"
             okButtonProps={{ danger: true }}
           >
-            <Button type="link" danger size="small" icon={<DeleteOutlined />}>
+            <Button danger size="small" shape="round">
               删除
             </Button>
           </Popconfirm>
@@ -464,12 +503,93 @@ const AttendanceGroups: React.FC = () => {
         title: '考勤规则配置',
       }}
     >
+      {/* 筛选区域 */}
+      <Card
+        style={{ marginBottom: 16 }}
+        styles={{ body: { padding: '16px 24px' } }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 16,
+            alignItems: 'flex-start',
+          }}
+        >
+          {/* 考勤组名称 */}
+          <div style={{ width: 220 }}>
+            <Typography.Text
+              type="secondary"
+              style={{ fontSize: 12, marginBottom: 4, display: 'block' }}
+            >
+              考勤组名称
+            </Typography.Text>
+            <Input
+              placeholder="输入名称搜索"
+              prefix={<SearchOutlined />}
+              value={filterKeyword}
+              onChange={(e) => setFilterKeyword(e.target.value)}
+              allowClear
+              onPressEnter={() =>
+                queryClient.invalidateQueries({ queryKey: ['attendance'] })
+              }
+            />
+          </div>
+
+          {/* 班次类型 */}
+          <div style={{ width: 150 }}>
+            <Typography.Text
+              type="secondary"
+              style={{ fontSize: 12, marginBottom: 4, display: 'block' }}
+            >
+              班次类型
+            </Typography.Text>
+            <Select
+              placeholder="选择类型"
+              options={SHIFT_TYPE_OPTIONS}
+              value={filterShiftType}
+              onChange={(val) => setFilterShiftType(val)}
+              allowClear
+              style={{ width: '100%' }}
+            />
+          </div>
+
+          {/* 操作按钮 */}
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              alignItems: 'flex-end',
+              paddingTop: 20,
+            }}
+          >
+            <Button
+              type="primary"
+              icon={<SearchOutlined />}
+              onClick={() =>
+                queryClient.invalidateQueries({ queryKey: ['attendance'] })
+              }
+            >
+              搜索
+            </Button>
+            <Button
+              onClick={() => {
+                setFilterKeyword('');
+                setFilterShiftType(undefined);
+              }}
+            >
+              重置
+            </Button>
+          </div>
+        </div>
+      </Card>
+
       <Card
         bordered={false}
         title="考勤组列表"
         styles={{ body: { padding: '0 24px 24px' } }}
         extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+          <Button type="primary" shape="round" onClick={handleAdd}>
             新增考勤组
           </Button>
         }
@@ -479,7 +599,6 @@ const AttendanceGroups: React.FC = () => {
           columns={columns}
           dataSource={isError ? [] : list}
           loading={isLoading}
-          scroll={{ x: 1080 }}
           pagination={{
             showSizeChanger: true,
             defaultPageSize: 10,
@@ -536,90 +655,79 @@ const AttendanceGroups: React.FC = () => {
             <Select placeholder="请选择班次类型" options={SHIFT_TYPE_OPTIONS} />
           </Form.Item>
 
-          {/* 上班时间 + 下班时间 */}
-          <div style={{ display: 'flex', gap: 16 }}>
+          {/* 弹性班：核心工作时间 + 需工作时长 */}
+          {watchShiftType === 2 ? (
+            <>
+              <Form.Item
+                name="coreTimeRange"
+                label="核心工作时间"
+                rules={[{ required: true, message: '请选择' }]}
+              >
+                <RangePicker
+                  picker="time"
+                  format="HH:mm"
+                  style={{ width: '100%' }}
+                  placeholder={['开始时间', '结束时间']}
+                />
+              </Form.Item>
+              <Form.Item
+                name="workHours"
+                label="需工作时长"
+                rules={[{ required: true, message: '请输入工作时长' }]}
+              >
+                <InputNumber
+                  min={1}
+                  max={24}
+                  addonAfter="小时"
+                  style={{ width: '100%' }}
+                  placeholder="如 8"
+                />
+              </Form.Item>
+            </>
+          ) : (
             <Form.Item
-              name="startTime"
-              label="上班时间"
-              style={{ flex: 1 }}
+              name="workTimeRange"
+              label="工作时间"
               rules={[{ required: true, message: '请选择' }]}
             >
-              <TimePicker
+              <RangePicker
+                picker="time"
                 format="HH:mm"
                 style={{ width: '100%' }}
-                placeholder="如 09:00"
+                placeholder={['上班时间', '下班时间']}
               />
             </Form.Item>
-            <Form.Item
-              name="endTime"
-              label="下班时间"
-              style={{ flex: 1 }}
-              rules={[{ required: true, message: '请选择' }]}
-            >
-              <TimePicker
-                format="HH:mm"
-                style={{ width: '100%' }}
-                placeholder="如 18:00"
-              />
-            </Form.Item>
-          </div>
+          )}
 
           {/* 中午休息 */}
-          <div style={{ display: 'flex', gap: 16 }}>
-            <Form.Item
-              name="restStartTime"
-              label="中午休息（开始）"
-              style={{ flex: 1 }}
-              tooltip="非必填，默认 12:00"
-            >
-              <TimePicker
-                format="HH:mm"
-                style={{ width: '100%' }}
-                placeholder="12:00"
-              />
-            </Form.Item>
-            <Form.Item
-              name="restEndTime"
-              label="中午休息（结束）"
-              style={{ flex: 1 }}
-              tooltip="非必填，默认 13:00"
-            >
-              <TimePicker
-                format="HH:mm"
-                style={{ width: '100%' }}
-                placeholder="13:00"
-              />
-            </Form.Item>
-          </div>
+          <Form.Item
+            name="restTimeRange"
+            label="中午休息"
+            tooltip="非必填，默认 12:00-13:00"
+          >
+            <RangePicker
+              picker="time"
+              format="HH:mm"
+              style={{ width: '100%' }}
+              placeholder={['开始时间', '结束时间']}
+            />
+          </Form.Item>
 
           {/* 弹性范围（仅弹性班显示） */}
           {watchShiftType === 2 && (
-            <div style={{ display: 'flex', gap: 16 }}>
-              <Form.Item
-                name="flexStartTime"
-                label="弹性范围（最早打卡）"
-                style={{ flex: 1 }}
-                tooltip="弹性班适用，最早可打卡时间"
-              >
-                <TimePicker
-                  format="HH:mm"
-                  style={{ width: '100%' }}
-                  placeholder="如 07:00"
-                />
-              </Form.Item>
-              <Form.Item
-                name="flexEndTime"
-                label="弹性范围（最晚打卡）"
-                style={{ flex: 1 }}
-                tooltip="弹性班适用，最晚可打卡时间"
-              >
-                <TimePicker
-                  format="HH:mm"
-                  style={{ width: '100%' }}
-                  placeholder="如 10:00"
-                />
-              </Form.Item>
-            </div>
+            <Form.Item
+              name="flexTimeRange"
+              label="弹性打卡范围"
+              tooltip="弹性班适用，最早-最晚打卡时间"
+              rules={[{ required: true, message: '请选择' }]}
+            >
+              <RangePicker
+                picker="time"
+                format="HH:mm"
+                style={{ width: '100%' }}
+                placeholder={['最早打卡', '最晚打卡']}
+              />
+            </Form.Item>
           )}
 
           {/* 迟到阈值 + 早退阈值 */}
@@ -722,7 +830,6 @@ const AttendanceGroups: React.FC = () => {
                         placeholder="选择类型"
                         options={ATTENDANCE_RULE_TYPE_OPTIONS}
                         onChange={() => {
-                          // 切换类型时清空已选目标
                           const rules = form.getFieldValue('rules') || [];
                           rules[name] = { ...rules[name], targetIds: [] };
                           form.setFieldValue('rules', rules);

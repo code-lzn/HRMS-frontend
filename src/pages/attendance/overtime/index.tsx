@@ -1,15 +1,11 @@
+import { getEmployeeListUsingGet } from '@/api/employeeController';
 import {
   createOvertimeRecordUsingPost,
   deleteOvertimeRecordUsingDelete,
   queryRecordsUsingGet1,
   updateOvertimeRecordUsingPut,
 } from '@/api/overtimeRecordController';
-import {
-  ClockCircleOutlined,
-  DeleteOutlined,
-  EditOutlined,
-  PlusOutlined,
-} from '@ant-design/icons';
+import { ClockCircleOutlined, SearchOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -18,8 +14,6 @@ import {
   DatePicker,
   Empty,
   Form,
-  Input,
-  InputNumber,
   message,
   Modal,
   Popconfirm,
@@ -29,21 +23,31 @@ import {
   Table,
   Tag,
   TimePicker,
+  Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useState } from 'react';
+import dayjs from 'dayjs';
+import React, { useCallback, useState } from 'react';
 
 interface OvertimeRow {
   id: number;
-  userName: string;
-  date: string;
+  employeeId: number;
+  employeeName: string;
+  departmentName: string;
+  overtimeDate: string;
   startTime: string;
   endTime: string;
   hours: number;
-  type: string;
-  reason: string;
-  status: string;
+  isUsed: number;
+  isUsedDesc: string;
+  expireDate: string;
+  createTime: string;
 }
+
+const IS_USED_OPTIONS = [
+  { label: '未使用', value: 0 },
+  { label: '已使用', value: 1 },
+];
 
 const OvertimeManagement: React.FC = () => {
   const queryClient = useQueryClient();
@@ -52,19 +56,98 @@ const OvertimeManagement: React.FC = () => {
   const [currentId, setCurrentId] = useState<number | undefined>();
   const [form] = Form.useForm();
 
-  // 列表
+  // ---- 筛选状态 ----
+  const [filterEmployeeId, setFilterEmployeeId] = useState<
+    number | undefined
+  >();
+  const [filterIsUsed, setFilterIsUsed] = useState<number | undefined>();
+
+  // 筛选栏员工搜索（独立于弹窗）
+  const [filterEmployeeOptions, setFilterEmployeeOptions] = useState<
+    { label: string; value: number }[]
+  >([]);
+  const handleFilterSearchEmployee = async (keyword: string) => {
+    if (!keyword) {
+      setFilterEmployeeOptions([]);
+      return;
+    }
+    try {
+      const res = await getEmployeeListUsingGet({
+        keyword,
+        current: 1,
+        pageSize: 20,
+      });
+      const records = (res as any)?.data?.records ?? [];
+      setFilterEmployeeOptions(
+        records.map((r: any) => ({
+          label: `${r.name} (${r.employeeNo})`,
+          value: r.id,
+        })),
+      );
+    } catch {
+      setFilterEmployeeOptions([]);
+    }
+  };
+
+  // 弹窗员工搜索（独立于筛选栏）
+  const [modalEmployeeOptions, setModalEmployeeOptions] = useState<
+    { label: string; value: number }[]
+  >([]);
+  const handleModalSearchEmployee = async (keyword: string) => {
+    if (!keyword) {
+      setModalEmployeeOptions([]);
+      return;
+    }
+    try {
+      const res = await getEmployeeListUsingGet({
+        keyword,
+        current: 1,
+        pageSize: 20,
+      });
+      const records = (res as any)?.data?.records ?? [];
+      setModalEmployeeOptions(
+        records.map((r: any) => ({
+          label: `${r.name} (${r.employeeNo})`,
+          value: r.id,
+        })),
+      );
+    } catch {
+      setModalEmployeeOptions([]);
+    }
+  };
+
+  // ---- 列表 ----
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['overtime', 'records'],
-    queryFn: async () => queryRecordsUsingGet1({ page: 1, size: 20 }),
+    queryKey: ['overtime', 'records', filterEmployeeId, filterIsUsed],
+    queryFn: async () =>
+      queryRecordsUsingGet1({
+        employeeId: filterEmployeeId,
+        isUsed: filterIsUsed,
+        page: 1,
+        size: 50,
+      }),
   });
   const raw = (data as any)?.data?.records;
   const list: OvertimeRow[] = Array.isArray(raw) ? raw : [];
+
+  // 筛选搜索
+  const handleSearch = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['overtime'] });
+  }, [queryClient]);
+
+  // 重置筛选
+  const handleReset = () => {
+    setFilterEmployeeId(undefined);
+    setFilterIsUsed(undefined);
+    setFilterEmployeeOptions([]);
+  };
 
   // 新增
   const handleAdd = () => {
     setModalMode('create');
     setCurrentId(undefined);
     form.resetFields();
+    setModalEmployeeOptions([]);
     setModalOpen(true);
   };
 
@@ -73,12 +156,11 @@ const OvertimeManagement: React.FC = () => {
     setModalMode('edit');
     setCurrentId(record.id);
     form.setFieldsValue({
-      date: record.date,
-      startTime: record.startTime,
-      endTime: record.endTime,
+      employeeId: record.employeeId,
+      overtimeDate: record.overtimeDate
+        ? dayjs(record.overtimeDate)
+        : undefined,
       hours: record.hours,
-      type: record.type,
-      reason: record.reason,
     });
     setModalOpen(true);
   };
@@ -87,11 +169,24 @@ const OvertimeManagement: React.FC = () => {
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+      const payload: Record<string, any> = {
+        employeeId: values.employeeId,
+        overtimeDate: dayjs.isDayjs(values.overtimeDate)
+          ? values.overtimeDate.format('YYYY-MM-DD')
+          : values.overtimeDate,
+        startTime: values.timeRange?.[0]?.format('YYYY-MM-DD HH:mm:ss'),
+        endTime: values.timeRange?.[1]?.format('YYYY-MM-DD HH:mm:ss'),
+        hours:
+          values.timeRange?.[0] && values.timeRange?.[1]
+            ? values.timeRange[1].diff(values.timeRange[0], 'hour', true)
+            : undefined,
+      };
+
       if (modalMode === 'create') {
-        await createOvertimeRecordUsingPost(values as any);
+        await createOvertimeRecordUsingPost(payload as any);
         message.success('加班申请已提交');
       } else if (currentId) {
-        await updateOvertimeRecordUsingPut({ id: currentId }, values as any);
+        await updateOvertimeRecordUsingPut({ id: currentId }, payload as any);
         message.success('加班记录已更新');
       }
       setModalOpen(false);
@@ -114,74 +209,84 @@ const OvertimeManagement: React.FC = () => {
   };
 
   const columns: ColumnsType<OvertimeRow> = [
-    { title: '员工', dataIndex: 'userName', key: 'userName', width: 120 },
-    { title: '加班日期', dataIndex: 'date', key: 'date', width: 120 },
     {
-      title: '开始时间',
-      dataIndex: 'startTime',
-      key: 'startTime',
-      width: 110,
+      title: '员工',
+      dataIndex: 'employeeName',
+      key: 'employeeName',
+      width: 100,
     },
     {
-      title: '结束时间',
-      dataIndex: 'endTime',
-      key: 'endTime',
-      width: 110,
+      title: '部门',
+      dataIndex: 'departmentName',
+      key: 'departmentName',
+      width: 120,
+      ellipsis: true,
     },
     {
-      title: '时长(小时)',
+      title: '加班日期',
+      dataIndex: 'overtimeDate',
+      key: 'overtimeDate',
+      width: 110,
+      align: 'center',
+      render: (v: string) => (v ? dayjs(v).format('YYYY-MM-DD') : '-'),
+    },
+    {
+      title: '加班时段',
+      key: 'timeRange',
+      width: 160,
+      align: 'center',
+      render: (_: any, record) => {
+        const s = record.startTime
+          ? dayjs(record.startTime).format('HH:mm')
+          : '-';
+        const e = record.endTime ? dayjs(record.endTime).format('HH:mm') : '-';
+        return `${s} ~ ${e}`;
+      },
+    },
+    {
+      title: '时长',
       dataIndex: 'hours',
       key: 'hours',
-      width: 110,
-      align: 'right',
+      width: 80,
+      align: 'center',
       render: (h: number) => (
         <strong>
           <ClockCircleOutlined style={{ color: '#1677ff', marginRight: 4 }} />
-          {h ?? 0}
+          {h ?? 0}h
         </strong>
       ),
     },
     {
-      title: '类型',
-      dataIndex: 'type',
-      key: 'type',
-      width: 100,
-      render: (v: string) => {
-        const map: Record<string, string> = {
-          工作日: 'blue',
-          周末: 'orange',
-          节假日: 'red',
-        };
-        return <Tag color={map[v] ?? 'default'}>{v}</Tag>;
-      },
+      title: '使用状态',
+      dataIndex: 'isUsedDesc',
+      key: 'isUsed',
+      width: 90,
+      align: 'center',
+      render: (v: string, record) => (
+        <Tag color={record.isUsed === 1 ? 'default' : 'green'}>
+          {v || (record.isUsed === 1 ? '已使用' : '未使用')}
+        </Tag>
+      ),
     },
-    { title: '原因', dataIndex: 'reason', key: 'reason' },
     {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      width: 100,
-      render: (s: string) => {
-        const map: Record<string, { color: string; text: string }> = {
-          待审批: { color: 'processing', text: '待审批' },
-          已通过: { color: 'success', text: '已通过' },
-          已拒绝: { color: 'error', text: '已拒绝' },
-        };
-        const cfg = map[s] ?? { color: 'default', text: s ?? '-' };
-        return <Tag color={cfg.color}>{cfg.text}</Tag>;
-      },
+      title: '有效期至',
+      dataIndex: 'expireDate',
+      key: 'expireDate',
+      width: 110,
+      align: 'center',
+      render: (v: string) => (v ? dayjs(v).format('YYYY-MM-DD') : '-'),
     },
     {
       title: '操作',
       key: 'action',
-      width: 140,
-      fixed: 'right',
+      width: 120,
+      align: 'center',
       render: (_, record) => (
         <Space>
           <Button
-            type="link"
             size="small"
-            icon={<EditOutlined />}
+            shape="round"
+            style={{ color: '#1677ff', borderColor: '#1677ff' }}
             onClick={() => handleEdit(record)}
           >
             编辑
@@ -193,7 +298,7 @@ const OvertimeManagement: React.FC = () => {
             cancelText="取消"
             okButtonProps={{ danger: true }}
           >
-            <Button type="link" danger size="small" icon={<DeleteOutlined />}>
+            <Button danger size="small" shape="round">
               删除
             </Button>
           </Popconfirm>
@@ -209,12 +314,87 @@ const OvertimeManagement: React.FC = () => {
         title: '加班管理',
       }}
     >
+      {/* 筛选区域 */}
+      <Card
+        style={{ marginBottom: 16 }}
+        styles={{ body: { padding: '16px 24px' } }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 16,
+            alignItems: 'flex-start',
+          }}
+        >
+          {/* 员工 */}
+          <div style={{ width: 220 }}>
+            <Typography.Text
+              type="secondary"
+              style={{ fontSize: 12, marginBottom: 4, display: 'block' }}
+            >
+              员工
+            </Typography.Text>
+            <Select
+              placeholder="输入姓名搜索员工"
+              options={filterEmployeeOptions}
+              value={filterEmployeeId}
+              onChange={(val) => setFilterEmployeeId(val)}
+              allowClear
+              showSearch
+              filterOption={false}
+              onSearch={handleFilterSearchEmployee}
+              notFoundContent={null}
+              style={{ width: '100%' }}
+            />
+          </div>
+
+          {/* 使用状态 */}
+          <div style={{ width: 150 }}>
+            <Typography.Text
+              type="secondary"
+              style={{ fontSize: 12, marginBottom: 4, display: 'block' }}
+            >
+              使用状态
+            </Typography.Text>
+            <Select
+              placeholder="选择状态"
+              options={IS_USED_OPTIONS}
+              value={filterIsUsed}
+              onChange={(val) => setFilterIsUsed(val)}
+              allowClear
+              style={{ width: '100%' }}
+            />
+          </div>
+
+          {/* 操作按钮 */}
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              alignItems: 'flex-end',
+              paddingTop: 20,
+            }}
+          >
+            <Button
+              type="primary"
+              icon={<SearchOutlined />}
+              onClick={handleSearch}
+            >
+              搜索
+            </Button>
+            <Button onClick={handleReset}>重置</Button>
+          </div>
+        </div>
+      </Card>
+
       <Card
         bordered={false}
-        title="加班记录"
+        title="加班记录列表"
+        styles={{ body: { padding: '0 24px 24px' } }}
         extra={
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            申请加班
+          <Button type="primary" shape="round" onClick={handleAdd}>
+            创建加班记录
           </Button>
         }
       >
@@ -223,6 +403,11 @@ const OvertimeManagement: React.FC = () => {
           columns={columns}
           dataSource={isError ? [] : list}
           loading={isLoading}
+          pagination={{
+            showSizeChanger: true,
+            defaultPageSize: 10,
+            showTotal: (t) => `共 ${t} 条`,
+          }}
           locale={{
             emptyText: isError ? (
               <Result
@@ -238,7 +423,7 @@ const OvertimeManagement: React.FC = () => {
       </Card>
 
       <Modal
-        title={modalMode === 'create' ? '申请加班' : '编辑加班'}
+        title={modalMode === 'create' ? '创建加班记录' : '编辑加班'}
         open={modalOpen}
         onCancel={() => setModalOpen(false)}
         onOk={handleSubmit}
@@ -248,8 +433,24 @@ const OvertimeManagement: React.FC = () => {
         width={560}
       >
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          {modalMode === 'create' && (
+            <Form.Item
+              name="employeeId"
+              label="员工"
+              rules={[{ required: true, message: '请选择员工' }]}
+            >
+              <Select
+                placeholder="输入姓名搜索员工"
+                options={modalEmployeeOptions}
+                showSearch
+                filterOption={false}
+                onSearch={handleModalSearchEmployee}
+                notFoundContent={null}
+              />
+            </Form.Item>
+          )}
           <Form.Item
-            name="date"
+            name="overtimeDate"
             label="加班日期"
             rules={[{ required: true, message: '请选择加班日期' }]}
           >
@@ -258,46 +459,20 @@ const OvertimeManagement: React.FC = () => {
           <Form.Item
             name="timeRange"
             label="加班时段"
-            rules={[{ required: true, message: '请选择加班时段' }]}
+            rules={[
+              { required: true, message: '请选择加班时段' },
+              {
+                validator(_, value) {
+                  if (!value || value.length !== 2) return Promise.resolve();
+                  const [start, end] = value;
+                  if (!start || !end) return Promise.resolve();
+                  if (end.isAfter(start)) return Promise.resolve();
+                  return Promise.reject(new Error('结束时间不能早于开始时间'));
+                },
+              },
+            ]}
           >
             <TimePicker.RangePicker format="HH:mm" style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item
-            name="hours"
-            label="加班时长(小时)"
-            rules={[{ required: true, message: '请输入加班时长' }]}
-          >
-            <InputNumber
-              min={0.5}
-              max={24}
-              step={0.5}
-              style={{ width: '100%' }}
-              placeholder="可填 0.5"
-            />
-          </Form.Item>
-          <Form.Item
-            name="type"
-            label="加班类型"
-            rules={[{ required: true, message: '请选择加班类型' }]}
-          >
-            <Select
-              options={[
-                { value: '工作日', label: '工作日' },
-                { value: '周末', label: '周末' },
-                { value: '节假日', label: '节假日' },
-              ]}
-            />
-          </Form.Item>
-          <Form.Item
-            name="reason"
-            label="加班原因"
-            rules={[{ required: true, message: '请输入加班原因' }]}
-          >
-            <Input.TextArea
-              rows={3}
-              placeholder="请说明加班原因"
-              maxLength={200}
-            />
           </Form.Item>
         </Form>
       </Modal>

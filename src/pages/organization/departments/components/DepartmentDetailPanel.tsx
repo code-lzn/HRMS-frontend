@@ -1,7 +1,6 @@
 import { deleteDepartmentUsingDelete } from '@/api/departmentController';
 import { queryKeys } from '@/hooks/queryKeys';
 import { useDepartmentDetail } from '@/hooks/useDepartmentDetail';
-import { EditOutlined, PlusOutlined } from '@ant-design/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAccess } from '@umijs/max';
 import {
@@ -119,12 +118,16 @@ const DepartmentDetailPanel: React.FC<DepartmentDetailPanelProps> = ({
       >
         {canManage && (
           <div style={{ display: 'flex', gap: 8 }}>
-            <Button icon={<PlusOutlined />} onClick={() => onAddChild(deptId)}>
+            <Button
+              type="primary"
+              shape="round"
+              onClick={() => onAddChild(deptId)}
+            >
               新增子部门
             </Button>
             <Button
-              type="primary"
-              icon={<EditOutlined />}
+              shape="round"
+              style={{ color: '#1677ff', borderColor: '#1677ff' }}
               onClick={() => onEdit(deptId)}
             >
               编辑
@@ -136,7 +139,9 @@ const DepartmentDetailPanel: React.FC<DepartmentDetailPanelProps> = ({
               cancelText="取消"
               okButtonProps={{ danger: true }}
             >
-              <Button danger>删除</Button>
+              <Button danger shape="round">
+                删除
+              </Button>
             </Popconfirm>
           </div>
         )}

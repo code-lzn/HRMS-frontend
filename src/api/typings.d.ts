@@ -88,6 +88,8 @@ declare namespace API {
   };
 
   type AttendanceGroupListVO = {
+    coreEndTime?: string;
+    coreStartTime?: string;
     createTime?: string;
     earlyLeaveThreshold?: number;
     endTime?: string;
