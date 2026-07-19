@@ -6,6 +6,7 @@ import { UserOutlined } from '@ant-design/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { history, useAccess, useParams } from '@umijs/max';
 import { Avatar, Button, Card, Form, message, Modal, Result, Spin } from 'antd';
+import dayjs from 'dayjs';
 import React, { useMemo } from 'react';
 import PersonalInfoSection from './components/PersonalInfoSection';
 import SalaryContractSection from './components/SalaryContractSection';
@@ -82,13 +83,18 @@ const EmployeeEdit: React.FC = () => {
     try {
       const values = await form.validateFields();
 
+      // 将 dayjs 对象转为字符串，保证脏检测和发送值的类型一致
+      const normalizeValue = (v: any) =>
+        dayjs.isDayjs(v) ? v.format('YYYY-MM-DD') : v;
+
       const dirtyFields: Record<string, any> = {};
       const init: Record<string, any> = initialValues;
       Object.keys(values).forEach((key) => {
         // idCard 不在后端 EmployeeUpdateRequest DTO 中，跳过
         if (key === 'idCard') return;
-        if (init[key] !== values[key]) {
-          dirtyFields[key] = values[key] ?? null;
+        const normalized = normalizeValue(values[key]);
+        if (init[key] !== normalized) {
+          dirtyFields[key] = normalized ?? null;
         }
       });
 
