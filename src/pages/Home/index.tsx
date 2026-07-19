@@ -16,7 +16,11 @@ import { PageContainer } from '@ant-design/pro-components';
 import { history, useModel } from '@umijs/max';
 import { Avatar, Button, Descriptions, Space, Tag } from 'antd';
 import dayjs from 'dayjs';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { getCalendarUsingGet } from '@/api/attendanceController';
+import { getBalanceUsingGet } from '@/api/leaveController';
+import { getMySalarySlipsUsingGet } from '@/api/salaryController';
+import { getChangeLogsUsingGet1 } from '@/api/profileController';
 import usePermission from '@/hooks/usePermission';
 import styles from './index.less';
 
@@ -60,6 +64,39 @@ const HomePage: React.FC = () => {
   const currentUser = initialState?.currentUser;
   const roleCode = initialState?.roleCode ?? 'employee';
   const [grad1, grad2] = ROLE_GRADIENT[roleCode] ?? DEFAULT_GRADIENT;
+
+  // 统计卡片数据
+  const [attendanceDays, setAttendanceDays] = useState<number | null>(null);
+  const [annualLeave, setAnnualLeave] = useState<number | null>(null);
+  const [lastSalary, setLastSalary] = useState<number | null>(null);
+  const [changeCount, setChangeCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    // 本月出勤天数
+    getCalendarUsingGet({ month: dayjs().format('YYYY-MM') })
+      .then((res) => { if (res?.data?.normalDays != null) setAttendanceDays(res.data.normalDays); })
+      .catch(() => {});
+    // 剩余年假
+    getBalanceUsingGet()
+      .then((res) => { if (res?.data?.annualRemaining != null) setAnnualLeave(res.data.annualRemaining); })
+      .catch(() => {});
+    // 最近薪资
+    getMySalarySlipsUsingGet()
+      .then((res) => {
+        const slips = res?.data ?? [];
+        if (slips.length > 0) {
+          const latest = slips.reduce((a, b) =>
+            (a.salaryMonth ?? '') > (b.salaryMonth ?? '') ? a : b
+          );
+          if (latest.netSalary != null) setLastSalary(latest.netSalary);
+        }
+      })
+      .catch(() => {});
+    // 异动记录数
+    getChangeLogsUsingGet1({ pageNum: 1, pageSize: 1 })
+      .then((res) => { if (res?.data?.total != null) setChangeCount(res.data.total); })
+      .catch(() => {});
+  }, []);
 
   if (!currentUser) {
     return (
@@ -125,7 +162,7 @@ const HomePage: React.FC = () => {
   });
 
   // === 统计卡片（按角色） ===
-  const statCards: { key: string; icon: React.ReactNode; bg: string; color: string; label: string; value: string; desc?: string }[] = [];
+  const statCards: { key: string; icon: React.ReactNode; bg: string; color: string; label: string; value: string; desc?: string; path?: string }[] = [];
 
   if (roleCode === 'admin' || roleCode === 'hr') {
     statCards.push(
@@ -143,10 +180,10 @@ const HomePage: React.FC = () => {
     );
   } else {
     statCards.push(
-      { key: 'att', icon: <ClockCircleOutlined />, bg: '#e6f4ff', color: '#1677ff', label: '本月出勤', value: '—', desc: '正常天数' },
-      { key: 'leave', icon: <ScheduleOutlined />, bg: '#f6ffed', color: '#52c41a', label: '剩余年假', value: '—', desc: '可申请' },
-      { key: 'salary', icon: <PieChartOutlined />, bg: '#fff7e6', color: '#fa8c16', label: '上月薪资', value: '—', desc: '已发放' },
-      { key: 'changes', icon: <FileTextOutlined />, bg: '#f9f0ff', color: '#722ed1', label: '异动记录', value: '—', desc: '最近' },
+      { key: 'att', icon: <ClockCircleOutlined />, bg: '#e6f4ff', color: '#1677ff', label: '本月出勤', value: attendanceDays != null ? String(attendanceDays) : '—', desc: '正常天数', path: '/personal/attendance' },
+      { key: 'leave', icon: <ScheduleOutlined />, bg: '#f6ffed', color: '#52c41a', label: '剩余年假', value: annualLeave != null ? `${annualLeave}天` : '—', desc: '可申请', path: '/personal/leave' },
+      { key: 'salary', icon: <PieChartOutlined />, bg: '#fff7e6', color: '#fa8c16', label: '上月薪资', value: lastSalary != null ? `¥${lastSalary.toLocaleString()}` : '—', desc: '已发放', path: '/personal/salary' },
+      { key: 'changes', icon: <FileTextOutlined />, bg: '#f9f0ff', color: '#722ed1', label: '异动记录', value: changeCount != null ? `${changeCount}条` : '—', desc: '最近', path: '/my-changes' },
     );
   }
 
@@ -171,7 +208,12 @@ const HomePage: React.FC = () => {
         {/* Stat Cards */}
         <div className={styles.statRow}>
           {statCards.map((s) => (
-            <div key={s.key} className={styles.statCard}>
+            <div
+              key={s.key}
+              className={styles.statCard}
+              onClick={() => s.path && history.push(s.path)}
+              style={{ cursor: s.path ? 'pointer' : 'default' }}
+            >
               <div className={styles.statIcon} style={iconStyle(s.color, s.bg)}>
                 {s.icon}
               </div>

@@ -110,6 +110,14 @@ export async function listUsingGet1(
   );
 }
 
+/** stats GET /api/regularization/stats */
+export async function statsUsingGet1(options?: { [key: string]: any }) {
+  return request<API.BaseResponseMapStringLong_>('/api/regularization/stats', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
 /** submit POST /api/regularization/submit */
 export async function submitUsingPost1(
   body: API.RegularizationAddRequest,

@@ -35,6 +35,56 @@ export async function deleteUsingDelete(
   });
 }
 
+/** updateHireDate PUT /api/onboarding/${param0}/hire-date */
+export async function updateHireDateUsingPut(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.updateHireDateUsingPUTParams,
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseBoolean_>(
+    `/api/onboarding/${param0}/hire-date`,
+    {
+      method: 'PUT',
+      params: {
+        ...queryParams,
+      },
+      ...(options || {}),
+    },
+  );
+}
+
+/** resubmit POST /api/onboarding/${param0}/resubmit */
+export async function resubmitUsingPost(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.resubmitUsingPOSTParams,
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseMapStringObject_>(
+    `/api/onboarding/${param0}/resubmit`,
+    {
+      method: 'POST',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}
+
+/** revoke POST /api/onboarding/${param0}/revoke */
+export async function revokeUsingPost(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.revokeUsingPOSTParams,
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseBoolean_>(`/api/onboarding/${param0}/revoke`, {
+    method: 'POST',
+    params: { ...queryParams },
+    ...(options || {}),
+  });
+}
+
 /** submitDraft POST /api/onboarding/${param0}/submit */
 export async function submitDraftUsingPost(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -203,6 +253,14 @@ export async function getMutationLogsUsingGet(options?: {
       ...(options || {}),
     },
   );
+}
+
+/** stats GET /api/onboarding/stats */
+export async function statsUsingGet(options?: { [key: string]: any }) {
+  return request<API.BaseResponseMapStringLong_>('/api/onboarding/stats', {
+    method: 'GET',
+    ...(options || {}),
+  });
 }
 
 /** submit POST /api/onboarding/submit */

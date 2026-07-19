@@ -98,6 +98,14 @@ export async function listUsingGet2(
   });
 }
 
+/** stats GET /api/resignation/stats */
+export async function statsUsingGet2(options?: { [key: string]: any }) {
+  return request<API.BaseResponseMapStringLong_>('/api/resignation/stats', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
 /** submit POST /api/resignation/submit */
 export async function submitUsingPost2(
   body: API.ResignationAddRequest,

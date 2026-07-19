@@ -105,8 +105,7 @@ export default defineConfig({
       access: 'canAdmin',
       routes: [
         { path: '/admin', redirect: '/admin/dashboard' },
-        { name: '仪表盘', path: '/admin/dashboard', component: './Dashboard' },
-        { name: '数据分析', path: '/admin/analytics', component: './Admin/DataAnalysis' },
+        { name: '工作台', path: '/admin/dashboard', component: './Dashboard' },
         { name: '用户管理', path: '/admin/users', component: './Admin/UserManage' },
         { name: '角色权限', path: '/admin/roles', component: './Admin/RolePermission' },
         { name: '系统配置', path: '/admin/config', component: './Admin/SystemConfig' },

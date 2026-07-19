@@ -1,4 +1,4 @@
-import { deleteUserUsingPost, listUserByPageUsingPost, updateUserUsingPost, userRegisterUsingPost } from '@/api/userController';
+import { deleteUserUsingPost, listUserByPageUsingPost, updateUserStatusUsingPost, updateUserUsingPost, userRegisterUsingPost } from '@/api/userController';
 import { assignRoleUsingPost, listAllRolesUsingGet } from '@/api/roleController';
 import { uploadFileUsingPost } from '@/api/fileController';
 import { CameraOutlined, PlusOutlined, UserOutlined } from '@ant-design/icons';
@@ -131,7 +131,7 @@ const UserManage: React.FC = () => {
       content: `确定要${isDisabled ? '启用' : '禁用'}用户「${record.userName}」吗？`,
       onOk: async () => {
         try {
-          await updateUserUsingPost({ id: record.id!, ...{ isDelete: isDisabled ? 0 : 1 } } as any);
+          await updateUserStatusUsingPost({ id: record.id!, status: isDisabled ? 0 : 1 });
           message.success(isDisabled ? '已启用' : '已禁用');
           actionRef.current?.reload();
         } catch (e: any) { message.error(e.message || '操作失败'); }

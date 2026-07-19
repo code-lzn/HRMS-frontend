@@ -113,6 +113,7 @@ declare namespace API {
   };
 
   type AttendanceGroupDTO = {
+    departmentIds?: number[];
     description?: string;
     earlyThreshold?: number;
     employeeIds?: number[];
@@ -131,6 +132,8 @@ declare namespace API {
 
   type AttendanceGroupVO = {
     createTime?: string;
+    departmentIds?: number[];
+    departmentNames?: string[];
     description?: string;
     earlyThreshold?: number;
     employeeCount?: number;
@@ -153,6 +156,7 @@ declare namespace API {
 
   type AttendanceStatsVO = {
     absentDays?: number;
+    annualLeaveBalance?: number;
     attendanceRate?: number;
     departmentName?: string;
     earlyDays?: number;
@@ -162,8 +166,10 @@ declare namespace API {
     leaveDays?: number;
     missingDays?: number;
     normalDays?: number;
+    overtimeHours?: number;
     positionName?: string;
     totalDays?: number;
+    totalLeaveDays?: number;
   };
 
   type AttendanceTrendVO = {
@@ -173,6 +179,8 @@ declare namespace API {
 
   type AttendanceVO = {
     attendanceDate?: string;
+    deptName?: string;
+    employeeName?: string;
     id?: number;
     punchInTime?: string;
     punchInType?: number;
@@ -417,6 +425,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseListOvertimeVO_ = {
+    code?: number;
+    data?: OvertimeVO[];
+    message?: string;
+  };
+
   type BaseResponseListPositionVO_ = {
     code?: number;
     data?: PositionVO[];
@@ -513,15 +527,15 @@ declare namespace API {
     message?: string;
   };
 
-  type BaseResponseMakeupPunchVO_ = {
-    code?: number;
-    data?: MakeupPunchVO;
-    message?: string;
-  };
-
   type BaseResponseMakeupPunchProgressVO_ = {
     code?: number;
     data?: MakeupPunchProgressVO;
+    message?: string;
+  };
+
+  type BaseResponseMakeupPunchVO_ = {
+    code?: number;
+    data?: MakeupPunchVO;
     message?: string;
   };
 
@@ -546,6 +560,12 @@ declare namespace API {
   type BaseResponseOnboardingVO_ = {
     code?: number;
     data?: OnboardingVO;
+    message?: string;
+  };
+
+  type BaseResponseOvertimeVO_ = {
+    code?: number;
+    data?: OvertimeVO;
     message?: string;
   };
 
@@ -690,6 +710,16 @@ declare namespace API {
   };
 
   type cancelDelegationUsingPOSTParams = {
+    /** id */
+    id: number;
+  };
+
+  type cancelUsingPOST1Params = {
+    /** id */
+    id: number;
+  };
+
+  type cancelUsingPOST2Params = {
     /** id */
     id: number;
   };
@@ -1071,6 +1101,16 @@ declare namespace API {
     updateTime?: string;
   };
 
+  type evaluateEndOfDayUsingPOSTParams = {
+    /** date */
+    date: string;
+  };
+
+  type generateDailyRecordsUsingPOSTParams = {
+    /** date */
+    date: string;
+  };
+
   type getAccountDetailUsingGETParams = {
     /** id */
     id: number;
@@ -1086,6 +1126,11 @@ declare namespace API {
     recordId: number;
   };
 
+  type getApprovalProgressUsingGET1Params = {
+    /** id */
+    id: number;
+  };
+
   type getApprovalProgressUsingGETParams = {
     /** id */
     id: number;
@@ -1094,10 +1139,10 @@ declare namespace API {
   type getAttendanceTrendUsingGETParams = {
     /** departmentId */
     departmentId: number;
-    /** months */
-    months?: number;
     /** endMonth */
     endMonth?: string;
+    /** months */
+    months?: number;
   };
 
   type getBatchDetailUsingGETParams = {
@@ -1184,17 +1229,17 @@ declare namespace API {
   };
 
   type getLateEarlyRankingUsingGETParams = {
-    /** month */
-    month: string;
     /** departmentId */
     departmentId?: number;
+    /** month */
+    month: string;
   };
 
   type getLeaveTypeDistributionUsingGETParams = {
-    /** month */
-    month: string;
     /** departmentId */
     departmentId?: number;
+    /** month */
+    month: string;
   };
 
   type getMonthRecordsUsingGETParams = {
@@ -1207,9 +1252,19 @@ declare namespace API {
     employeeId?: number;
   };
 
+  type getPersonalLeaveDistributionUsingGETParams = {
+    /** month */
+    month: string;
+  };
+
   type getPersonalStatsUsingGETParams = {
     /** month */
     month: string;
+  };
+
+  type getPersonalTrendUsingGETParams = {
+    /** months */
+    months?: number;
   };
 
   type getRoleByIdUsingGETParams = {
@@ -1361,6 +1416,7 @@ declare namespace API {
     businessNo?: string;
     createTime?: string;
     employeeId?: number;
+    employmentType?: string;
     flowId?: number;
     id?: number;
     isDeleted?: number;
@@ -1378,6 +1434,7 @@ declare namespace API {
     transferDate?: string;
     transferReason?: string;
     updateTime?: string;
+    workLocation?: string;
   };
 
   type LeaveApplyRequest = {
@@ -1519,6 +1576,11 @@ declare namespace API {
     reason?: string;
   };
 
+  type MakeupPunchProgressVO = {
+    makeupPunch?: MakeupPunchVO;
+    progressNodes?: ProgressNode1[];
+  };
+
   type MakeupPunchVO = {
     approveComment?: string;
     approveTime?: string;
@@ -1534,59 +1596,6 @@ declare namespace API {
     reason?: string;
     status?: number;
     statusText?: string;
-  };
-
-  type MakeupPunchProgressVO = {
-    makeupPunch?: MakeupPunchVO;
-    progressNodes?: MakeupPunchProgressNode[];
-  };
-
-  type OvertimeApplyRequest = {
-    overtimeDate?: string;
-    startTime?: string;
-    endTime?: string;
-    overtimeHours?: number;
-    overtimeType?: number;
-    reason?: string;
-  };
-
-  type OvertimeVO = {
-    approveComment?: string;
-    approveTime?: string;
-    approverId?: number;
-    createTime?: string;
-    employeeId?: number;
-    employeeName?: string;
-    endTime?: string;
-    id?: number;
-    overtimeDate?: string;
-    overtimeHours?: number;
-    overtimeType?: number;
-    overtimeTypeText?: string;
-    reason?: string;
-    startTime?: string;
-    status?: number;
-    statusText?: string;
-  };
-
-  type BaseResponseListOvertimeVO_ = {
-    code?: number;
-    data?: OvertimeVO[];
-    message?: string;
-  };
-
-  type BaseResponseOvertimeVO_ = {
-    code?: number;
-    data?: OvertimeVO;
-    message?: string;
-  };
-
-  type MakeupPunchProgressNode = {
-    nodeName?: string;
-    status?: number;
-    operatorName?: string;
-    operateTime?: string;
-    comment?: string;
   };
 
   type MapStringLong_ = true;
@@ -1683,6 +1692,7 @@ declare namespace API {
     contractExpireDate?: string;
     contractType?: number;
     deptId?: number;
+    directReportId?: number;
     email?: string;
     emergencyContactName?: string;
     emergencyContactPhone?: string;
@@ -1713,12 +1723,15 @@ declare namespace API {
     createTime?: string;
     deptId?: number;
     deptName?: string;
+    directReportId?: number;
+    directReportName?: string;
     email?: string;
     emergencyContactName?: string;
     emergencyContactPhone?: string;
     employeeId?: number;
     employmentType?: string;
     flowId?: number;
+    gender?: string;
     hireDate?: string;
     housingFundBase?: number;
     id?: number;
@@ -1728,7 +1741,9 @@ declare namespace API {
     positionId?: number;
     positionName?: string;
     probationMonth?: number;
+    probationSalaryRatio?: number;
     recordId?: number;
+    rejectionReason?: string;
     remark?: string;
     socialInsuranceBase?: number;
     updateTime?: string;
@@ -1737,6 +1752,34 @@ declare namespace API {
   type OrderItem = {
     asc?: boolean;
     column?: string;
+  };
+
+  type OvertimeApplyRequest = {
+    endTime?: string;
+    overtimeDate?: string;
+    overtimeHours?: number;
+    overtimeType?: number;
+    reason?: string;
+    startTime?: string;
+  };
+
+  type OvertimeVO = {
+    approveComment?: string;
+    approveTime?: string;
+    approverId?: number;
+    createTime?: string;
+    employeeId?: number;
+    employeeName?: string;
+    endTime?: string;
+    id?: number;
+    overtimeDate?: string;
+    overtimeHours?: number;
+    overtimeType?: number;
+    overtimeTypeText?: string;
+    reason?: string;
+    startTime?: string;
+    status?: number;
+    statusText?: string;
   };
 
   type PageEmployeeChangeLogVO_ = {
@@ -1903,6 +1946,14 @@ declare namespace API {
     status?: number;
   };
 
+  type ProgressNode1 = {
+    comment?: string;
+    nodeName?: string;
+    operateTime?: string;
+    operatorName?: string;
+    status?: number;
+  };
+
   type PunchRequest = {
     location?: string;
     punchType?: number;
@@ -2019,6 +2070,16 @@ declare namespace API {
     resignType?: string;
     status?: string;
     updateTime?: string;
+  };
+
+  type resubmitUsingPOSTParams = {
+    /** id */
+    id: number;
+  };
+
+  type revokeUsingPOSTParams = {
+    /** id */
+    id: number;
   };
 
   type RoleAddRequest = {
@@ -2277,6 +2338,7 @@ declare namespace API {
   type TransferAddRequest = {
     effectiveDate?: string;
     employeeId?: number;
+    employmentType?: string;
     flowId?: number;
     reason?: string;
     remark?: string;
@@ -2285,6 +2347,7 @@ declare namespace API {
     toPositionId?: number;
     toRankCode?: string;
     toReporterId?: number;
+    workLocation?: string;
   };
 
   type TransferVO = {
@@ -2298,6 +2361,7 @@ declare namespace API {
     employeeId?: number;
     employeeName?: string;
     employeeNo?: string;
+    employmentType?: string;
     flowId?: number;
     fromDeptId?: number;
     fromDeptName?: string;
@@ -2317,6 +2381,7 @@ declare namespace API {
     toReporterId?: number;
     toReporterName?: string;
     updateTime?: string;
+    workLocation?: string;
   };
 
   type updateAccountUsingPUTParams = {
@@ -2327,6 +2392,13 @@ declare namespace API {
   type updateEmployeeSalaryUsingPUTParams = {
     /** employeeId */
     employeeId: number;
+  };
+
+  type updateHireDateUsingPUTParams = {
+    /** hireDate */
+    hireDate: string;
+    /** id */
+    id: number;
   };
 
   type updateItemUsingPUTParams = {

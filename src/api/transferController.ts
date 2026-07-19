@@ -98,6 +98,14 @@ export async function listUsingGet3(
   });
 }
 
+/** stats GET /api/transfer/stats */
+export async function statsUsingGet3(options?: { [key: string]: any }) {
+  return request<API.BaseResponseMapStringLong_>('/api/transfer/stats', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
 /** submit POST /api/transfer/submit */
 export async function submitUsingPost3(
   body: API.TransferAddRequest,

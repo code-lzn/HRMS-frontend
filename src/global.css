@@ -1,12 +1,3 @@
-/* 侧边栏：覆盖 ProLayout inline style 的 top:0，向下偏移 56px */
-.ant-pro-layout .ant-layout-sider {
-  top: 56px !important;
-}
-
-/* 兜底：直接匹配 aside 元素 */
-.ant-pro-layout aside {
-  top: 56px !important;
-}
 
 /* 内容区：向下偏移 56px，避免被固定 header 遮挡 */
 .ant-pro-layout .ant-pro-layout-content {
