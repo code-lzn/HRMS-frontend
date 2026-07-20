@@ -1,5 +1,3 @@
-export const DEFAULT_NAME = 'Umi Max';
-
 // ==================== 审批中心 ====================
 
 export const BIZ_TYPE = {

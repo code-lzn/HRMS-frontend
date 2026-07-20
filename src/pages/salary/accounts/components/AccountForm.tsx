@@ -1,5 +1,5 @@
 import { SCOPE_TYPE_MAP } from '@/constants/enums';
-import { Form, Input, Modal, Select } from 'antd';
+import { DatePicker, Form, Input, Modal, Select } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect } from 'react';
 
@@ -26,9 +26,7 @@ const AccountForm: React.FC<AccountFormProps> = ({
         effectiveDate: editingRecord.effectiveDate
           ? dayjs(editingRecord.effectiveDate)
           : undefined,
-        scopeIds: editingRecord.scopeIds
-          ? editingRecord.scopeIds.split(',').map(Number)
-          : [],
+        scopeIds: editingRecord.scopeIds ?? [],
       });
     } else if (open) {
       form.resetFields();
@@ -41,7 +39,10 @@ const AccountForm: React.FC<AccountFormProps> = ({
       name: values.name,
       scopeType: values.scopeType,
       scopeIds: values.scopeIds,
-      effectiveDate: values.effectiveDate?.format('YYYY-MM-DD'),
+      effectiveDate:
+        typeof values.effectiveDate === 'string'
+          ? values.effectiveDate
+          : values.effectiveDate?.format('YYYY-MM-DD'),
       items: values.items,
     };
     onOk(payload);
@@ -79,18 +80,16 @@ const AccountForm: React.FC<AccountFormProps> = ({
         </Form.Item>
         <Form.Item
           name="scopeIds"
-          label="适用范围 ID（逗号分隔）"
-          rules={[{ required: true, message: '请输入适用范围ID' }]}
+          label="适用范围 ID（留空=全员适用）"
         >
-          <Select mode="tags" placeholder="输入后回车添加" />
+          <Select mode="tags" placeholder="输入部门/职位/职级ID，回车添加" />
         </Form.Item>
         <Form.Item
           name="effectiveDate"
           label="生效日期"
           rules={[{ required: true, message: '请选择生效日期' }]}
         >
-          {/* Use a text input for date as a simpler approach */}
-          <Input placeholder="yyyy-MM-dd，如 2026-07-01" />
+          <DatePicker style={{ width: '100%' }} />
         </Form.Item>
       </Form>
     </Modal>
