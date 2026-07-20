@@ -289,7 +289,7 @@ export default defineConfig({
   npmClient: 'pnpm',
   proxy: {
     '/api/chat': {
-      target: 'http://localhost:8000',
+      target: 'http://10.9.110.197:8000',
       changeOrigin: true,
     },
   },

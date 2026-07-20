@@ -20,6 +20,7 @@ import {
   Empty,
   Form,
   Input,
+  InputNumber,
   message,
   Modal,
   Result,
@@ -208,10 +209,17 @@ const LeaveManagement: React.FC = () => {
     try {
       const values = await form.validateFields();
       const [start, end] = values.dateRange ?? [];
+      if (!start || !end) {
+        message.error('请选择请假时间');
+        return;
+      }
       await submitLeaveRequestUsingPost({
-        ...values,
-        startDate: start?.format('YYYY-MM-DD'),
-        endDate: end?.format('YYYY-MM-DD'),
+        leaveType: values.leaveType,
+        startTime: start.format('YYYY-MM-DDTHH:mm:ss'),
+        endTime: end.format('YYYY-MM-DDTHH:mm:ss'),
+        leaveDays: values.leaveDays,
+        reason: values.reason,
+        submitDirectly: true,
       } as any);
       message.success('请假申请已提交');
       setModalOpen(false);
@@ -500,6 +508,19 @@ const LeaveManagement: React.FC = () => {
             rules={[{ required: true, message: '请选择请假时间' }]}
           >
             <RangePicker style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item
+            name="leaveDays"
+            label="请假天数"
+            rules={[{ required: true, message: '请输入请假天数' }]}
+          >
+            <InputNumber
+              min={0.5}
+              max={365}
+              step={0.5}
+              style={{ width: '100%' }}
+              placeholder="可填 0.5"
+            />
           </Form.Item>
           <Form.Item
             name="reason"

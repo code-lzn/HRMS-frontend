@@ -54,7 +54,6 @@ export default function LeavesPage() {
       const items = bd?.balances || [];
       setBalances([
         { leaveType: 1, leaveTypeDesc: '年假', ...items.find((b: any) => b.leaveType === 1), totalDays: items.find((b: any) => b.leaveType === 1)?.totalDays ?? 0, usedDays: items.find((b: any) => b.leaveType === 1)?.usedDays ?? 0, remainingDays: items.find((b: any) => b.leaveType === 1)?.remainingDays ?? 0 },
-        { leaveType: 2, leaveTypeDesc: '病假', ...items.find((b: any) => b.leaveType === 2), totalDays: items.find((b: any) => b.leaveType === 2)?.totalDays ?? 0, usedDays: items.find((b: any) => b.leaveType === 2)?.usedDays ?? 0, remainingDays: items.find((b: any) => b.leaveType === 2)?.remainingDays ?? 0 },
         { leaveType: 7, leaveTypeDesc: '调休', ...items.find((b: any) => b.leaveType === 7), totalDays: items.find((b: any) => b.leaveType === 7)?.totalDays ?? 0, usedDays: items.find((b: any) => b.leaveType === 7)?.usedDays ?? 0, remainingDays: items.find((b: any) => b.leaveType === 7)?.remainingDays ?? 0 },
       ]);
     } catch {
@@ -147,7 +146,7 @@ export default function LeavesPage() {
         ],
       }}
     >
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${balances.length}, 1fr)`, gap: 16, marginBottom: 24 }}>
         {balances.map((item: any) => {
           const colors = BALANCE_COLORS[item.leaveTypeDesc] || BALANCE_COLORS['年假'];
           const total = item.totalDays ?? 0;
