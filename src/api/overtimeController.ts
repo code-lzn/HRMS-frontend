@@ -37,8 +37,6 @@ export async function cancelUsingPost2(
   );
 }
 
-export const cancelOvertimeUsingPost = cancelUsingPost2;
-
 /** getMyOvertimes GET /api/attendance/overtime/my */
 export async function getMyOvertimesUsingGet(options?: { [key: string]: any }) {
   return request<API.BaseResponseListOvertimeVO_>(

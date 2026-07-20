@@ -104,7 +104,7 @@ declare namespace API {
 
   type AttendanceCalendarVO = {
     dailyStatus?: Record<string, any>;
-    dailyStatusText?: Record<string, string>;
+    dailyStatusText?: Record<string, any>;
     lateDays?: number;
     leaveDays?: number;
     makeupAvailableDates?: string[];
@@ -384,6 +384,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseListEmployee_ = {
+    code?: number;
+    data?: Employee[];
+    message?: string;
+  };
+
   type BaseResponseListGrowthTrendVO_ = {
     code?: number;
     data?: GrowthTrendVO[];
@@ -462,9 +468,27 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseListSalaryChangeDistributionVO_ = {
+    code?: number;
+    data?: SalaryChangeDistributionVO[];
+    message?: string;
+  };
+
   type BaseResponseListSalaryChangeLogVO_ = {
     code?: number;
     data?: SalaryChangeLogVO[];
+    message?: string;
+  };
+
+  type BaseResponseListSalaryCompositionVO_ = {
+    code?: number;
+    data?: SalaryCompositionVO[];
+    message?: string;
+  };
+
+  type BaseResponseListSalaryDeptDistributionVO_ = {
+    code?: number;
+    data?: SalaryDeptDistributionVO[];
     message?: string;
   };
 
@@ -474,9 +498,21 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseListSalaryMonthlyTrendVO_ = {
+    code?: number;
+    data?: SalaryMonthlyTrendVO[];
+    message?: string;
+  };
+
   type BaseResponseListSalarySlipVO_ = {
     code?: number;
     data?: SalarySlipVO[];
+    message?: string;
+  };
+
+  type BaseResponseListSalarySocialSecurityVO_ = {
+    code?: number;
+    data?: SalarySocialSecurityVO[];
     message?: string;
   };
 
@@ -907,6 +943,26 @@ declare namespace API {
     id: number;
   };
 
+  type Employee = {
+    account?: string;
+    createTime?: string;
+    departmentId?: number;
+    email?: string;
+    employeeName?: string;
+    employeeNo?: string;
+    employmentType?: string;
+    gender?: number;
+    hireDate?: string;
+    id?: number;
+    isDeleted?: number;
+    jobLevel?: string;
+    phone?: string;
+    positionId?: number;
+    status?: number;
+    updateTime?: string;
+    userId?: number;
+  };
+
   type EmployeeAddRequest = {
     bankAccount?: string;
     bankName?: string;
@@ -1107,6 +1163,23 @@ declare namespace API {
     date: string;
   };
 
+  type exportBatchUsingGETParams = {
+    /** id */
+    id: number;
+  };
+
+  type exportEmployeesUsingGETParams = {
+    departmentIds?: number[];
+    hireDateEnd?: string;
+    hireDateStart?: string;
+    jobLevels?: string[];
+    keyword?: string;
+    page?: number;
+    positionIds?: number[];
+    size?: number;
+    statuses?: number[];
+  };
+
   type generateDailyRecordsUsingPOSTParams = {
     /** date */
     date: string;
@@ -1156,6 +1229,11 @@ declare namespace API {
     month: string;
   };
 
+  type getChangeDistributionUsingGETParams = {
+    /** batchId */
+    batchId: number;
+  };
+
   type getChangeLogsUsingGET1Params = {
     /** employeeId */
     employeeId?: number;
@@ -1174,6 +1252,11 @@ declare namespace API {
     size?: number;
   };
 
+  type getCompositionUsingGETParams = {
+    /** batchId */
+    batchId: number;
+  };
+
   type getConversionRateUsingGETParams = {
     /** range */
     range?: string;
@@ -1187,6 +1270,11 @@ declare namespace API {
   type getDepartmentStatsUsingGETParams = {
     /** month */
     month: string;
+  };
+
+  type getDeptDistributionUsingGETParams = {
+    /** batchId */
+    batchId: number;
   };
 
   type getDetailUsingGET1Params = {
@@ -1243,6 +1331,11 @@ declare namespace API {
     month: string;
   };
 
+  type getMonthlyTrendUsingGETParams = {
+    /** months */
+    months?: number;
+  };
+
   type getMonthRecordsUsingGETParams = {
     /** month */
     month: string;
@@ -1276,6 +1369,11 @@ declare namespace API {
   type getSalarySlipDetailUsingPOSTParams = {
     /** id */
     id: number;
+  };
+
+  type getSocialSecurityComparisonUsingGETParams = {
+    /** batchId */
+    batchId: number;
   };
 
   type getSourceDistributionUsingGETParams = {
@@ -2189,6 +2287,11 @@ declare namespace API {
     totalNet?: number;
   };
 
+  type SalaryChangeDistributionVO = {
+    count?: number;
+    rangeLabel?: string;
+  };
+
   type SalaryChangeLogVO = {
     changeType?: number;
     changeTypeText?: string;
@@ -2201,6 +2304,18 @@ declare namespace API {
     operatorId?: number;
     operatorName?: string;
     remark?: string;
+  };
+
+  type SalaryCompositionVO = {
+    amount?: number;
+    itemName?: string;
+  };
+
+  type SalaryDeptDistributionVO = {
+    departmentName?: string;
+    employeeCount?: number;
+    grossTotal?: number;
+    netTotal?: number;
   };
 
   type SalaryDetailVO = {
@@ -2254,6 +2369,12 @@ declare namespace API {
     sortOrder?: number;
   };
 
+  type SalaryMonthlyTrendVO = {
+    grossTotal?: number;
+    month?: string;
+    netTotal?: number;
+  };
+
   type SalarySlipDetailVO = {
     adjustReason?: string;
     allowance?: number;
@@ -2285,6 +2406,12 @@ declare namespace API {
     netSalary?: number;
     salaryMonth?: string;
     totalDeduction?: number;
+  };
+
+  type SalarySocialSecurityVO = {
+    companyAmount?: number;
+    itemName?: string;
+    personalAmount?: number;
   };
 
   type SalaryTrendVO = {
@@ -2515,6 +2642,7 @@ declare namespace API {
   type UserVO = {
     createTime?: string;
     id?: number;
+    status?: number;
     userAvatar?: string;
     userName?: string;
     userProfile?: string;
@@ -2528,68 +2656,5 @@ declare namespace API {
   type VisitTrendVO = {
     date?: string;
     pageViews?: number;
-  };
-
-  // ==================== 薪资统计 VO ====================
-
-  type SalaryMonthlyTrendVO = {
-    grossTotal?: number;
-    month?: string;
-    netTotal?: number;
-  };
-
-  type SalaryDeptDistributionVO = {
-    departmentName?: string;
-    employeeCount?: number;
-    grossTotal?: number;
-    netTotal?: number;
-  };
-
-  type SalaryCompositionVO = {
-    amount?: number;
-    itemName?: string;
-  };
-
-  type SalarySocialSecurityVO = {
-    companyAmount?: number;
-    itemName?: string;
-    personalAmount?: number;
-  };
-
-  type SalaryChangeDistributionVO = {
-    count?: number;
-    rangeLabel?: string;
-  };
-
-  // ==================== 统计 BaseResponse ====================
-
-  type BaseResponseListSalaryMonthlyTrendVO_ = {
-    code?: number;
-    data?: SalaryMonthlyTrendVO[];
-    message?: string;
-  };
-
-  type BaseResponseListSalaryDeptDistributionVO_ = {
-    code?: number;
-    data?: SalaryDeptDistributionVO[];
-    message?: string;
-  };
-
-  type BaseResponseListSalaryCompositionVO_ = {
-    code?: number;
-    data?: SalaryCompositionVO[];
-    message?: string;
-  };
-
-  type BaseResponseListSalarySocialSecurityVO_ = {
-    code?: number;
-    data?: SalarySocialSecurityVO[];
-    message?: string;
-  };
-
-  type BaseResponseListSalaryChangeDistributionVO_ = {
-    code?: number;
-    data?: SalaryChangeDistributionVO[];
-    message?: string;
   };
 }

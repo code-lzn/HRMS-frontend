@@ -14,6 +14,8 @@ import type { DataNode } from 'antd/es/tree';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { history, useModel } from '@umijs/max';
 import { hasPermission } from '@/utils/permission';
+import TransferModal from './components/TransferModal';
+import ResignationModal from './components/ResignationModal';
 
 const { RangePicker } = DatePicker;
 
@@ -51,6 +53,8 @@ const EmployeeListPage: React.FC = () => {
 
   const [deptTreeData, setDeptTreeData] = useState<API.DepartmentTreeVO[]>([]);
   const [positionOptions, setPositionOptions] = useState<API.PositionVO[]>([]);
+  const [transferTarget, setTransferTarget] = useState<API.EmployeeVO | null>(null);
+  const [resignTarget, setResignTarget] = useState<API.EmployeeVO | null>(null);
 
   const treeSelectData = useMemo(() => buildTreeSelectData(deptTreeData), [deptTreeData]);
 
@@ -114,8 +118,8 @@ const EmployeeListPage: React.FC = () => {
           )}
           {can('employee:delete') && (
             <Dropdown menu={{ items: [
-              { key: 'transfer', label: '调岗', onClick: () => message.info('调岗功能开发中') },
-              { key: 'resign', label: '离职', danger: true, onClick: () => message.info('离职功能开发中') },
+              { key: 'transfer', label: '调岗', onClick: () => setTransferTarget(record) },
+              { key: 'resign', label: '离职', danger: true, onClick: () => setResignTarget(record) },
             ]}}>
               <Button type="link" size="small">更多 <DownOutlined /></Button>
             </Dropdown>
@@ -201,6 +205,18 @@ const EmployeeListPage: React.FC = () => {
             </div>
           )}} />
       </Card>
+      {/* 调岗弹窗 */}
+      <TransferModal
+        open={!!transferTarget} employee={transferTarget!}
+        deptTreeData={deptTreeData} positionOptions={positionOptions}
+        onCancel={() => setTransferTarget(null)}
+        onOk={() => { setTransferTarget(null); fetchData(); }} />
+
+      {/* 离职弹窗 */}
+      <ResignationModal
+        open={!!resignTarget} employee={resignTarget!}
+        onCancel={() => setResignTarget(null)}
+        onOk={() => { setResignTarget(null); fetchData(); }} />
     </div>
   );
 };

@@ -38,7 +38,7 @@ export async function applyUsingPost1(
 }
 
 /** approve POST /api/attendance/makeup/approve */
-export async function approveUsingPost1(
+export async function approveUsingPost2(
   body: API.ApprovalRequest,
   options?: { [key: string]: any },
 ) {
@@ -84,6 +84,3 @@ export async function getMyMakeupPunchesUsingGet(options?: {
     },
   );
 }
-
-export const getMakeupProgressUsingGet = getApprovalProgressUsingGet1;
-export const cancelMakeupUsingPost = cancelUsingPost1;

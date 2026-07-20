@@ -26,6 +26,7 @@ import * as resignationController from './resignationController';
 import * as roleController from './roleController';
 import * as salaryController from './salaryController';
 import * as salaryManageController from './salaryManageController';
+import * as salaryStatisticsController from './salaryStatisticsController';
 import * as testHealth from './testHealth';
 import * as transferController from './transferController';
 import * as userController from './userController';
@@ -54,6 +55,7 @@ export default {
   resignationController,
   roleController,
   salaryManageController,
+  salaryStatisticsController,
   salaryController,
   transferController,
   userController,

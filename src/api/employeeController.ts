@@ -65,6 +65,21 @@ export async function getDetailUsingGet(
   });
 }
 
+/** exportEmployees GET /api/employee/export */
+export async function exportEmployeesUsingGet(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.exportEmployeesUsingGETParams,
+  options?: { [key: string]: any },
+) {
+  return request<any>('/api/employee/export', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
 /** listEmployees GET /api/employee/list */
 export async function listEmployeesUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -78,6 +93,19 @@ export async function listEmployeesUsingGet(
     },
     ...(options || {}),
   });
+}
+
+/** listManagerCandidates GET /api/employee/manager-candidates */
+export async function listManagerCandidatesUsingGet(options?: {
+  [key: string]: any;
+}) {
+  return request<API.BaseResponseListEmployee_>(
+    '/api/employee/manager-candidates',
+    {
+      method: 'GET',
+      ...(options || {}),
+    },
+  );
 }
 
 /** getMyProfile GET /api/employee/profile */
