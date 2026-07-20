@@ -1,12 +1,13 @@
 import {
+  getAvailableMonthsUsingGet,
   getCompositionUsingGet,
   getDepartmentDistributionUsingGet,
   getMonthlyTrendUsingGet,
   getVariationDistributionUsingGet,
 } from '@/api/salaryController';
 import { PageContainer } from '@ant-design/pro-components';
-import { Card, Col, Empty, Row, Spin } from 'antd';
-import React, { useEffect, useState } from 'react';
+import { Card, Col, DatePicker, Empty, Row, Select, Space, Spin } from 'antd';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Bar,
   BarChart,
@@ -57,26 +58,57 @@ const SalaryStatistics: React.FC = () => {
   const [composition, setComposition] = useState<any[]>([]);
   const [variation, setVariation] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [months, setMonths] = useState<string[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState<string | undefined>(
+    undefined,
+  );
 
+  // 加载可用月份列表
   useEffect(() => {
     (async () => {
-      setLoading(true);
-      const [t, d, c, v] = await Promise.all([
-        getMonthlyTrendUsingGet(),
-        getDepartmentDistributionUsingGet(),
-        getCompositionUsingGet(),
-        getVariationDistributionUsingGet(),
-      ]);
-      setTrend((t.data as any) ?? []);
-      setDepartment((d.data as any) ?? []);
-      setComposition((c.data as any) ?? []);
-      setVariation((v.data as any) ?? []);
-      setLoading(false);
+      try {
+        const res = await getAvailableMonthsUsingGet();
+        const list = (res.data as any) ?? [];
+        setMonths(list);
+        if (list.length > 0) setSelectedMonth(list[0]);
+      } catch {}
     })();
   }, []);
 
+  const fetchData = useCallback(async (month: string | undefined) => {
+    setLoading(true);
+    const monthParam = month ? { salaryMonth: month } : undefined;
+    const [t, d, c, v] = await Promise.all([
+      getMonthlyTrendUsingGet(),
+      getDepartmentDistributionUsingGet(monthParam),
+      getCompositionUsingGet(monthParam),
+      getVariationDistributionUsingGet(monthParam),
+    ]);
+    setTrend((t.data as any) ?? []);
+    setDepartment((d.data as any) ?? []);
+    setComposition((c.data as any) ?? []);
+    setVariation((v.data as any) ?? []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchData(selectedMonth);
+  }, [selectedMonth, fetchData]);
+
   return (
     <PageContainer title="薪资统计">
+      <div style={{ marginBottom: 16 }}>
+        <Space>
+          <span>选择月份：</span>
+          <Select
+            style={{ width: 160 }}
+            value={selectedMonth}
+            onChange={(v) => setSelectedMonth(v)}
+            options={months.map((m) => ({ label: m, value: m }))}
+            placeholder="选择月份"
+          />
+        </Space>
+      </div>
       <Row gutter={[16, 16]}>
         <Col span={12}>
           <StatCard

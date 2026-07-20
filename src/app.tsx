@@ -34,16 +34,7 @@ export async function getInitialState() {
   const currentPath = window.location.pathname;
   const publicPaths = ['/user/login', '/user/register', '/user/reset-password'];
 
-  // 1. 优先从 sessionStorage 恢复
-  try {
-    const cached = sessionStorage.getItem('hrms_login_user');
-    if (cached) {
-      initialState.currentUser = JSON.parse(cached);
-      setCachedLoginUser(initialState.currentUser);
-    }
-  } catch {}
-
-  // 2. sessionStorage 为空，尝试调后端（带超时）
+  // 1. 尝试调后端恢复登录态
   if (!initialState.currentUser) {
     try {
       const res: any = await Promise.race([
@@ -54,7 +45,6 @@ export async function getInitialState() {
       ]);
       if (res?.data) {
         initialState.currentUser = res.data as API.LoginUserVO;
-        setCachedLoginUser(initialState.currentUser);
       }
     } catch {}
   }

@@ -70,19 +70,30 @@ const AccountDetailPage: React.FC = () => {
   };
 
   const handleItemModalOk = async () => {
-    const values = await itemForm.validateFields();
-    if (editingItem) {
-      await updateItemUsingPut(editingItem.id!, {
-        ...values,
-        id: editingItem.id,
-      });
-      message.success('更新成功');
-    } else {
-      await addItemUsingPost(accountId, values);
-      message.success('添加成功');
+    if (!accountId) {
+      message.error('账套ID无效，请返回列表重新进入');
+      return;
     }
-    setItemModalOpen(false);
-    await fetchData();
+    try {
+      const values = await itemForm.validateFields();
+      console.log('[addItem] form values:', values, 'accountId:', accountId);
+      if (editingItem) {
+        await updateItemUsingPut(editingItem.id!, { ...values, id: editingItem.id });
+        message.success('更新成功');
+      } else {
+        await addItemUsingPost(accountId, values);
+        message.success('添加成功');
+      }
+      setItemModalOpen(false);
+      await fetchData();
+    } catch (err: any) {
+      // Ant Design validateFields 失败时返回 { errorFields, values }
+      if (err?.errorFields) {
+        message.warning('请填写所有必填项');
+      } else {
+        message.error(err?.message || '操作失败');
+      }
+    }
   };
 
   const handleDeleteItem = async (itemId: number) => {
