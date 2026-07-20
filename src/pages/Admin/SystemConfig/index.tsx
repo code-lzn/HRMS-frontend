@@ -25,19 +25,19 @@ const SystemConfig: React.FC = () => {
         </Descriptions>
       </Card>
 
-      <Card title="功能开关">
-        <Form form={form} layout="vertical">
-          <Form.Item label="启用考勤打卡" name="enableAttendance" valuePropName="checked" initialValue>
-            <Switch />
-          </Form.Item>
-          <Form.Item label="启用薪资模块" name="enableSalary" valuePropName="checked" initialValue>
-            <Switch />
-          </Form.Item>
-          <Form.Item label="启用审批流程" name="enableApproval" valuePropName="checked" initialValue>
-            <Switch />
-          </Form.Item>
-        </Form>
-      </Card>
+      {/*<Card title="功能开关">*/}
+      {/*  <Form form={form} layout="vertical">*/}
+      {/*    <Form.Item label="启用考勤打卡" name="enableAttendance" valuePropName="checked" initialValue>*/}
+      {/*      <Switch />*/}
+      {/*    </Form.Item>*/}
+      {/*    <Form.Item label="启用薪资模块" name="enableSalary" valuePropName="checked" initialValue>*/}
+      {/*      <Switch />*/}
+      {/*    </Form.Item>*/}
+      {/*    <Form.Item label="启用审批流程" name="enableApproval" valuePropName="checked" initialValue>*/}
+      {/*      <Switch />*/}
+      {/*    </Form.Item>*/}
+      {/*  </Form>*/}
+      {/*</Card>*/}
     </div>
   );
 };

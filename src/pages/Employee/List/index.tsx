@@ -218,7 +218,7 @@ const EmployeeListPage: React.FC = () => {
               <Space size="small">
                 <Button type="link" size="small" icon={<EyeOutlined />} style={{ color: '#1677ff', padding: '4px 8px' }}
                   onClick={() => history.push(`/employee/detail/${record.id}`)}>查看</Button>
-                {can('employee:edit') && (
+                {can('employee:edit') && isActive && (
                   <Button type="link" size="small" style={{ color: '#1677ff', padding: '4px 8px' }}
                     onClick={() => history.push(`/employee/edit/${record.id}`)}>编辑</Button>
                 )}
@@ -354,6 +354,7 @@ const EmployeeListPage: React.FC = () => {
           dataSource={dataSource}
           rowKey="id"
           loading={loading}
+          rowClassName={(record) => record.status === 4 ? 'resigned-row' : ''}
           pagination={{
             current: pagination.current, pageSize: pagination.pageSize, total: pagination.total,
             showSizeChanger: true, showQuickJumper: true, pageSizeOptions: ['10', '20', '50'],
@@ -389,6 +390,23 @@ const EmployeeListPage: React.FC = () => {
         open={!!resignTarget} employee={resignTarget!}
         onCancel={() => setResignTarget(null)}
         onOk={() => { setResignTarget(null); fetchData(); }} />
+
+      {/* 已离职员工行样式 */}
+      <style>{`
+        .resigned-row {
+          opacity: 0.6;
+          background: #fafafa;
+        }
+        .resigned-row:hover {
+          background: #f0f0f0 !important;
+        }
+        .resigned-row td {
+          color: #999 !important;
+        }
+        .resigned-row a {
+          color: #bbb !important;
+        }
+      `}</style>
     </div>
   );
 };

@@ -2444,6 +2444,7 @@ declare namespace API {
     id?: number;
     isDelete?: number;
     roleId?: number;
+    status?: number;
     updateTime?: string;
     userAccount?: string;
     userAvatar?: string;

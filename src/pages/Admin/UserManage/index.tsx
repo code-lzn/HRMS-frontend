@@ -46,10 +46,10 @@ const UserManage: React.FC = () => {
     },
     {
       title: '状态',
-      dataIndex: 'isDelete',
+      dataIndex: 'status',
       width: 80,
       render: (_, r) =>
-        r.isDelete === 1 ? (
+        r.status === 1 ? (
           <Tag color="error">禁用</Tag>
         ) : (
           <Tag color="success">正常</Tag>
@@ -73,9 +73,11 @@ const UserManage: React.FC = () => {
       render: (_, record) => (
         <Space>
           <Button type="link" size="small" onClick={() => openEdit(record)}>编辑</Button>
-          <Button type="link" size="small" danger onClick={() => handleToggleDisable(record)}>
-            {record.isDelete === 1 ? '启用' : '禁用'}
-          </Button>
+          {record.status === 1 ? (
+            <Button type="link" size="small" style={{ color: '#52c41a' }} onClick={() => handleToggleDisable(record)}>启用</Button>
+          ) : (
+            <Button type="link" size="small" danger onClick={() => handleToggleDisable(record)}>禁用</Button>
+          )}
           <Button type="link" size="small" danger onClick={() => handleDelete(record)}>删除</Button>
         </Space>
       ),
@@ -125,7 +127,7 @@ const UserManage: React.FC = () => {
   };
 
   const handleToggleDisable = (record: API.User) => {
-    const isDisabled = record.isDelete === 1;
+    const isDisabled = record.status === 1;
     Modal.confirm({
       title: isDisabled ? '确认启用' : '确认禁用',
       content: `确定要${isDisabled ? '启用' : '禁用'}用户「${record.userName}」吗？`,
