@@ -15,9 +15,13 @@ const STATUS_MAP: Record<number, { color: string; text: string; bg: string }> = 
   0: { color: '#52c41a', text: '正常', bg: '#f6ffed' },
   1: { color: '#faad14', text: '迟到', bg: '#fffbe6' },
   2: { color: '#faad14', text: '早退', bg: '#fffbe6' },
-  3: { color: '#ff4d4f', text: '旷工', bg: '#fff2f0' },
+  3: { color: '#8c8c8c', text: '缺卡', bg: '#fafafa' },
   4: { color: '#1677ff', text: '请假', bg: '#f0f5ff' },
-  5: { color: '#8c8c8c', text: '缺卡', bg: '#fafafa' },
+  5: { color: '#ff4d4f', text: '旷工', bg: '#fff2f0' },
+  6: { color: '#722ed1', text: '上班缺卡', bg: '#f9f0ff' },
+  7: { color: '#1890ff', text: '下班缺卡', bg: '#f0f5ff' },
+  8: { color: '#87d068', text: '休息', bg: '#f6ffed' },
+  9: { color: '#ff7a45', text: '迟到&早退', bg: '#fff2e8' },
 };
 
 const MyAttendance: React.FC = () => {

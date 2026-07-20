@@ -19,6 +19,7 @@ const STATUS_COLOR_MAP: Record<string, string> = {
   MISS_IN: '#722ed1',
   MISS_OUT: '#1890ff',
   REST: '#87d068',
+  LATE_AND_EARLY: '#ff7a45',
 };
 
 const STATUS_TEXT_MAP: Record<string, string> = {
@@ -31,6 +32,7 @@ const STATUS_TEXT_MAP: Record<string, string> = {
   MISS_IN: '上班缺卡',
   MISS_OUT: '下班缺卡',
   REST: '休息',
+  LATE_AND_EARLY: '迟到&早退',
 };
 
 const STATUS_DESC_MAP: Record<string, string> = {
@@ -39,10 +41,11 @@ const STATUS_DESC_MAP: Record<string, string> = {
   EARLY: '提前15分钟内下班',
   MISSING: '当日无打卡记录',
   LEAVE: '已申请请假',
-  ABSENT: '超出阈值超过15分钟',
+  ABSENT: '上下班打卡间隔不足两小时',
   MISS_IN: '上班未打卡，下班有记录',
   MISS_OUT: '上班已打卡，下班无记录',
   REST: '周末或节假日休息',
+  LATE_AND_EARLY: '迟到且早退',
 };
 
 const Attendance: React.FC = () => {
@@ -245,8 +248,8 @@ const Attendance: React.FC = () => {
       key: 'status',
       width: 100,
       render: (status: string | number) => {
-        const statusKey = typeof status === 'number' 
-          ? ['NORMAL', 'LATE', 'EARLY', 'MISSING', 'LEAVE', 'ABSENT', 'MISS_IN', 'MISS_OUT', 'REST'][status] || 'NORMAL'
+        const statusKey = typeof status === 'number'
+          ? ['NORMAL', 'LATE', 'EARLY', 'MISSING', 'LEAVE', 'ABSENT', 'MISS_IN', 'MISS_OUT', 'REST', 'LATE_AND_EARLY'][status] || 'NORMAL'
           : status;
         return <Tag color={STATUS_COLOR_MAP[statusKey]}>{STATUS_TEXT_MAP[statusKey]}</Tag>;
       },
