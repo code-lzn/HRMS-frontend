@@ -27,6 +27,12 @@ myAxios.interceptors.response.use(
   function (response) {
     // 处理响应数据
     const { data } = response;
+
+    // blob 响应（如导出 Excel）直接返回，不做 JSON code 校验
+    if (response.config?.responseType === 'blob' || data instanceof Blob) {
+      return data;
+    }
+
     // 未登录
     if (data.code === 40100) {
       // 不在登录页面则跳转到登录页

@@ -2,6 +2,7 @@ import {
   approveBatchUsingPost,
   calculateBatchUsingPost,
   createBatchUsingPost,
+  exportBatchUsingGet,
   getAnomaliesUsingGet,
   getBatchDetailUsingGet,
   listBatchesUsingGet,
@@ -262,6 +263,24 @@ const BatchPage: React.FC = () => {
     finally { setCreateLoading(false); }
   };
 
+  /** 导出 Excel */
+  const handleExport = async () => {
+    if (!activeBatchId) return;
+    try {
+      const res: any = await exportBatchUsingGet({ id: activeBatchId });
+      const blob = new Blob([res], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${activeBatch?.batchNo ?? 'salary'}_${activeBatch?.salaryMonth ?? ''}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      message.success('导出成功');
+    } catch (e: any) {
+      message.error(e.message ?? '导出失败');
+    }
+  };
+
   // ==================== ECharts 配置（useMemo，仿 Dashboard 风格） ====================
 
   const trendOption = useMemo<EChartsOption>(() => {
@@ -490,17 +509,17 @@ const BatchPage: React.FC = () => {
     const btns: React.ReactNode[] = [];
     if (s === 'PENDING_CONFIRM') {
       btns.push(<Button key="adjust" icon={<SettingOutlined />} onClick={() => setAdjustOpen(true)}>手动调整</Button>);
-      btns.push(<Button key="export" icon={<DownloadOutlined />}>导出 Excel</Button>);
+      btns.push(<Button key="export" icon={<DownloadOutlined />} onClick={handleExport}>导出 Excel</Button>);
       btns.push(<Button key="submit" type="primary" icon={<SendOutlined />} onClick={handleSubmit}>提交审批</Button>);
     } else if (s === 'APPROVING' && canAuditSalary) {
-      btns.push(<Button key="export" icon={<DownloadOutlined />}>导出 Excel</Button>);
+      btns.push(<Button key="export" icon={<DownloadOutlined />} onClick={handleExport}>导出 Excel</Button>);
       btns.push(<Button key="reject" danger icon={<CloseCircleOutlined />} onClick={handleReject}>驳回</Button>);
       btns.push(<Button key="approve" type="primary" icon={<CheckCircleOutlined />} style={{ background: '#52c41a', borderColor: '#52c41a' }} onClick={handleApprove}>审批通过</Button>);
     } else if (s === 'APPROVED' && canAuditSalary) {
-      btns.push(<Button key="export" icon={<DownloadOutlined />}>导出 Excel</Button>);
+      btns.push(<Button key="export" icon={<DownloadOutlined />} onClick={handleExport}>导出 Excel</Button>);
       btns.push(<Button key="paid" type="primary" icon={<DollarOutlined />} onClick={handleMarkPaid}>标记已发放</Button>);
     } else if (s === 'PAID') {
-      btns.push(<Button key="export" icon={<DownloadOutlined />}>导出 Excel</Button>);
+      btns.push(<Button key="export" icon={<DownloadOutlined />} onClick={handleExport}>导出 Excel</Button>);
     } else if (s === 'DRAFT') {
       btns.push(<Button key="calc" type="primary" icon={<PlayCircleOutlined />} onClick={handleCalculate}>开始计算</Button>);
     }

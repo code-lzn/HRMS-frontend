@@ -434,3 +434,15 @@ export async function deleteItemUsingDelete(
     },
   );
 }
+
+/** exportBatch GET /api/salary-manage/batches/${param0}/export */
+export async function exportBatchUsingGet(
+  params: { id: number },
+  options?: { [key: string]: any },
+) {
+  return request<any>(`/api/salary-manage/batches/${params.id}/export`, {
+    method: 'GET',
+    responseType: 'blob',
+    ...(options || {}),
+  });
+}
