@@ -1,13 +1,14 @@
 import { getMySalarySlipsUsingGet, getMySalaryTrendUsingGet, getSalarySlipDetailUsingPost } from '@/api/salaryController';
-import { Line } from '@ant-design/charts';
 import {
   CloseOutlined,
   DownloadOutlined,
   EyeOutlined,
   PrinterOutlined,
 } from '@ant-design/icons';
-import { Button, Card, Form, Input, message, Modal, Table, Tag } from 'antd';
-import React, { useEffect, useState } from 'react';
+import { Button, Card, Empty, Form, Input, message, Modal, Table, Tag } from 'antd';
+import React, { useEffect, useMemo, useState } from 'react';
+import ReactECharts from 'echarts-for-react';
+import type { EChartsOption } from 'echarts';
 import './index.less';
 
 const fmtAmt = (v?: number) =>
@@ -122,26 +123,49 @@ const MySalary: React.FC = () => {
     },
   ];
 
-  const trendConfig = {
-    data: trend
-      .map((item) => [
-        { month: item.month, value: item.grossSalary, category: '应发工资' },
-        { month: item.month, value: item.netSalary, category: '实发工资' },
-      ])
-      .flat(),
-    xField: 'month',
-    yField: 'value',
-    seriesField: 'category',
-    smooth: true,
-    color: ['#1677ff', '#52c41a'],
-    point: { size: 5, shape: 'circle' },
-    legend: { position: 'top' as const },
+  const trendOption = useMemo<EChartsOption>(() => ({
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: '#fff',
+      borderColor: '#e8e8e8',
+      textStyle: { color: '#333', fontSize: 13 },
+      padding: [10, 14],
+    },
+    legend: { top: 0, left: 'center', icon: 'rect', itemWidth: 12, itemHeight: 2, textStyle: { fontSize: 12, color: '#666' } },
+    grid: { top: 36, right: 16, bottom: 8, left: 56, containLabel: true },
+    xAxis: {
+      type: 'category',
+      data: trend.map((t) => t.month),
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { fontSize: 11, color: '#999' },
+      boundaryGap: false,
+    },
     yAxis: {
-      label: {
-        formatter: (v: string) => `¥${Number(v).toLocaleString()}`,
+      type: 'value',
+      splitLine: { lineStyle: { color: '#f0f0f0' } },
+      axisLabel: {
+        fontSize: 11, color: '#999',
+        formatter: (v: number) => `¥${(v / 1000).toFixed(0)}k`,
       },
     },
-  };
+    series: [
+      {
+        name: '应发工资', type: 'line', smooth: true,
+        symbol: 'circle', symbolSize: 5,
+        lineStyle: { width: 2, color: '#1677ff' },
+        itemStyle: { color: '#1677ff' },
+        data: trend.map((t) => t.grossSalary),
+      },
+      {
+        name: '实发工资', type: 'line', smooth: true,
+        symbol: 'circle', symbolSize: 5,
+        lineStyle: { width: 2, color: '#52c41a' },
+        itemStyle: { color: '#52c41a' },
+        data: trend.map((t) => t.netSalary),
+      },
+    ],
+  }), [trend]);
 
   const handlePrint = () => {
     window.print();
@@ -149,16 +173,11 @@ const MySalary: React.FC = () => {
 
   return (
     <div className="salary-page">
-      {/* 薪资趋势图 */}
-      <Card title="薪资趋势（近6个月）" style={{ marginBottom: 16 }}>
+      <Card title="薪资趋势" size="small" style={{ marginBottom: 16, border: '1px solid #f0f0f0', borderRadius: 6 }}>
         {trend.length > 0 ? (
-          <div style={{ height: 300 }}>
-            <Line {...trendConfig} />
-          </div>
+          <ReactECharts option={trendOption} style={{ height: 300 }} />
         ) : (
-          <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>
-            暂无趋势数据
-          </div>
+          <Empty description="暂无趋势数据" />
         )}
       </Card>
 
