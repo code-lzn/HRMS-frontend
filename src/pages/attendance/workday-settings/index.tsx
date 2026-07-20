@@ -294,7 +294,7 @@ const WorkdaySettings: React.FC = () => {
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col xs={12} sm={8} md={8}>
           <Card
-            bordered={false}
+            variant="borderless"
             style={{ borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
             styles={{ body: { padding: '20px 24px' } }}
           >
@@ -337,7 +337,7 @@ const WorkdaySettings: React.FC = () => {
         </Col>
         <Col xs={12} sm={8} md={8}>
           <Card
-            bordered={false}
+            variant="borderless"
             style={{ borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
             styles={{ body: { padding: '20px 24px' } }}
           >
@@ -380,7 +380,7 @@ const WorkdaySettings: React.FC = () => {
         </Col>
         <Col xs={12} sm={8} md={8}>
           <Card
-            bordered={false}
+            variant="borderless"
             style={{ borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
             styles={{ body: { padding: '20px 24px' } }}
           >
@@ -426,7 +426,7 @@ const WorkdaySettings: React.FC = () => {
       {/* 操作卡片 */}
       <Card
         style={{ marginBottom: 16 }}
-        bordered={false}
+        variant="borderless"
         styles={{ body: { padding: '16px 24px' } }}
       >
         <div
@@ -538,7 +538,7 @@ const WorkdaySettings: React.FC = () => {
       </Card>
 
       {/* 日历 */}
-      <Card bordered={false} styles={{ body: { padding: 16 } }}>
+      <Card variant="borderless" styles={{ body: { padding: 16 } }}>
         {isError ? (
           <Result
             status="error"

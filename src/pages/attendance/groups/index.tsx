@@ -260,6 +260,7 @@ const AttendanceGroups: React.FC = () => {
           coreTimeRange: toRange(detail.coreStartTime, detail.coreEndTime),
           restTimeRange: toRange(detail.restStartTime, detail.restEndTime),
           flexTimeRange: toRange(detail.flexStartTime, detail.flexEndTime),
+          workHours: detail.workHours,
           lateThreshold: detail.lateThreshold,
           earlyLeaveThreshold: detail.earlyLeaveThreshold,
           rules: rulesList.length > 0 ? rulesList : [],
@@ -585,7 +586,7 @@ const AttendanceGroups: React.FC = () => {
       </Card>
 
       <Card
-        bordered={false}
+        variant="borderless"
         title="考勤组列表"
         styles={{ body: { padding: '0 24px 24px' } }}
         extra={

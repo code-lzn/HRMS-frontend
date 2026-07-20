@@ -160,6 +160,10 @@ const OvertimeManagement: React.FC = () => {
       overtimeDate: record.overtimeDate
         ? dayjs(record.overtimeDate)
         : undefined,
+      timeRange:
+        record.startTime && record.endTime
+          ? [dayjs(record.startTime), dayjs(record.endTime)]
+          : undefined,
       hours: record.hours,
     });
     setModalOpen(true);
@@ -389,7 +393,7 @@ const OvertimeManagement: React.FC = () => {
       </Card>
 
       <Card
-        bordered={false}
+        variant="borderless"
         title="加班记录列表"
         styles={{ body: { padding: '0 24px 24px' } }}
         extra={

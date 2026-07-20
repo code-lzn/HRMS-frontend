@@ -54,7 +54,7 @@ const StatCard: React.FC<StatCardProps> = ({
   suffix,
 }) => (
   <Card
-    bordered={false}
+    variant="borderless"
     style={{
       borderRadius: 8,
       boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
@@ -149,10 +149,6 @@ const LeaveManagement: React.FC = () => {
   });
   const raw = (listResp as any)?.data?.records;
   const list: LeaveRow[] = Array.isArray(raw) ? raw : [];
-
-  const LEAVE_TYPE_MAP: Record<string, number> = {
-    年假: 1, 病假: 2, 事假: 3, 婚假: 4, 产假: 5, 丧假: 6, 调休: 7,
-  };
 
   const stats = useMemo(() => {
     let pending = 0;
@@ -326,7 +322,7 @@ const LeaveManagement: React.FC = () => {
 
       {/* 筛选区 */}
       <Card
-        bordered={false}
+        variant="borderless"
         style={{ marginBottom: 16, borderRadius: 8 }}
         styles={{ body: { padding: '20px 24px' } }}
       >
@@ -390,7 +386,7 @@ const LeaveManagement: React.FC = () => {
 
       {/* 列表区 */}
       <Card
-        bordered={false}
+        variant="borderless"
         style={{ borderRadius: 8 }}
         title={
           <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -423,7 +419,6 @@ const LeaveManagement: React.FC = () => {
           }}
         />
       </Card>
-
     </PageContainer>
   );
 };

@@ -97,9 +97,6 @@ const AttendanceClock: React.FC = () => {
     number | undefined
   >();
   const [filterDeptId, setFilterDeptId] = useState<number | undefined>();
-  const [filterDateRange, setFilterDateRange] = useState<
-    [string, string] | null
-  >(null);
   const [filterStartStatus, setFilterStartStatus] = useState<
     number | undefined
   >();
@@ -109,6 +106,9 @@ const AttendanceClock: React.FC = () => {
 
   // 补卡筛选
   const [suppStatus, setSuppStatus] = useState<number | undefined>();
+  const [suppDateRange, setSuppDateRange] = useState<[string, string] | null>(
+    null,
+  );
   const [suppPage, setSuppPage] = useState(1);
   const [suppPageSize, setSuppPageSize] = useState(10);
 
@@ -191,7 +191,6 @@ const AttendanceClock: React.FC = () => {
       'records',
       filterEmployeeId,
       filterDeptId,
-      filterDateRange,
       filterStartStatus,
       filterEndStatus,
       page,
@@ -201,8 +200,6 @@ const AttendanceClock: React.FC = () => {
       queryRecordsUsingGet({
         employeeId: filterEmployeeId,
         departmentId: filterDeptId,
-        startDate: filterDateRange?.[0],
-        endDate: filterDateRange?.[1],
         startStatus: filterStartStatus,
         endStatus: filterEndStatus,
         current: page,
@@ -223,7 +220,7 @@ const AttendanceClock: React.FC = () => {
       'attendance',
       'supplement',
       filterEmployeeId,
-      filterDateRange,
+      suppDateRange,
       suppStatus,
       suppPage,
       suppPageSize,
@@ -231,8 +228,8 @@ const AttendanceClock: React.FC = () => {
     queryFn: async () =>
       querySupplementCardsUsingGet({
         employeeId: filterEmployeeId,
-        startDate: filterDateRange?.[0],
-        endDate: filterDateRange?.[1],
+        startDate: suppDateRange?.[0],
+        endDate: suppDateRange?.[1],
         status: suppStatus,
         page: suppPage,
         size: suppPageSize,
@@ -264,10 +261,10 @@ const AttendanceClock: React.FC = () => {
   const handleReset = () => {
     setFilterEmployeeId(undefined);
     setFilterDeptId(undefined);
-    setFilterDateRange(null);
     setFilterStartStatus(undefined);
     setFilterEndStatus(undefined);
     setSuppStatus(undefined);
+    setSuppDateRange(null);
     setPage(1);
     setSuppPage(1);
   };
@@ -621,7 +618,17 @@ const AttendanceClock: React.FC = () => {
             alignItems: 'flex-start',
           }}
         >
-          <div style={{ width: 200 }}>
+          <div
+            style={{ width: 200 }}
+            ref={(el) => {
+              if (el) {
+                setTimeout(() => {
+                  const input = el.querySelector('input');
+                  if (input) input.setAttribute('autocomplete', 'new-password');
+                }, 0);
+              }
+            }}
+          >
             <Typography.Text
               type="secondary"
               style={{ fontSize: 12, marginBottom: 4, display: 'block' }}
@@ -666,34 +673,35 @@ const AttendanceClock: React.FC = () => {
               />
             </div>
           )}
-          <div style={{ width: 260 }}>
-            <Typography.Text
-              type="secondary"
-              style={{ fontSize: 12, marginBottom: 4, display: 'block' }}
-            >
-              {activeTab === 'supplements' ? '补卡日期' : '考勤日期'}
-            </Typography.Text>
-            <RangePicker
-              style={{ width: '100%' }}
-              value={
-                filterDateRange
-                  ? [dayjs(filterDateRange[0]), dayjs(filterDateRange[1])]
-                  : null
-              }
-              onChange={(dates) => {
-                if (dates?.[0] && dates?.[1]) {
-                  setFilterDateRange([
-                    dates[0].format('YYYY-MM-DD'),
-                    dates[1].format('YYYY-MM-DD'),
-                  ]);
-                } else {
-                  setFilterDateRange(null);
+          {activeTab === 'supplements' && (
+            <div style={{ width: 260 }}>
+              <Typography.Text
+                type="secondary"
+                style={{ fontSize: 12, marginBottom: 4, display: 'block' }}
+              >
+                补卡日期
+              </Typography.Text>
+              <RangePicker
+                style={{ width: '100%' }}
+                value={
+                  suppDateRange
+                    ? [dayjs(suppDateRange[0]), dayjs(suppDateRange[1])]
+                    : null
                 }
-                setPage(1);
-                setSuppPage(1);
-              }}
-            />
-          </div>
+                onChange={(dates) => {
+                  if (dates?.[0] && dates?.[1]) {
+                    setSuppDateRange([
+                      dates[0].format('YYYY-MM-DD'),
+                      dates[1].format('YYYY-MM-DD'),
+                    ]);
+                  } else {
+                    setSuppDateRange(null);
+                  }
+                  setSuppPage(1);
+                }}
+              />
+            </div>
+          )}
           {activeTab === 'records' ? (
             <>
               <div style={{ width: 140 }}>

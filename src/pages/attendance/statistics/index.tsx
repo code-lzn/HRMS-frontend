@@ -3,11 +3,7 @@ import {
   getLateEarlyRankingUsingGet,
   getLeaveDistributionUsingGet,
 } from '@/api/attendanceStatisticsController';
-import { useDepartmentTree } from '@/hooks/useDepartmentTree';
 import {
-  ArrowDownOutlined,
-  ArrowUpOutlined,
-  CalendarOutlined,
   ClockCircleOutlined,
   PieChartOutlined,
   RiseOutlined,
@@ -16,16 +12,7 @@ import {
 import { PageContainer } from '@ant-design/pro-components';
 import { Column, Line, Pie } from '@antv/g2plot';
 import { useQuery } from '@tanstack/react-query';
-import {
-  Card,
-  Col,
-  Result,
-  Row,
-  Select,
-  Space,
-  Statistic,
-  TreeSelect,
-} from 'antd';
+import { Card, Col, Result, Row, Select, Space } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -56,8 +43,7 @@ function useLineChart(containerId: string) {
       smooth: true,
       color: CHART_COLORS,
       yAxis: {
-        min: 80,
-        max: 100,
+        nice: true,
         label: { formatter: (v: string) => v + '%' },
       },
       tooltip: { shared: true, showCrosshairs: true },
@@ -117,7 +103,10 @@ function usePieChart(containerId: string) {
       color: CHART_COLORS,
       radius: 0.8,
       innerRadius: 0.55,
-      label: { type: 'outer', content: '{name}\n{percentage}' },
+      label: {
+        type: 'spider',
+        content: '{name} {percentage}',
+      },
       legend: { position: 'bottom' },
       statistic: {
         title: { content: '总天数' },
@@ -142,20 +131,8 @@ function usePieChart(containerId: string) {
 /* ========== 页面组件 ========== */
 const AttendanceStatistics: React.FC = () => {
   const [months, setMonths] = useState<number>(6);
-  const [deptIds, setDeptIds] = useState<number[] | undefined>();
   const year = dayjs().year();
   const currentMonth = dayjs().month() + 1;
-
-  const { data: treeData } = useDepartmentTree();
-  const deptTreeSelectData = useMemo(() => {
-    const convert = (nodes: any[]): any[] =>
-      nodes.map((n: any) => ({
-        title: n.name,
-        value: n.id,
-        children: n.children?.length ? convert(n.children) : undefined,
-      }));
-    return convert(treeData ?? []);
-  }, [treeData]);
 
   // ---- 出勤率 ----
   const {
@@ -163,9 +140,8 @@ const AttendanceStatistics: React.FC = () => {
     isLoading: rateLoading,
     isError: rateError,
   } = useQuery({
-    queryKey: ['attendance-stats', 'rate', months, deptIds],
-    queryFn: async () =>
-      getAttendanceRateUsingGet({ months, departmentIds: deptIds }),
+    queryKey: ['attendance-stats', 'rate', months],
+    queryFn: async () => getAttendanceRateUsingGet({ months }),
   });
   const rateChart = rateResp?.data as API.AttendanceRateChartVO | undefined;
 
@@ -178,7 +154,7 @@ const AttendanceStatistics: React.FC = () => {
         rows.push({
           month: m,
           dept: s.departmentName ?? '',
-          rate: Number(s.rates?.[i] ?? 0),
+          rate: Number(s.rates?.[i] ?? 0) * 100,
         });
       });
     });
@@ -238,11 +214,13 @@ const AttendanceStatistics: React.FC = () => {
 
   const pieData = useMemo(
     () =>
-      distList.map((d) => ({
-        type: d.leaveTypeDesc ?? '',
-        days: Number(d.days ?? 0),
-        percentage: Number(d.percentage ?? 0),
-      })),
+      distList
+        .map((d) => ({
+          type: d.leaveTypeDesc ?? '',
+          days: Number(d.days ?? 0),
+          percentage: Number(d.percentage ?? 0),
+        }))
+        .filter((d) => d.days > 0),
     [distList],
   );
 
@@ -251,30 +229,11 @@ const AttendanceStatistics: React.FC = () => {
     if (!distLoading && pieData.length) pieInit(pieData);
   }, [distLoading, pieData, pieInit]);
 
-  // ---- 汇总卡 ----
-  const summary = useMemo(() => {
-    if (!lineData.length)
-      return { avgRate: 0, avgLate: 2.3, avgAbsent: 1.0, trend: 0 };
-    const grouped = new Map<string, number[]>();
-    lineData.forEach((d) => {
-      if (!grouped.has(d.dept)) grouped.set(d.dept, []);
-      grouped.get(d.dept)!.push(d.rate);
-    });
-    const allAvgs: number[] = [];
-    grouped.forEach((rates) =>
-      allAvgs.push(rates.reduce((a, b) => a + b, 0) / rates.length),
-    );
-    const avg = allAvgs.reduce((a, b) => a + b, 0) / allAvgs.length;
-    const first = allAvgs[0] ?? 0;
-    const last = allAvgs[allAvgs.length - 1] ?? 0;
-    return { avgRate: avg, avgLate: 2.3, avgAbsent: 1.0, trend: last - first };
-  }, [lineData]);
-
   return (
     <PageContainer header={{ breadcrumb: {}, title: '考勤统计' }}>
       {/* 筛选栏 */}
       <Card
-        bordered={false}
+        variant="borderless"
         style={{ marginBottom: 16 }}
         styles={{ body: { padding: '16px 24px' } }}
       >
@@ -287,85 +246,21 @@ const AttendanceStatistics: React.FC = () => {
               onChange={setMonths}
               style={{ width: 140 }}
               options={[
-                { value: 1, label: '近 1 个月' },
                 { value: 3, label: '近 3 个月' },
                 { value: 6, label: '近 6 个月' },
                 { value: 12, label: '近 12 个月' },
               ]}
             />
           </Space>
-          <Space>
-            <TeamOutlined />
-            <span>部门：</span>
-            <TreeSelect
-              placeholder="全部部门"
-              treeData={deptTreeSelectData}
-              value={deptIds}
-              onChange={setDeptIds}
-              allowClear
-              treeCheckable
-              showCheckedStrategy={TreeSelect.SHOW_PARENT}
-              maxTagCount={2}
-              style={{ width: 220 }}
-            />
-          </Space>
         </Space>
       </Card>
-
-      {/* 统计卡片 */}
-      <Row gutter={16} style={{ marginBottom: 16 }}>
-        {[
-          {
-            title: '平均出勤率',
-            v: summary.avgRate,
-            suffix: '%',
-            color: '#52c41a',
-            icon: <RiseOutlined />,
-          },
-          {
-            title: '平均迟到率',
-            v: summary.avgLate,
-            suffix: '%',
-            color: '#faad14',
-            icon: <ClockCircleOutlined />,
-          },
-          {
-            title: '平均缺勤率',
-            v: summary.avgAbsent,
-            suffix: '%',
-            color: '#ff4d4f',
-            icon: <CalendarOutlined />,
-          },
-          {
-            title: '较初期变化',
-            v: Math.abs(summary.trend),
-            suffix: '%',
-            color: summary.trend >= 0 ? '#52c41a' : '#ff4d4f',
-            icon:
-              summary.trend >= 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />,
-          },
-        ].map((s, i) => (
-          <Col span={6} key={i}>
-            <Card bordered={false}>
-              <Statistic
-                title={s.title}
-                value={s.v}
-                precision={2}
-                suffix={s.suffix}
-                valueStyle={{ color: s.color }}
-                prefix={s.icon}
-              />
-            </Card>
-          </Col>
-        ))}
-      </Row>
 
       {/* 图表区 */}
       <Row gutter={16}>
         {/* 出勤率折线图 */}
         <Col span={24}>
           <Card
-            bordered={false}
+            variant="borderless"
             style={{ marginBottom: 16 }}
             title={
               <Space>
@@ -381,7 +276,11 @@ const AttendanceStatistics: React.FC = () => {
                 style={{ height: 350, background: '#fafafa', borderRadius: 8 }}
               />
             ) : (
-              <div id="g2-rate-chart" style={{ height: 350 }} />
+              <div
+                id="g2-rate-chart"
+                dir="ltr"
+                style={{ height: 350, direction: 'ltr' as any }}
+              />
             )}
           </Card>
         </Col>
@@ -389,7 +288,7 @@ const AttendanceStatistics: React.FC = () => {
         {/* 迟到早退排名 */}
         <Col span={12}>
           <Card
-            bordered={false}
+            variant="borderless"
             style={{ marginBottom: 16 }}
             title={
               <Space>
@@ -405,7 +304,11 @@ const AttendanceStatistics: React.FC = () => {
                 style={{ height: 350, background: '#fafafa', borderRadius: 8 }}
               />
             ) : (
-              <div id="g2-rank-chart" style={{ height: 350 }} />
+              <div
+                id="g2-rank-chart"
+                dir="ltr"
+                style={{ height: 350, direction: 'ltr' as any }}
+              />
             )}
           </Card>
         </Col>
@@ -413,7 +316,7 @@ const AttendanceStatistics: React.FC = () => {
         {/* 请假分布 */}
         <Col span={12}>
           <Card
-            bordered={false}
+            variant="borderless"
             style={{ marginBottom: 16 }}
             title={
               <Space>
@@ -429,7 +332,11 @@ const AttendanceStatistics: React.FC = () => {
                 style={{ height: 350, background: '#fafafa', borderRadius: 8 }}
               />
             ) : (
-              <div id="g2-pie-chart" style={{ height: 350 }} />
+              <div
+                id="g2-pie-chart"
+                dir="ltr"
+                style={{ height: 350, direction: 'ltr' as any }}
+              />
             )}
           </Card>
         </Col>
