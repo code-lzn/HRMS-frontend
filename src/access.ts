@@ -14,8 +14,8 @@ export default (initialState: any) => {
     canSeeAttendanceMenu: canAny('attendance:list', 'attendance:manage'),
     // 审批中心：管理员/HR/部门主管
     canSeeApprovalMenu: can('approval:process'),
-    // 组织架构：管理员/HR
-    canSeeOrgMenu: can('org:manage'),
+    // 组织架构：管理员/HR/部门主管（部门主管只读，不能增删改）
+    canSeeOrgMenu: can('org:manage') || canAny('employee:list', 'employee:detail'),
     // 角色管理：仅管理员
     canSeeRoleMenu: can('role:manage'),
     // 系统配置：仅管理员
