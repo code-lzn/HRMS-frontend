@@ -28,13 +28,14 @@ import {
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import React, { useCallback, useMemo, useState } from 'react';
+import './index.css';
 
 const DAY_TYPE_MAP: Record<
   number,
   { label: string; color: string; bg: string }
 > = {
   1: { label: '工作日', color: '#1677ff', bg: '#e6f4ff' },
-  2: { label: '休息日', color: '#999', bg: '#f5f5f5' },
+  2: { label: '休息日', color: '#52c41a', bg: '#f6ffed' },
   3: { label: '节假日', color: '#fa8c16', bg: '#fff7e6' },
 };
 
@@ -166,22 +167,16 @@ const WorkdaySettings: React.FC = () => {
         <div
           onClick={isCurrentMonth ? () => toggleDate(dateStr) : undefined}
           style={{
-            cursor: isCurrentMonth ? 'pointer' : 'not-allowed',
+            cursor: isCurrentMonth ? 'pointer' : 'default',
             padding: 4,
             borderRadius: 8,
-            opacity: isCurrentMonth ? 1 : 0.4,
-            background: isSelected
-              ? '#1677ff'
-              : isCurrentMonth
-              ? cfg.bg
-              : '#f5f5f5',
+            opacity: isCurrentMonth ? 1 : 0.3,
+            background: isSelected ? '#1677ff' : cfg.bg,
             border: isToday
               ? '2px solid #1677ff'
               : isSelected
               ? '2px solid #0958d9'
-              : isCurrentMonth
-              ? '2px solid transparent'
-              : '1px solid #e8e8e8',
+              : '2px solid transparent',
             minHeight: 60,
             display: 'flex',
             flexDirection: 'column',
@@ -280,7 +275,7 @@ const WorkdaySettings: React.FC = () => {
         >
           <Space size={4}>
             <Tag color="#1677ff">工作日</Tag>
-            <Tag color="#999">休息日</Tag>
+            <Tag color="#52c41a">休息日</Tag>
             <Tag color="#fa8c16">节假日</Tag>
           </Space>
 

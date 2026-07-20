@@ -102,13 +102,13 @@ export const BATCH_STATUS_MAP: Record<
   number,
   { label: string; color: string }
 > = {
-  1: { label: '草稿', color: 'default' },
-  2: { label: '计算中', color: 'processing' },
-  3: { label: '待确认', color: 'warning' },
-  4: { label: '审批中', color: 'orange' },
-  5: { label: '已通过', color: 'success' },
+  0: { label: '草稿', color: 'default' },
+  1: { label: '计算中', color: 'processing' },
+  2: { label: '待确认', color: 'warning' },
+  3: { label: '审批中', color: 'orange' },
+  4: { label: '已通过', color: 'success' },
+  5: { label: '已发放', color: 'blue' },
   6: { label: '已驳回', color: 'error' },
-  7: { label: '已发放', color: 'blue' },
 };
 
 // ==================== 异常级别 ====================

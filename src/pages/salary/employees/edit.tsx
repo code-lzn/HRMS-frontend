@@ -22,7 +22,7 @@ import React, { useEffect, useState } from 'react';
 
 const EmployeeSalaryEdit: React.FC = () => {
   const { employeeId } = useParams<{ employeeId: string }>();
-  const empId = Number(employeeId);
+  const empId = employeeId!;
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
   const [accounts, setAccounts] = useState<{ label: string; value: number }[]>(

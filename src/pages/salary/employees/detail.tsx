@@ -20,7 +20,7 @@ import React, { useEffect, useState } from 'react';
 
 const EmployeeSalaryDetail: React.FC = () => {
   const { employeeId } = useParams<{ employeeId: string }>();
-  const empId = Number(employeeId);
+  const empId = employeeId!;
   const [salary, setSalary] = useState<API.EmployeeSalaryVO | null>(null);
   const [historyList, setHistory] = useState<API.SalaryChangeHistoryVO[]>([]);
   const [loading, setLoading] = useState(true);

@@ -1,8 +1,20 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { mockPositions, paginate } from './mockData';
 
-// 后端基础地址
-const BASE_URL = 'http://localhost:8123';
+// 后端基础地址：dev 指向本地后端（需后端开启 CORS），prod 指向线上
+// 注意：utoopack 在 dev 模式下 process.env.NODE_ENV 也会是 'production'，
+// 所以这里不能用 NODE_ENV 区分，必须用显式的 REACT_APP_ENV
+const DEV_BASE_URL = 'http://localhost:8123';
+const PROD_BASE_URL = '';
+const BASE_URL =
+  process.env.REACT_APP_ENV === 'production' ? PROD_BASE_URL : DEV_BASE_URL;
+
+console.log(
+  '[request.ts] REACT_APP_ENV =',
+  process.env.REACT_APP_ENV,
+  'BASE_URL =',
+  BASE_URL,
+);
 
 const myAxios = axios.create({
   baseURL: BASE_URL,

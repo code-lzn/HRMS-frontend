@@ -26,7 +26,8 @@ import AdjustModal from './components/AdjustModal';
 
 const BatchDetailPage: React.FC = () => {
   const { batchId } = useParams<{ batchId: string }>();
-  const bId = Number(batchId);
+  // 保持字符串，避免 JS Number 精度丢失（雪花 ID 超出 2^53）
+  const bId = batchId!;
   const access = useAccess();
   const actionRef = useRef<any>();
   const [batch, setBatch] = useState<API.SalaryBatchVO | null>(null);
@@ -155,7 +156,7 @@ const BatchDetailPage: React.FC = () => {
       fixed: 'right',
       search: false,
       render: (_: any, record: API.SalaryDetailVO) =>
-        access.canManageSalaryBatch && status === 3 ? (
+        access.canManageSalaryBatch && status === 2 ? (
           <a onClick={() => handleAdjust(record.id!)}>调整</a>
         ) : (
           <span style={{ color: '#ccc' }}>-</span>
@@ -215,20 +216,17 @@ const BatchDetailPage: React.FC = () => {
             </div>
             <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
               {/* Status-based action buttons */}
-              {status === 1 && access.canManageSalaryBatch && (
-                <Button
-                  type="primary"
-                  onClick={() => handleAction('calculate')}
-                >
+              {status === 0 && access.canManageSalaryBatch && (
+                <Button type="primary" onClick={() => handleAction('calculate')}>
                   执行计算
                 </Button>
               )}
-              {status === 3 && access.canManageSalaryBatch && (
+              {status === 2 && access.canManageSalaryBatch && (
                 <Button type="primary" onClick={() => handleAction('submit')}>
                   提交审批
                 </Button>
               )}
-              {status === 4 && access.canApproveSalary && (
+              {status === 3 && access.canApproveSalary && (
                 <>
                   <Button
                     type="primary"
@@ -241,7 +239,7 @@ const BatchDetailPage: React.FC = () => {
                   </Button>
                 </>
               )}
-              {status === 5 && access.canApproveSalary && (
+              {status === 4 && access.canApproveSalary && (
                 <Button type="primary" onClick={() => handleAction('paid')}>
                   标记已发放
                 </Button>

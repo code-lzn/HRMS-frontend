@@ -2,7 +2,7 @@
 /* eslint-disable */
 import request from '@/libs/request';
 
-const BASE = '/api/v1';
+const BASE = '/api';
 
 // ==================== 薪资账套 ====================
 
@@ -23,7 +23,7 @@ export async function listAccountsUsingGet(
 
 /** getAccount GET /api/v1/salary-accounts/{id} */
 export async function getAccountUsingGet(
-  id: number,
+  id: string | number,
   options?: { [key: string]: any },
 ) {
   return request<API.BaseResponseSalaryAccountVO_>(
@@ -50,7 +50,7 @@ export async function createAccountUsingPost(
 
 /** updateAccount PUT /api/v1/salary-accounts/{id} */
 export async function updateAccountUsingPut(
-  id: number,
+  id: string | number,
   body: API.SalaryAccountUpdateRequest,
   options?: { [key: string]: any },
 ) {
@@ -64,7 +64,7 @@ export async function updateAccountUsingPut(
 
 /** deleteAccount DELETE /api/v1/salary-accounts/{id} */
 export async function deleteAccountUsingDelete(
-  id: number,
+  id: string | number,
   options?: { [key: string]: any },
 ) {
   return request<API.BaseResponseBoolean_>(`${BASE}/salary-accounts/${id}`, {
@@ -77,7 +77,7 @@ export async function deleteAccountUsingDelete(
 
 /** listItems GET /api/v1/salary-accounts/{id}/items */
 export async function listItemsUsingGet(
-  accountId: number,
+  accountId: string | number,
   options?: { [key: string]: any },
 ) {
   return request<API.BaseResponseListSalaryItemVO_>(
@@ -88,7 +88,7 @@ export async function listItemsUsingGet(
 
 /** addItem POST /api/v1/salary-accounts/{id}/items */
 export async function addItemUsingPost(
-  accountId: number,
+  accountId: string | number,
   body: API.SalaryItemAddRequest,
   options?: { [key: string]: any },
 ) {
@@ -105,7 +105,7 @@ export async function addItemUsingPost(
 
 /** updateItem PUT /api/v1/salary-accounts/items/{itemId} */
 export async function updateItemUsingPut(
-  itemId: number,
+  itemId: string | number,
   body: API.SalaryItemUpdateRequest,
   options?: { [key: string]: any },
 ) {
@@ -122,7 +122,7 @@ export async function updateItemUsingPut(
 
 /** deleteItem DELETE /api/v1/salary-accounts/items/{itemId} */
 export async function deleteItemUsingDelete(
-  itemId: number,
+  itemId: string | number,
   options?: { [key: string]: any },
 ) {
   return request<API.BaseResponseBoolean_>(
@@ -136,7 +136,7 @@ export async function deleteItemUsingDelete(
 
 /** sortItems PUT /api/v1/salary-accounts/{id}/items/sort */
 export async function sortItemsUsingPut(
-  accountId: number,
+  accountId: string | number,
   body: API.SalaryItemSortRequest,
   options?: { [key: string]: any },
 ) {
@@ -155,7 +155,7 @@ export async function sortItemsUsingPut(
 
 /** getEmployeeSalary GET /api/v1/employee-salaries/{employeeId} */
 export async function getEmployeeSalaryUsingGet(
-  employeeId: number,
+  employeeId: string | number,
   options?: { [key: string]: any },
 ) {
   return request<API.BaseResponseEmployeeSalaryVO_>(
@@ -166,7 +166,7 @@ export async function getEmployeeSalaryUsingGet(
 
 /** updateEmployeeSalary PUT /api/v1/employee-salaries/{employeeId} */
 export async function updateEmployeeSalaryUsingPut(
-  employeeId: number,
+  employeeId: string | number,
   body: API.EmployeeSalaryUpdateRequest,
   options?: { [key: string]: any },
 ) {
@@ -183,7 +183,7 @@ export async function updateEmployeeSalaryUsingPut(
 
 /** getSalaryHistory GET /api/v1/employee-salaries/{employeeId}/history */
 export async function getSalaryHistoryUsingGet(
-  employeeId: number,
+  employeeId: string | number,
   options?: { [key: string]: any },
 ) {
   return request<API.BaseResponseListSalaryChangeHistoryVO_>(
@@ -221,7 +221,7 @@ export async function createBatchUsingPost(
 
 /** getBatchDetail GET /api/v1/salary-batches/{id} */
 export async function getBatchDetailUsingGet(
-  id: number,
+  id: string | number,
   options?: { [key: string]: any },
 ) {
   return request<API.BaseResponseSalaryBatchVO_>(
@@ -235,7 +235,7 @@ export async function getBatchDetailUsingGet(
 
 /** executeCalculate POST /api/v1/salary-batches/{id}/execute */
 export async function executeCalculateUsingPost(
-  id: number,
+  id: string | number,
   options?: { [key: string]: any },
 ) {
   return request<API.BaseResponseBoolean_>(
@@ -249,7 +249,7 @@ export async function executeCalculateUsingPost(
 
 /** listDetails GET /api/v1/salary-batches/{id}/details */
 export async function listDetailsUsingGet(
-  batchId: number,
+  batchId: string | number,
   params?: API.SalaryDetailQueryRequest,
   options?: { [key: string]: any },
 ) {
@@ -261,7 +261,7 @@ export async function listDetailsUsingGet(
 
 /** adjustDetail PUT /api/v1/salary-batches/details/{detailId}/adjust */
 export async function adjustDetailUsingPut(
-  detailId: number,
+  detailId: string | number,
   body: API.SalaryDetailAdjustRequest,
   options?: { [key: string]: any },
 ) {
@@ -278,7 +278,7 @@ export async function adjustDetailUsingPut(
 
 /** submitForApproval PUT /api/v1/salary-batches/{id}/submit */
 export async function submitForApprovalUsingPut(
-  id: number,
+  id: string | number,
   options?: { [key: string]: any },
 ) {
   return request<API.BaseResponseBoolean_>(
@@ -292,7 +292,7 @@ export async function submitForApprovalUsingPut(
 
 /** approve PUT /api/v1/salary-batches/{id}/approve */
 export async function approveUsingPut(
-  id: number,
+  id: string | number,
   options?: { [key: string]: any },
 ) {
   return request<API.BaseResponseBoolean_>(
@@ -306,7 +306,7 @@ export async function approveUsingPut(
 
 /** reject PUT /api/v1/salary-batches/{id}/reject */
 export async function rejectUsingPut(
-  id: number,
+  id: string | number,
   body: API.SalaryBatchRejectRequest,
   options?: { [key: string]: any },
 ) {
@@ -323,7 +323,7 @@ export async function rejectUsingPut(
 
 /** markAsPaid PUT /api/v1/salary-batches/{id}/paid */
 export async function markAsPaidUsingPut(
-  id: number,
+  id: string | number,
   options?: { [key: string]: any },
 ) {
   return request<API.BaseResponseBoolean_>(
@@ -347,7 +347,7 @@ export async function getMyPayslipsUsingGet(options?: { [key: string]: any }) {
 
 /** getPayslipDetail GET /api/v1/payslips/{id} */
 export async function getPayslipDetailUsingGet(
-  id: number,
+  id: string | number,
   options?: { [key: string]: any },
 ) {
   return request<API.BaseResponsePayslipVO_>(`${BASE}/payslips/${id}`, {
@@ -358,7 +358,7 @@ export async function getPayslipDetailUsingGet(
 
 /** verifyPayslip POST /api/v1/payslips/{id}/verify */
 export async function verifyPayslipUsingPost(
-  id: number,
+  id: string | number,
   body: API.PayslipVerifyRequest,
   options?: { [key: string]: any },
 ) {
@@ -366,6 +366,17 @@ export async function verifyPayslipUsingPost(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     data: body,
+    ...(options || {}),
+  });
+}
+
+/** sendVerifyCode POST /api/v1/payslips/{id}/send-code */
+export async function sendPayslipVerifyCodeUsingPost(
+  id: string | number,
+  options?: { [key: string]: any },
+) {
+  return request<API.BaseResponseBoolean_>(`${BASE}/payslips/${id}/send-code`, {
+    method: 'POST',
     ...(options || {}),
   });
 }

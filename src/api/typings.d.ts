@@ -173,6 +173,7 @@ declare namespace API {
     id?: number;
     scheduledEndTime?: string;
     scheduledStartTime?: string;
+    shiftType?: number;
     startStatus?: number;
     startStatusDesc?: string;
   };
