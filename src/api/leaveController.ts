@@ -23,7 +23,7 @@ export async function queryRequestsUsingGet(
   params: API.queryRequestsUsingGETParams,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponsePageLeaveRequestVO_>('/api/leave/requests', {
+  return request<API.BaseResponsePageLeaveRequestVO_>('/api/leave/requestss', {
     method: 'GET',
     params: {
       // page has a default value: 1

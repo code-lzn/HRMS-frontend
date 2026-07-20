@@ -1,27 +1,19 @@
-import {
-  queryRequestsUsingGet,
-  submitLeaveRequestUsingPost,
-} from '@/api/leaveController';
+import { queryRequestsUsingGet } from '@/api/leaveController';
 import {
   CalendarOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
   CloseCircleOutlined,
-  PlusOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   Button,
   Card,
   Col,
-  DatePicker,
   Empty,
-  Form,
   Input,
-  message,
-  Modal,
   Result,
   Row,
   Select,
@@ -31,8 +23,6 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import React, { useMemo, useState } from 'react';
-
-const { RangePicker } = DatePicker;
 
 interface LeaveRow {
   id: number;
@@ -128,12 +118,9 @@ const StatCard: React.FC<StatCardProps> = ({
 );
 
 const LeaveManagement: React.FC = () => {
-  const queryClient = useQueryClient();
-  const [modalOpen, setModalOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [status, setStatus] = useState<number | undefined>();
   const [leaveType, setLeaveType] = useState<number | undefined>();
-  const [form] = Form.useForm();
 
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchStatus, setSearchStatus] = useState<number | undefined>();
@@ -198,26 +185,6 @@ const LeaveManagement: React.FC = () => {
     setSearchKeyword('');
     setSearchStatus(undefined);
     setSearchLeaveType(undefined);
-  };
-
-  const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields();
-      const [start, end] = values.dateRange ?? [];
-      await submitLeaveRequestUsingPost({
-        leaveType: values.leaveType,
-        startTime: start?.format('YYYY-MM-DD HH:mm:ss'),
-        endTime: end?.format('YYYY-MM-DD HH:mm:ss'),
-        reason: values.reason,
-      } as any);
-      message.success('请假申请已提交');
-      setModalOpen(false);
-      form.resetFields();
-      queryClient.invalidateQueries({ queryKey: ['leave'] });
-    } catch (e: any) {
-      if (e?.errorFields) return;
-      message.error(e?.message || '提交失败');
-    }
   };
 
   const getLeaveTypeTag = (type: number, desc: string) => {
@@ -426,15 +393,6 @@ const LeaveManagement: React.FC = () => {
             <span style={{ fontWeight: 600, fontSize: 16 }}>请假列表</span>
           </div>
         }
-        extra={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setModalOpen(true)}
-          >
-            申请请假
-          </Button>
-        }
         styles={{ body: { padding: 0 } }}
       >
         <Table
@@ -463,54 +421,6 @@ const LeaveManagement: React.FC = () => {
       </Card>
 
       {/* 申请弹窗 */}
-      <Modal
-        title="申请请假"
-        open={modalOpen}
-        onCancel={() => setModalOpen(false)}
-        onOk={handleSubmit}
-        centered
-        okText="提交"
-        cancelText="取消"
-        width={560}
-      >
-        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
-          <Form.Item
-            name="leaveType"
-            label="请假类型"
-            rules={[{ required: true, message: '请选择请假类型' }]}
-          >
-            <Select
-              options={[
-                { value: 3, label: '事假' },
-                { value: 2, label: '病假' },
-                { value: 1, label: '年假' },
-                { value: 4, label: '婚假' },
-                { value: 5, label: '产假' },
-                { value: 6, label: '丧假' },
-                { value: 7, label: '调休' },
-              ]}
-            />
-          </Form.Item>
-          <Form.Item
-            name="dateRange"
-            label="请假时间"
-            rules={[{ required: true, message: '请选择请假时间' }]}
-          >
-            <RangePicker style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item
-            name="reason"
-            label="请假原因"
-            rules={[{ required: true, message: '请输入请假原因' }]}
-          >
-            <Input.TextArea
-              rows={3}
-              placeholder="请详细说明请假原因"
-              maxLength={200}
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
     </PageContainer>
   );
 };
