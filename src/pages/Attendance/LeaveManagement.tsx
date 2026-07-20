@@ -10,8 +10,8 @@ import {
   cancelUsingPost,
   getApprovalProgressUsingGet,
 } from '@/api/leaveController';
-import { getMyMakeupPunchesUsingGet, getMakeupProgressUsingGet, cancelMakeupUsingPost } from '@/api/makeupPunchController';
-import { getMyOvertimesUsingGet, cancelOvertimeUsingPost } from '@/api/overtimeController';
+import { getMyMakeupPunchesUsingGet, getApprovalProgressUsingGet1, cancelUsingPost1 } from '@/api/makeupPunchController';
+import { getMyOvertimesUsingGet, cancelUsingPost2 } from '@/api/overtimeController';
 
 const LEAVE_TYPES: { value: any; label: string; color: string }[] = [
   { value: 2, label: '年假', color: '#52c41a' },
@@ -158,7 +158,7 @@ const LeaveManagement: React.FC = () => {
     setProgressOpen(true);
     try {
       if (record.recordType === 'makeup') {
-        const res = await getMakeupProgressUsingGet({ id: record.id });
+        const res = await getApprovalProgressUsingGet1({ id: record.id });
         setProgressData(res?.data ?? null);
       } else {
         const res = await getApprovalProgressUsingGet({ id: record.id });
@@ -173,9 +173,9 @@ const LeaveManagement: React.FC = () => {
     try {
       let res: any;
       if (record.recordType === 'makeup') {
-        res = await cancelMakeupUsingPost({ id: record.id });
+        res = await cancelUsingPost1({ id: record.id });
       } else if (record.recordType === 'overtime') {
-        res = await cancelOvertimeUsingPost({ id: record.id });
+        res = await cancelUsingPost2({ id: record.id });
       } else {
         res = await cancelUsingPost({ id: record.id });
       }
