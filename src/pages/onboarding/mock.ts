@@ -32,6 +32,7 @@ export interface OnboardingDetail extends OnboardingRecord {
   positionId: number;
   hireType: number;
   probationMonths: number;
+  defaultProbationMonths?: number;
   probationRatio: number;
   directReportId?: number;
   directReportName?: string;

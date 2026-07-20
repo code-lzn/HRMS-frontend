@@ -95,10 +95,6 @@ const ResignationPage: React.FC = () => {
 
   const getInitial = (name: string) => name?.charAt(0) || '?';
 
-  const getHandoverName = (_: ResignationRecord) => {
-    return '-';
-  };
-
   const columns: ProColumns<ResignationRecord>[] = [
     {
       title: '员工姓名',
@@ -178,7 +174,7 @@ const ResignationPage: React.FC = () => {
       dataIndex: 'handoverToName',
       key: 'handoverToName',
       width: 100,
-      render: (_, record) => getHandoverName(record),
+      render: (_, record) => record.handoverToName || '-',
     },
     {
       title: '状态',
