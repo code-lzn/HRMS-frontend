@@ -104,6 +104,7 @@ declare namespace API {
 
   type AttendanceCalendarVO = {
     dailyStatus?: Record<string, any>;
+    dailyStatusText?: Record<string, string>;
     lateDays?: number;
     leaveDays?: number;
     makeupAvailableDates?: string[];

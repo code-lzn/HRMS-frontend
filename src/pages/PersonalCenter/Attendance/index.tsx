@@ -97,12 +97,15 @@ const MyAttendance: React.FC = () => {
   const dateCellRender = (date: Dayjs) => {
     const dateStr = date.format('YYYY-MM-DD');
     const dailyStatus = calendarData?.dailyStatus ?? {};
+    const dailyStatusText = calendarData?.dailyStatusText ?? {};
     const status = dailyStatus[dateStr] as number | undefined;
 
     if (status === undefined) return null;
 
     const cfg = STATUS_MAP[status];
     if (!cfg) return null;
+
+    const statusText = dailyStatusText[dateStr] || cfg.text;
 
     return (
       <Popover
@@ -137,7 +140,7 @@ const MyAttendance: React.FC = () => {
             textAlign: 'center',
           }}
         >
-          {cfg.text}
+          {statusText}
         </div>
       </Popover>
     );
