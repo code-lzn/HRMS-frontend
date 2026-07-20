@@ -1,6 +1,16 @@
 import { submitUsingPost3 } from '@/api/transferController';
-import { Button, DatePicker, Descriptions, Divider, Form, Input, InputNumber, message, Modal, Select, TreeSelect } from 'antd';
-import React from 'react';
+import { listEmployeesUsingGet } from '@/api/employeeController';
+import {
+  Button, DatePicker, Descriptions, Divider, Form, Input, InputNumber,
+  message, Modal, Select, TreeSelect,
+} from 'antd';
+import React, { useEffect, useState } from 'react';
+
+const EMPLOYMENT_TYPE_OPTIONS = [
+  { value: 'FULL_TIME', label: '全职' },
+  { value: 'PART_TIME', label: '兼职' },
+  { value: 'INTERN', label: '实习' },
+];
 
 interface Props {
   open: boolean;
@@ -15,7 +25,27 @@ const TransferModal: React.FC<Props> = ({
   open, employee, deptTreeData, positionOptions, onCancel, onOk,
 }) => {
   const [form] = Form.useForm();
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = useState(false);
+  const [employeeOptions, setEmployeeOptions] = useState<{ label: string; value: number }[]>([]);
+
+  // 打开弹窗时加载在职员工列表（供新直属汇报人选择）
+  useEffect(() => {
+    if (open) {
+      (async () => {
+        try {
+          const res = await listEmployeesUsingGet({ page: 1, size: 500 });
+          const records = (res as any)?.data?.records ?? [];
+          const active = records.filter((e: any) => e.status === 1 || e.status === 2);
+          setEmployeeOptions(active.map((e: any) => ({
+            label: `${e.employeeName} (${e.employeeNo || '-'})`,
+            value: e.id,
+          })));
+        } catch {
+          setEmployeeOptions([]);
+        }
+      })();
+    }
+  }, [open]);
 
   const handleSubmit = async () => {
     try {
@@ -25,11 +55,14 @@ const TransferModal: React.FC<Props> = ({
         employeeId: employee?.id,
         toDeptId: values.toDeptId,
         toPositionId: values.toPositionId ?? undefined,
+        toRankCode: values.toRankCode ?? undefined,
+        toReporterId: values.toReporterId ?? undefined,
+        workLocation: values.workLocation ?? undefined,
+        employmentType: values.employmentType ?? undefined,
+        salaryAdjustment: values.salaryAdjustment ?? undefined,
         effectiveDate: values.effectiveDate?.format?.('YYYY-MM-DD') ?? values.effectiveDate,
         reason: values.reason,
         remark: values.remark ?? undefined,
-        salaryAdjustment: values.salaryAdjustment ?? undefined,
-        toReporterId: values.toReporterId ?? undefined,
       });
       message.success('调岗申请已提交审批');
       form.resetFields();
@@ -62,7 +95,7 @@ const TransferModal: React.FC<Props> = ({
       ]}
     >
       <Form form={form} layout="vertical" style={{ marginTop: 12 }}>
-        {/* 当前信息 */}
+        {/* ===== 当前信息 ===== */}
         <Divider plain>当前信息</Divider>
         <Descriptions column={2} size="small" bordered style={{ marginBottom: 16 }}>
           <Descriptions.Item label="姓名">{employee?.employeeName ?? '-'}</Descriptions.Item>
@@ -71,6 +104,7 @@ const TransferModal: React.FC<Props> = ({
           <Descriptions.Item label="职位">{employee?.positionName ?? '-'}</Descriptions.Item>
         </Descriptions>
 
+        {/* ===== 调岗信息 ===== */}
         <Divider plain>调岗信息</Divider>
 
         <Form.Item name="toDeptId" label="目标部门" rules={[{ required: true, message: '请选择目标部门' }]}>
@@ -92,18 +126,36 @@ const TransferModal: React.FC<Props> = ({
           />
         </Form.Item>
 
+        <Form.Item name="toRankCode" label="目标职级">
+          <Input placeholder="如 P5、M2（可选）" maxLength={8} />
+        </Form.Item>
+
         <Form.Item name="toReporterId" label="新直属汇报人">
           <Select
             placeholder="搜索员工（可选）"
             showSearch
             allowClear
             optionFilterProp="label"
-            disabled
-            // 可后续扩展：加载员工列表供选择
+            options={employeeOptions}
           />
         </Form.Item>
 
-        <Form.Item name="salaryAdjustment" label="调岗调薪金额">
+        <Form.Item name="workLocation" label="工作地点">
+          <Input placeholder="请输入工作地点（可选）" maxLength={64} />
+        </Form.Item>
+
+        <Form.Item name="employmentType" label="录用类型">
+          <Select
+            placeholder="保持不变（可选）"
+            allowClear
+            options={EMPLOYMENT_TYPE_OPTIONS}
+          />
+        </Form.Item>
+
+        {/* ===== 其他 ===== */}
+        <Divider plain>其他</Divider>
+
+        <Form.Item name="salaryAdjustment" label="调薪金额">
           <InputNumber
             min={0}
             step={100}

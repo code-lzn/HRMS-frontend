@@ -225,7 +225,6 @@ const DeptFormModal: React.FC<DeptFormModalProps> = ({
           managerId: values.managerId ?? null,
           sortOrder: values.sortOrder ?? 0,
           description: values.description,
-          ...(values.parentId !== undefined ? { parentId: values.parentId ?? null } : {}),
         });
         message.success('编辑部门成功');
       }
@@ -282,15 +281,16 @@ const DeptFormModal: React.FC<DeptFormModalProps> = ({
           label="上级部门"
           extra={
             isEdit
-              ? '修改上级部门将移动该部门及其所有子部门和员工到新上级部门下'
+              ? '如需调整上级部门，请使用「合并部门」功能'
               : undefined
           }
         >
           <TreeSelect
             treeData={treeSelectData}
-            placeholder={isEdit ? '留空则保持不变：请选择新上级部门' : '请选择上级部门'}
+            placeholder={isEdit ? '不可修改' : '请选择上级部门'}
             allowClear
             treeDefaultExpandAll={false}
+            disabled={isEdit}
           />
         </Form.Item>
 
