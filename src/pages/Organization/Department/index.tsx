@@ -12,18 +12,12 @@ import MergeDeptModal from './components/MergeDeptModal';
 // 工具函数
 // ============================================================
 
-/** 根据搜索关键词过滤树 */
+/** 根据搜索关键词过滤树（自下而上，子节点匹配时保留父节点） */
 const filterTree = (nodes: API.DepartmentTreeVO[], keyword: string): API.DepartmentTreeVO[] => {
   if (!keyword.trim()) return nodes;
   const kw = keyword.toLowerCase();
   const filter = (list: API.DepartmentTreeVO[]): API.DepartmentTreeVO[] =>
     list
-      .filter(
-        (n) =>
-          n.name?.toLowerCase().includes(kw) ||
-          n.code?.toLowerCase().includes(kw) ||
-          n.managerName?.includes(kw),
-      )
       .map((n) => ({
         ...n,
         children: n.children?.length ? filter(n.children) : [],
@@ -32,7 +26,8 @@ const filterTree = (nodes: API.DepartmentTreeVO[], keyword: string): API.Departm
         (n) =>
           n.children?.length ||
           n.name?.toLowerCase().includes(kw) ||
-          n.code?.toLowerCase().includes(kw),
+          n.code?.toLowerCase().includes(kw) ||
+          n.managerName?.includes(kw),
       );
   return filter(nodes);
 };
@@ -340,7 +335,7 @@ const DepartmentPage: React.FC = () => {
                   alignItems: 'center',
                 }}
               >
-                新增根部门
+                新增部门
               </Button>
             </>
           )}
