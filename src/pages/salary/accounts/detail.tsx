@@ -34,7 +34,7 @@ import { ArrowLeftOutlined } from '@ant-design/icons';
 
 const AccountDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const accountId = Number(id);
+  const accountId = id!;
   const [account, setAccount] = useState<API.SalaryAccountVO | null>(null);
   const [items, setItems] = useState<API.SalaryItemVO[]>([]);
   const [loading, setLoading] = useState(true);

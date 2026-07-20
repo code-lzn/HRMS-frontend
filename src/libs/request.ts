@@ -5,7 +5,7 @@ import { mockPositions, paginate } from './mockData';
 // 注意：utoopack 在 dev 模式下 process.env.NODE_ENV 也会是 'production'，
 // 所以这里不能用 NODE_ENV 区分，必须用显式的 REACT_APP_ENV
 const DEV_BASE_URL = 'http://localhost:8123';
-const PROD_BASE_URL = 'http://xx.xx.xx.xx';
+const PROD_BASE_URL = '';
 const BASE_URL =
   process.env.REACT_APP_ENV === 'production' ? PROD_BASE_URL : DEV_BASE_URL;
 

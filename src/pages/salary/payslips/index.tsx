@@ -11,11 +11,6 @@ const MyPayslips: React.FC = () => {
       title: '薪资月份',
       dataIndex: 'salaryMonth',
       width: 120,
-      render: (_, record) => (
-        <a onClick={() => history.push(`/salary/payslips/${record.id}`)}>
-          {record.salaryMonth}
-        </a>
-      ),
     },
     {
       title: '应发工资',
@@ -42,8 +37,8 @@ const MyPayslips: React.FC = () => {
       dataIndex: 'payslipViewed',
       width: 100,
       render: (_, record) =>
-        record.payslipViewed === 1 ? (
-          <Tag color="blue">已验证</Tag>
+        record.payslipViewed === 2 ? (
+          <Tag color="blue">已查看</Tag>
         ) : (
           <Tag color="default">未查看</Tag>
         ),
@@ -64,6 +59,10 @@ const MyPayslips: React.FC = () => {
         rowKey="id"
         search={false}
         columns={columns}
+        onRow={(record) => ({
+          style: { cursor: 'pointer' },
+          onClick: () => history.push(`/salary/payslips/${record.id}`),
+        })}
         request={async () => {
           const res = await getMyPayslipsUsingGet();
           return {
