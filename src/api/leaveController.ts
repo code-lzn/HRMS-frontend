@@ -68,3 +68,35 @@ export async function getRequestDetailUsingGet(
     },
   );
 }
+
+/** submitDraft POST /api/leave/requests/${param0}/submit */
+export async function submitDraftUsingPost(
+  params: { id: number },
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseBoolean_>(
+    `/api/leave/requests/${param0}/submit`,
+    {
+      method: 'POST',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}
+
+/** deleteDraft DELETE /api/leave/requests/${param0} */
+export async function deleteDraftUsingDelete(
+  params: { id: number },
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseBoolean_>(
+    `/api/leave/requests/${param0}`,
+    {
+      method: 'DELETE',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}

@@ -23,7 +23,7 @@ export const BIZ_TYPE_TABS = [
   { key: BIZ_TYPE.SALARY_BATCH, label: '薪资批次审批' },
 ];
 
-export const NODE_STATUS = { PENDING: 1, APPROVED: 2, REJECTED: 3, TRANSFERRED: 4, TIMEOUT: 5 } as const;
+export const NODE_STATUS = { PENDING: 1, APPROVED: 2, REJECTED: 3, TRANSFERRED: 4, TIMEOUT: 5, CANCELLED: 6 } as const;
 
 export const INSTANCE_STATUS = { PENDING: 1, APPROVED: 2, REJECTED: 3, CANCELLED: 4 } as const;
 
@@ -33,6 +33,7 @@ export const NODE_STATUS_COLOR: Record<number, string> = {
   [NODE_STATUS.REJECTED]: 'red',
   [NODE_STATUS.TRANSFERRED]: 'orange',
   [NODE_STATUS.TIMEOUT]: 'red',
+  [NODE_STATUS.CANCELLED]: 'default',
 };
 
 export const INSTANCE_STATUS_COLOR: Record<number, string> = {

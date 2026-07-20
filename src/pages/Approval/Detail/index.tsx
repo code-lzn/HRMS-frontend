@@ -1,11 +1,12 @@
 import { getApprovalDetail, approve, rejectApproval, transferApproval } from '@/api/approvalController';
-import { getEmployeeList } from '@/api/employeeController';
+import request from '@/libs/request';
 import { PageContainer } from '@ant-design/pro-components';
 import { history, useParams } from '@umijs/max';
 import { Button, Card, Divider, Input, Select, Tag, Avatar, message, Modal } from 'antd';
 import { UserOutlined, CheckOutlined, CloseOutlined, SwapOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
+import ApprovalTimeline from '@/components/ApprovalTimeline';
 
 const ApprovalDetail: React.FC = () => {
   const { instanceId } = useParams<{ instanceId: string }>();
@@ -91,10 +92,10 @@ const ApprovalDetail: React.FC = () => {
       return;
     }
     try {
-      const res = await getEmployeeList({ current: 1, pageSize: 20, name: kw });
+      const res = await request('/api/employees/search', { params: { keyword: kw } });
       setEmpOptions(
-        (res?.data?.records || []).map((e: any) => ({
-          label: `${e.name} (${e.departmentName || ''})`,
+        (res?.data || []).map((e: any) => ({
+          label: `${e.name} (${e.positionName || ''})`,
           value: e.id,
         })),
       );
@@ -114,6 +115,59 @@ const ApprovalDetail: React.FC = () => {
       </PageContainer>
     );
   }
+
+  // 根据业务类型渲染申请详情字段
+  const renderBizData = (bizType: string, data: Record<string, any> | undefined) => {
+    if (!data || Object.keys(data).length === 0) {
+      return <div style={{ fontSize: 13, color: '#999' }}>暂无申请数据</div>;
+    }
+
+    const ONBOARDING_FIELDS = [
+      ['name', '姓名'], ['genderDesc', '性别'], ['phone', '手机号'], ['email', '邮箱'],
+      ['idCard', '身份证号'], ['expectedHireDate', '预计入职日期'], ['departmentName', '部门'],
+      ['positionName', '职位'], ['hireTypeDesc', '录用类型'], ['probationMonths', '试用期(月)'],
+      ['probationRatio', '试用期薪资比例'], ['directReportName', '直接汇报人'],
+    ];
+    const PROBATION_FIELDS = [
+      ['employeeName', '员工姓名'], ['probationStartDate', '试用期开始'], ['probationEndDate', '试用期结束'],
+      ['performanceReview', '表现评价'], ['salaryAdjustment', '薪资调整'], ['resultDesc', '转正结果'],
+    ];
+    const TRANSFER_FIELDS = [
+      ['employeeName', '员工姓名'], ['fromDepartmentName', '原部门'], ['toDepartmentName', '新部门'],
+      ['fromPositionName', '原职位'], ['toPositionName', '新职位'], ['fromJobLevel', '原职级'],
+      ['toJobLevel', '新职级'], ['reason', '调岗原因'],
+    ];
+    const RESIGNATION_FIELDS = [
+      ['employeeName', '员工姓名'], ['resignationDate', '离职日期'], ['resignationTypeDesc', '离职类型'],
+      ['reason', '离职原因'], ['handoverToName', '工作交接人'],
+    ];
+    const LEAVE_FIELDS = [
+      ['employeeName', '员工姓名'], ['leaveTypeDesc', '请假类型'], ['startTime', '开始时间'],
+      ['endTime', '结束时间'], ['leaveDays', '请假天数'], ['reason', '请假事由'],
+    ];
+    const CARD_REPLENISH_FIELDS = [
+      ['employeeName', '员工姓名'], ['cardTypeDesc', '补卡类型'], ['attendanceDate', '补卡日期'],
+      ['reason', '补卡原因'],
+    ];
+
+    let fields: [string, string][] = [];
+    switch (bizType) {
+      case 'ONBOARDING': fields = ONBOARDING_FIELDS; break;
+      case 'PROBATION': fields = PROBATION_FIELDS; break;
+      case 'TRANSFER': fields = TRANSFER_FIELDS; break;
+      case 'RESIGNATION': fields = RESIGNATION_FIELDS; break;
+      case 'LEAVE': fields = LEAVE_FIELDS; break;
+      case 'CARD_REPLENISH': fields = CARD_REPLENISH_FIELDS; break;
+      default: return <div style={{ fontSize: 13, color: '#999' }}>未知业务类型</div>;
+    }
+
+    return fields.map(([key, label]) => (
+      <div key={key}>
+        <div style={{ fontSize: 13, color: '#999', marginBottom: 4 }}>{label}</div>
+        <div style={{ fontSize: 14, fontWeight: 500 }}>{data[key] ?? '-'}</div>
+      </div>
+    ));
+  };
 
   if (!detail) {
     return (
@@ -186,83 +240,15 @@ const ApprovalDetail: React.FC = () => {
         }
       >
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
-          <div>
-            <div style={{ fontSize: 13, color: '#999', marginBottom: 4 }}>姓名</div>
-            <div style={{ fontSize: 14, fontWeight: 500 }}>{detail.applicantName || '-'}</div>
-          </div>
-          <div>
-            <div style={{ fontSize: 13, color: '#999', marginBottom: 4 }}>部门</div>
-            <div style={{ fontSize: 14, fontWeight: 500 }}>{detail.applicantDepartment || '技术研发部'}</div>
-          </div>
-          <div>
-            <div style={{ fontSize: 13, color: '#999', marginBottom: 4 }}>岗位</div>
-            <div style={{ fontSize: 14, fontWeight: 500 }}>{detail.applicantPosition || '高级工程师'}</div>
-          </div>
-          <div>
-            <div style={{ fontSize: 13, color: '#999', marginBottom: 4 }}>入职日期</div>
-            <div style={{ fontSize: 14, fontWeight: 500 }}>{detail.hireDate || '2024-07-15'}</div>
-          </div>
-          <div>
-            <div style={{ fontSize: 13, color: '#999', marginBottom: 4 }}>薪资</div>
-            <div style={{ fontSize: 14, fontWeight: 500 }}>{detail.salary || '25000'}</div>
-          </div>
-          <div>
-            <div style={{ fontSize: 13, color: '#999', marginBottom: 4 }}>合同类型</div>
-            <div style={{ fontSize: 14, fontWeight: 500 }}>{detail.contractType || '正式合同'}</div>
-          </div>
+          {renderBizData(detail.bizType, detail.bizData)}
         </div>
       </Card>
 
       <Card
         style={{ borderRadius: 12, border: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', marginBottom: 24 }}
-        title={
-          <div style={{ fontSize: 16, fontWeight: 600 }}>审批流程</div>
-        }
+        title={<div style={{ fontSize: 16, fontWeight: 600 }}>审批进度</div>}
       >
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {(detail.nodes || []).map((node: any, idx: number) => {
-            const isCurrent = node.status === 1;
-            return (
-              <div
-                key={node.nodeId}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '16px 0',
-                  borderBottom: idx < (detail.nodes?.length || 0) - 1 ? '1px solid #f3f4f6' : 'none',
-                }}
-              >
-                <div
-                  style={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: '50%',
-                    border: '2px solid',
-                    borderColor: isCurrent ? '#f59e0b' : '#d1d5db',
-                    backgroundColor: isCurrent ? '#f59e0b' : '#fff',
-                    marginRight: 16,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {isCurrent && (
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#fff' }} />
-                  )}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 500 }}>{node.nodeName}</div>
-                  <div style={{ fontSize: 12, color: '#999', marginTop: 4 }}>
-                    {node.approverName} {node.approverPosition || ''}
-                  </div>
-                </div>
-                <div style={{ fontSize: 12, color: isCurrent ? '#f59e0b' : '#999', fontWeight: isCurrent ? 500 : 400 }}>
-                  {node.statusDesc || (isCurrent ? '等待审批中...' : '')}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <ApprovalTimeline nodes={detail.nodes} currentNodeOrder={detail.currentNodeOrder} />
       </Card>
 
       <Card style={{ borderRadius: 12, border: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }} 

@@ -99,6 +99,23 @@ export async function cancelUsingPost3(
   );
 }
 
+/** confirmResignation POST /api/resignations/${param0}/confirm */
+export async function confirmResignationUsingPost(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.confirmResignationUsingPOSTParams,
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseObject_>(
+    `/api/resignations/${param0}/confirm`,
+    {
+      method: 'POST',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}
+
 /** submitToApproval POST /api/resignations/${param0}/submit */
 export async function submitToApprovalUsingPost2(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

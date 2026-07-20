@@ -240,6 +240,20 @@ export default defineConfig({
         },
       ],
     },
+    // ========== 个人中心 ==========
+    {
+      name: '个人中心', path: '/profile',
+      routes: [
+        { path: '/profile', redirect: '/profile/info' },
+        { name: '我的档案', path: '/profile/info', component: './Profile' },
+        { name: '我的考勤', path: '/profile/attendance', component: './Profile/Attendance' },
+        { name: '我的请假', path: '/profile/leaves', component: './Profile/Leaves' },
+        { name: '我的薪资', path: '/profile/salary', component: './Profile/Salary' },
+        { name: '账号安全', path: '/profile/security', component: './Profile/Security' },
+        { name: '修改密码', path: '/profile/security/password', component: './Profile/Security/Password', hideInMenu: true },
+        { name: '修改手机号', path: '/profile/security/phone', component: './Profile/Security/Phone', hideInMenu: true },
+      ],
+    },
     // ========== 原有页面 ==========
     {
       name: '首页',
@@ -265,11 +279,17 @@ export default defineConfig({
       component: '../app/user/login/page',
       layout: false,
     },
+    {
+      name: '重置密码',
+      path: '/user/reset-password',
+      component: '../app/user/reset-password/page',
+      layout: false,
+    },
   ],
   npmClient: 'pnpm',
   proxy: {
     '/api/chat': {
-      target: 'http://localhost:8000',
+      target: 'http://10.9.110.197:8000',
       changeOrigin: true,
     },
   },

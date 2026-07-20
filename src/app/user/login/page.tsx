@@ -14,7 +14,15 @@ const UserLoginPage: React.FC = () => {
   const { setInitialState } = useModel('@@initialState');
 
   const searchParams = new URLSearchParams(location.search);
-  const redirect = searchParams.get('redirect') || '/employees';
+  let redirect = searchParams.get('redirect') || '/employees';
+  if (redirect.startsWith('http://') || redirect.startsWith('https://')) {
+    try {
+      const u = new URL(redirect);
+      redirect = u.pathname + u.search;
+    } catch {
+      redirect = '/employees';
+    }
+  }
 
   const doSubmit = async (values: API.UserLoginRequest) => {
     try {
@@ -26,13 +34,12 @@ const UserLoginPage: React.FC = () => {
           ...pre,
           currentUser: res.data,
         }));
-        // 处理 redirect：防止被注入完整 URL 导致路径拼接
-        let target = redirect;
-        try {
-          const url = new URL(target);
-          target = url.pathname + url.search;
-        } catch {}
-        navigate(target, { replace: true });
+        const data = res.data as API.LoginUserVO;
+        if (data.pwdReset === 1) {
+          navigate(`/user/reset-password?redirect=${encodeURIComponent(redirect)}`, { replace: true });
+        } else {
+          navigate(redirect, { replace: true });
+        }
         form.resetFields();
       }
     } catch (e: any) {

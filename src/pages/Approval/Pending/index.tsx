@@ -14,6 +14,7 @@ const ApprovalPending: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [bizType, setBizType] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [onlyMine, setOnlyMine] = useState(true);
   const [actionLoading, setActionLoading] = useState<string>('');
 
   const fetchList = async () => {
@@ -31,6 +32,9 @@ const ApprovalPending: React.FC = () => {
       }
       if (bizType) {
         records = records.filter((item: any) => item.bizType === bizType);
+      }
+      if (onlyMine) {
+        records = records.filter((item: any) => item.canAct !== false);
       }
       if (statusFilter) {
         if (statusFilter === 'overdue') {
@@ -50,7 +54,7 @@ const ApprovalPending: React.FC = () => {
 
   useEffect(() => {
     fetchList();
-  }, [searchText, bizType, statusFilter]);
+  }, [searchText, bizType, statusFilter, onlyMine]);
 
   const pendingCount = list.length;
   const overdueCount = list.filter(
@@ -161,6 +165,13 @@ const ApprovalPending: React.FC = () => {
             { value: 'overdue', label: '已逾期' },
           ]}
         />
+        <Button
+          type={onlyMine ? 'primary' : 'default'}
+          onClick={() => setOnlyMine(!onlyMine)}
+          style={{ borderRadius: 8, height: 36 }}
+        >
+          {onlyMine ? '仅我的待办' : '显示全部'}
+        </Button>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -211,6 +222,9 @@ const ApprovalPending: React.FC = () => {
                       </div>
                       <div style={{ marginTop: 4, fontSize: 13, color: '#999' }}>
                         当前节点：{item.nodeName}
+                        {item.delegatorName && (
+                          <Tag color="purple" style={{ fontSize: 11, marginLeft: 8, borderRadius: 4 }}>{item.delegatorName} 委托</Tag>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -222,22 +236,28 @@ const ApprovalPending: React.FC = () => {
                     >
                       查看详情
                     </Button>
-                    <Button
-                      type="primary"
-                      style={{ background: '#22c55e', borderColor: '#22c55e', borderRadius: 6, padding: '4px 16px' }}
-                      loading={actionLoading === `approve_${item.nodeId}`}
-                      onClick={() => handleApprove(item.nodeId)}
-                    >
-                      通过
-                    </Button>
-                    <Button
-                      danger
-                      style={{ borderRadius: 6, padding: '4px 16px', borderColor: '#fca5a5', color: '#dc2626' }}
-                      loading={actionLoading === `reject_${item.nodeId}`}
-                      onClick={() => handleReject(item.nodeId)}
-                    >
-                      拒绝
-                    </Button>
+                    {item.canAct !== false ? (
+                      <>
+                        <Button
+                          type="primary"
+                          style={{ background: '#22c55e', borderColor: '#22c55e', borderRadius: 6, padding: '4px 16px' }}
+                          loading={actionLoading === `approve_${item.nodeId}`}
+                          onClick={() => handleApprove(item.nodeId)}
+                        >
+                          通过
+                        </Button>
+                        <Button
+                          danger
+                          style={{ borderRadius: 6, padding: '4px 16px', borderColor: '#fca5a5', color: '#dc2626' }}
+                          loading={actionLoading === `reject_${item.nodeId}`}
+                          onClick={() => handleReject(item.nodeId)}
+                        >
+                          拒绝
+                        </Button>
+                      </>
+                    ) : (
+                      <span style={{ fontSize: 12, color: '#999', alignSelf: 'center' }}>非本人审批节点</span>
+                    )}
                   </div>
                 </div>
               </Card>

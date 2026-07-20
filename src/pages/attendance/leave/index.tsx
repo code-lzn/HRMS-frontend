@@ -150,6 +150,10 @@ const LeaveManagement: React.FC = () => {
   const raw = (listResp as any)?.data?.records;
   const list: LeaveRow[] = Array.isArray(raw) ? raw : [];
 
+  const LEAVE_TYPE_MAP: Record<string, number> = {
+    年假: 1, 病假: 2, 事假: 3, 婚假: 4, 产假: 5, 丧假: 6, 调休: 7,
+  };
+
   const stats = useMemo(() => {
     let pending = 0;
     let approved = 0;
@@ -420,7 +424,6 @@ const LeaveManagement: React.FC = () => {
         />
       </Card>
 
-      {/* 申请弹窗 */}
     </PageContainer>
   );
 };
