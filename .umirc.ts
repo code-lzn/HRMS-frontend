@@ -121,6 +121,7 @@ export default defineConfig({
         { name: '账套管理', path: '/salary-manage/account', component: './SalaryManage/Account' },
         { name: '薪资档案', path: '/salary-manage/employee', component: './SalaryManage/Employee' },
         { name: '月度核算', path: '/salary-manage/batch', component: './SalaryManage/Batch' },
+        { name: '工资条管理', path: '/salary-manage/slip', component: './SalaryManage/Slip' },
       ],
     },
     {

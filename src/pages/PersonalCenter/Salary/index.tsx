@@ -1,6 +1,11 @@
 import { getMySalarySlipsUsingGet, getMySalaryTrendUsingGet, getSalarySlipDetailUsingPost } from '@/api/salaryController';
 import { Line } from '@ant-design/charts';
-import { EyeOutlined } from '@ant-design/icons';
+import {
+  CloseOutlined,
+  DownloadOutlined,
+  EyeOutlined,
+  PrinterOutlined,
+} from '@ant-design/icons';
 import { Button, Card, Form, Input, message, Modal, Table, Tag } from 'antd';
 import React, { useEffect, useState } from 'react';
 import './index.less';
@@ -26,7 +31,7 @@ const MySalary: React.FC = () => {
   const loadSlips = async () => {
     try {
       const res = await getMySalarySlipsUsingGet();
-      setSlips(res?.data ?? []);
+      setSlips((res as any)?.data ?? []);
     } catch {
       // ignore
     }
@@ -35,7 +40,7 @@ const MySalary: React.FC = () => {
   const loadTrend = async () => {
     try {
       const res = await getMySalaryTrendUsingGet();
-      setTrend(res?.data ?? []);
+      setTrend((res as any)?.data ?? []);
     } catch {
       // ignore
     }
@@ -50,7 +55,7 @@ const MySalary: React.FC = () => {
     try {
       const values = await form.validateFields();
       setLoading(true);
-      const res = await getSalarySlipDetailUsingPost(
+      const res: any = await getSalarySlipDetailUsingPost(
         { id: selectedSlipId },
         { password: values.password },
       );
@@ -78,13 +83,13 @@ const MySalary: React.FC = () => {
       title: '应发',
       dataIndex: 'grossSalary',
       key: 'grossSalary',
-      render: (v: number) => (v !== undefined? `¥${v.toFixed(2)}` : '-'),
+      render: (v: number) => (v !== undefined ? `¥${v.toFixed(2)}` : '-'),
     },
     {
       title: '应扣',
       dataIndex: 'totalDeduction',
       key: 'totalDeduction',
-      render: (v: number) => (v !== undefined? `¥${v.toFixed(2)}` : '-'),
+      render: (v: number) => (v !== undefined ? `¥${v.toFixed(2)}` : '-'),
     },
     {
       title: '实发',
@@ -92,7 +97,7 @@ const MySalary: React.FC = () => {
       key: 'netSalary',
       render: (v: number) => (
         <span style={{ fontWeight: 600, color: '#1677ff' }}>
-          {v !== undefined? `¥${v.toFixed(2)}` : '-'}
+          {v !== undefined ? `¥${v.toFixed(2)}` : '-'}
         </span>
       ),
     },
@@ -100,7 +105,7 @@ const MySalary: React.FC = () => {
       title: '状态',
       dataIndex: 'batchStatus',
       key: 'batchStatus',
-      render: (v: string) => <Tag color={v === '已发放' ? 'success' : 'default'}>{v ?? '-'}</Tag>,
+      render: (v: string) => <Tag color={v === 'PAID' ? 'success' : v === 'APPROVED' ? 'processing' : 'default'}>{v === 'PAID' ? '已发放' : v === 'APPROVED' ? '已通过' : v ?? '-'}</Tag>,
     },
     {
       title: '操作',
@@ -136,6 +141,10 @@ const MySalary: React.FC = () => {
         formatter: (v: string) => `¥${Number(v).toLocaleString()}`,
       },
     },
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   return (
@@ -190,70 +199,148 @@ const MySalary: React.FC = () => {
         </Form>
       </Modal>
 
-      {/* 工资条详情 Modal */}
+      {/* ========== 工资条详情弹窗（设计稿样式） ========== */}
       <Modal
-        title={`工资条详情（${detail?.salaryMonth ?? ''}）`}
         open={detailModalOpen}
         onCancel={() => setDetailModalOpen(false)}
         footer={null}
-        width={640}
+        width={720}
+        closable={false}
+        destroyOnClose
+        bodyStyle={{ padding: 0 }}
+        className="payslip-modal"
       >
         {detail && (
-          <div className="salary-slip-detail">
-            <div className="slip-head">
-              <h3>工 资 条</h3>
-              <div className="slip-head-row">
-                <span className="slip-head-item">姓名<strong>{detail.employeeName}</strong></span>
-                <span className="slip-head-item">工号<strong>{detail.employeeNo}</strong></span>
-                <span className="slip-head-item">月份<strong>{detail.salaryMonth}</strong></span>
+          <div className="payslip-container">
+            {/* 蓝色头部 */}
+            <div className="payslip-header">
+              <div className="payslip-header-top">
+                <div className="payslip-header-left">
+                  <span className="payslip-header-dot" />
+                  <span className="payslip-header-title">工 资 条</span>
+                </div>
+                <div className="payslip-header-actions">
+                  <Button type="text" size="small" icon={<PrinterOutlined />} style={{ color: '#fff' }} onClick={handlePrint} />
+                  <Button type="text" size="small" icon={<DownloadOutlined />} style={{ color: '#fff' }} />
+                  <Button type="text" size="small" icon={<CloseOutlined />} style={{ color: '#fff' }}
+                    onClick={() => setDetailModalOpen(false)}
+                  />
+                </div>
+              </div>
+              <div className="payslip-header-company">星辰科技有限公司</div>
+              <div className="payslip-header-month">{detail.salaryMonth} 工资条</div>
+              <div className="payslip-header-employee">
+                <span>姓名：<strong>{detail.employeeName}</strong></span>
+                <span className="payslip-header-divider" />
+                <span>工号：<strong>{detail.employeeNo}</strong></span>
+                <span className="payslip-header-divider" />
+                <span>部门：<strong>{detail.employeeName ? '技术部' : '-'}</strong></span>
               </div>
             </div>
 
-            <div className="slip-section">
-              <div className="slip-section-head">
-                <span className="slip-section-dot" style={{ background: '#52c41a' }} />
-                <span className="slip-section-label">收入项</span>
+            {/* 主体：双栏 */}
+            <div className="payslip-body">
+              {/* 左栏：收入明细 */}
+              <div className="payslip-column payslip-income">
+                <div className="payslip-section-title">
+                  <span className="payslip-section-bar payslip-section-bar-green" />
+                  <span>收入明细</span>
+                </div>
+                <div className="payslip-items">
+                  <div className="payslip-item">
+                    <span className="payslip-item-label">基本工资</span>
+                    <span className="payslip-item-value">{fmtAmt(detail.baseSalary)}</span>
+                  </div>
+                  <div className="payslip-item">
+                    <span className="payslip-item-label">岗位津贴</span>
+                    <span className="payslip-item-value">{fmtAmt(detail.allowance)}</span>
+                  </div>
+                  <div className="payslip-item">
+                    <span className="payslip-item-label">绩效奖金</span>
+                    <span className="payslip-item-value">{fmtAmt(detail.performanceBonus)}</span>
+                  </div>
+                  <div className="payslip-item">
+                    <span className="payslip-item-label">加班费</span>
+                    <span className="payslip-item-value">{fmtAmt(detail.overtimePay)}</span>
+                  </div>
+                  {(detail.manualAdjust ?? 0) !== 0 && (
+                    <div className="payslip-item">
+                      <span className="payslip-item-label">手动调整</span>
+                      <span className="payslip-item-value" style={{ color: (detail.manualAdjust ?? 0) > 0 ? '#52c41a' : '#ff4d4f' }}>
+                        {fmtAmt(detail.manualAdjust)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="payslip-subtotal payslip-subtotal-income">
+                  <span>应发小计</span>
+                  <span>{fmtAmt(detail.grossSalary)}</span>
+                </div>
               </div>
-              <div className="slip-items">
-                <div className="slip-item"><span className="slip-item-label">基本工资</span><span className="slip-item-value">{fmtAmt(detail.baseSalary)}</span></div>
-                <div className="slip-item"><span className="slip-item-label">岗位津贴</span><span className="slip-item-value">{fmtAmt(detail.allowance)}</span></div>
-                <div className="slip-item"><span className="slip-item-label">绩效奖金</span><span className="slip-item-value">{fmtAmt(detail.performanceBonus)}</span></div>
-                <div className="slip-item"><span className="slip-item-label">加班费</span><span className="slip-item-value">{fmtAmt(detail.overtimePay)}</span></div>
-                {(detail.manualAdjust ?? 0) !== 0 && (
-                  <div className="slip-item"><span className="slip-item-label">手动调整</span><span className="slip-item-value">{fmtAmt(detail.manualAdjust)}</span></div>
-                )}
+
+              {/* 右栏：扣除明细 */}
+              <div className="payslip-column payslip-deduction">
+                <div className="payslip-section-title">
+                  <span className="payslip-section-bar payslip-section-bar-red" />
+                  <span>扣除明细</span>
+                </div>
+                <div className="payslip-items">
+                  <div className="payslip-item">
+                    <span className="payslip-item-label">迟到扣款</span>
+                    <span className="payslip-item-value" style={{ color: '#ff4d4f' }}>
+                      {detail.lateDeduction ? `-${fmtAmt(detail.lateDeduction)}` : fmtAmt(0)}
+                    </span>
+                  </div>
+                  <div className="payslip-item">
+                    <span className="payslip-item-label">请假扣款</span>
+                    <span className="payslip-item-value" style={{ color: '#ff4d4f' }}>
+                      {detail.leaveDeduction ? `-${fmtAmt(detail.leaveDeduction)}` : fmtAmt(0)}
+                    </span>
+                  </div>
+                  <div className="payslip-item">
+                    <span className="payslip-item-label">养老保险</span>
+                    <span className="payslip-item-value" style={{ color: '#ff4d4f' }}>
+                      {detail.socialPension ? `-${fmtAmt(detail.socialPension)}` : fmtAmt(0)}
+                    </span>
+                  </div>
+                  <div className="payslip-item">
+                    <span className="payslip-item-label">医疗保险</span>
+                    <span className="payslip-item-value" style={{ color: '#ff4d4f' }}>
+                      {detail.socialMedical ? `-${fmtAmt(detail.socialMedical)}` : fmtAmt(0)}
+                    </span>
+                  </div>
+                  <div className="payslip-item">
+                    <span className="payslip-item-label">失业保险</span>
+                    <span className="payslip-item-value" style={{ color: '#ff4d4f' }}>
+                      {detail.socialUnemployment ? `-${fmtAmt(detail.socialUnemployment)}` : fmtAmt(0)}
+                    </span>
+                  </div>
+                  <div className="payslip-item">
+                    <span className="payslip-item-label">住房公积金</span>
+                    <span className="payslip-item-value" style={{ color: '#ff4d4f' }}>
+                      {detail.housingFund ? `-${fmtAmt(detail.housingFund)}` : fmtAmt(0)}
+                    </span>
+                  </div>
+                  <div className="payslip-item">
+                    <span className="payslip-item-label">个人所得税</span>
+                    <span className="payslip-item-value" style={{ color: '#ff4d4f' }}>
+                      {detail.incomeTax ? `-${fmtAmt(detail.incomeTax)}` : fmtAmt(0)}
+                    </span>
+                  </div>
+                </div>
+                <div className="payslip-subtotal payslip-subtotal-deduction">
+                  <span>应扣小计</span>
+                  <span>-{fmtAmt(detail.totalDeduction)}</span>
+                </div>
               </div>
             </div>
 
-            <div className="slip-section">
-              <div className="slip-section-head">
-                <span className="slip-section-dot" style={{ background: '#ff4d4f' }} />
-                <span className="slip-section-label">扣除项</span>
-              </div>
-              <div className="slip-items">
-                <div className="slip-item"><span className="slip-item-label">迟到扣款</span><span className="slip-item-value">{fmtAmt(detail.lateDeduction)}</span></div>
-                <div className="slip-item"><span className="slip-item-label">请假扣款</span><span className="slip-item-value">{fmtAmt(detail.leaveDeduction)}</span></div>
-                <div className="slip-item"><span className="slip-item-label">养老保险</span><span className="slip-item-value">{fmtAmt(detail.socialPension)}</span></div>
-                <div className="slip-item"><span className="slip-item-label">医疗保险</span><span className="slip-item-value">{fmtAmt(detail.socialMedical)}</span></div>
-                <div className="slip-item"><span className="slip-item-label">失业保险</span><span className="slip-item-value">{fmtAmt(detail.socialUnemployment)}</span></div>
-                <div className="slip-item"><span className="slip-item-label">住房公积金</span><span className="slip-item-value">{fmtAmt(detail.housingFund)}</span></div>
-                <div className="slip-item"><span className="slip-item-label">个人所得税</span><span className="slip-item-value">{fmtAmt(detail.incomeTax)}</span></div>
-              </div>
-            </div>
-
-            <div className="slip-total">
-              <div className="slip-total-row">
-                <span className="slip-total-label">应发工资</span>
-                <span className="slip-total-value">{fmtAmt(detail.grossSalary)}</span>
-              </div>
-              <div className="slip-total-row">
-                <span className="slip-total-label">应扣合计</span>
-                <span className="slip-total-value">{fmtAmt(detail.totalDeduction)}</span>
-              </div>
-              <div className="slip-total-divider" />
-              <div className="slip-total-net">
-                <span className="slip-net-label">实发工资</span>
-                <span className="slip-net-value">{fmtAmt(detail.netSalary)}</span>
+            {/* 底部：实发工资 */}
+            <div className="payslip-footer">
+              <div className="payslip-footer-label">实发工资</div>
+              <div className="payslip-footer-amount">{fmtAmt(detail.netSalary)}</div>
+              <div className="payslip-footer-note">
+                税后实发金额，已扣除个人社保、公积金及个税
               </div>
             </div>
           </div>
