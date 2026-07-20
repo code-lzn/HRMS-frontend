@@ -2,7 +2,7 @@ import {
   addDepartmentUsingPost,
   updateDepartmentUsingPut,
 } from '@/api/departmentController';
-import { listEmployeesUsingGet } from '@/api/employeeController';
+import { listManagerCandidatesUsingGet } from '@/api/employeeController';
 import type { DataNode } from 'antd/es/tree';
 import {
   Form,
@@ -13,7 +13,7 @@ import {
   Select,
   TreeSelect,
 } from 'antd';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 /** 将部门树转为 TreeSelect 数据 */
 const buildTreeSelectData = (nodes: API.DepartmentTreeVO[]): DataNode[] =>
@@ -101,44 +101,27 @@ const DeptFormModal: React.FC<DeptFormModalProps> = ({
 }) => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
-  const [employeeOptions, setEmployeeOptions] = useState<API.EmployeeSimpleVO[]>([]);
+  const [employeeOptions, setEmployeeOptions] = useState<{ label: string; value: number }[]>([]);
   const [employeeLoading, setEmployeeLoading] = useState(false);
-  const fetchRef = useRef(0);
 
   const treeSelectData = useMemo(() => buildTreeSelectData(treeData), [treeData]);
 
-  // 搜索员工（负责人）
-  const fetchEmployees = useCallback(async (keyword: string) => {
-    fetchRef.current += 1;
-    const fetchId = fetchRef.current;
+  // 加载部门负责人候选（系统管理员/HR专员/部门主管）
+  const fetchManagerCandidates = useCallback(async () => {
     setEmployeeLoading(true);
     try {
-      const res = await listEmployeesUsingGet({ keyword, page: 1, size: 20 });
-      if (fetchId === fetchRef.current) {
-        const records = (res as any)?.data?.records ?? [];
-        // 保留当前选中的负责人
-        setEmployeeOptions((prev) => {
-          const currentIds = new Set(records.map((o: API.EmployeeVO) => o.id));
-          const existing = prev.filter((o: API.EmployeeSimpleVO) => !currentIds.has(o.id));
-          return [...existing, ...records.map((o: API.EmployeeVO) => ({
-            id: o.id,
-            employeeName: o.employeeName,
-            employeeNo: o.employeeNo,
-          }))];
-        });
-      }
+      const res = await listManagerCandidatesUsingGet();
+      const records: API.Employee[] = (res as any)?.data ?? [];
+      setEmployeeOptions(records.map((emp) => ({
+        label: `${emp.employeeName}（${emp.employeeNo}）`,
+        value: emp.id!,
+      })));
     } catch {
-      // ignore
+      setEmployeeOptions([]);
     } finally {
       setEmployeeLoading(false);
     }
   }, []);
-
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout>>();
-  const debouncedFetch = useCallback((kw: string) => {
-    clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => fetchEmployees(kw), 400);
-  }, [fetchEmployees]);
 
   // 打开弹窗时初始化表单
   useEffect(() => {
@@ -154,15 +137,15 @@ const DeptFormModal: React.FC<DeptFormModalProps> = ({
       });
       // 预填负责人选项
       if (editDept.managerId && editDept.managerName) {
-        setEmployeeOptions([{ id: editDept.managerId, employeeName: editDept.managerName }]);
+        setEmployeeOptions([{ label: editDept.managerName, value: editDept.managerId }]);
       }
     } else {
       form.resetFields();
       form.setFieldsValue({ parentId: defaultParentId, sortOrder: 0 });
       setEmployeeOptions([]);
     }
-    // 打开弹窗时加载初始员工选项，让下拉框有数据可展示
-    fetchEmployees('');
+    // 打开弹窗时加载部门负责人候选
+    fetchManagerCandidates();
   }, [open, mode, editDept, defaultParentId, form]);
 
   const handleOk = async () => {
@@ -297,15 +280,12 @@ const DeptFormModal: React.FC<DeptFormModalProps> = ({
         <Form.Item name="managerId" label="部门负责人">
           <Select
             showSearch
-            placeholder="请输入姓名搜索"
-            filterOption={false}
+            placeholder="请选择部门负责人"
+            filterOption={(input, option) =>
+              (option?.label as string)?.toLowerCase().includes(input.toLowerCase()) ?? false}
             loading={employeeLoading}
-            onSearch={debouncedFetch}
             allowClear
-            options={employeeOptions.map((emp) => ({
-              value: emp.id,
-              label: `${emp.employeeName}（${emp.employeeNo}）`,
-            }))}
+            options={employeeOptions}
           />
         </Form.Item>
 

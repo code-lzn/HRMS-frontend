@@ -1,7 +1,7 @@
 import {
   getDepartmentTreeUsingGet,
 } from '@/api/departmentController';
-import { addEmployeeUsingPost, listEmployeesUsingGet } from '@/api/employeeController';
+import { addEmployeeUsingPost, listEmployeesUsingGet, listManagerCandidatesUsingGet } from '@/api/employeeController';
 import {
   listPositionsUsingGet,
 } from '@/api/positionController';
@@ -24,7 +24,7 @@ import {
   Spin,
   TreeSelect,
 } from 'antd';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { history } from '@umijs/max';
 
 const CONTRACT_OPTIONS = [
@@ -47,49 +47,35 @@ const EmployeeAddPage: React.FC = () => {
   const [deptTreeData, setDeptTreeData] = useState<API.DepartmentTreeVO[]>([]);
   const [positionOptions, setPositionOptions] = useState<API.PositionVO[]>([]);
   const [employeeOptions, setEmployeeOptions] = useState<{ value: number; label: string }[]>([]);
+  const [employeeLoading, setEmployeeLoading] = useState(false);
   const [roleOptions, setRoleOptions] = useState<{ label: string; value: number }[]>([]);
   const [salaryAccounts, setSalaryAccounts] = useState<{ value: number; label: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [probationRatio, setProbationRatio] = useState(0.8);
 
-  const fetchRef = useRef(0);
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout>>();
-
-  // 部门树转 TreeSelect
-  const treeSelectData = useCallback(() => {
+  // 树数据构建函数（每次重新计算）
+  const buildTreeData = useCallback(() => {
     const build = (nodes: API.DepartmentTreeVO[]): any[] =>
       nodes.map((n) => ({ key: n.id!, value: n.id!, title: n.name, children: n.children?.length ? build(n.children) : [] }));
     return build(deptTreeData);
   }, [deptTreeData]);
 
-  // 监听所属部门变化，筛选对应部门的员工
-  const selectedDeptId = Form.useWatch('departmentId', form);
-
-  // 搜索员工（直属上级）
-  const searchEmployee = useCallback(async (keyword: string, deptId?: number) => {
-    fetchRef.current += 1;
-    const fetchId = fetchRef.current;
+  // 加载部门负责人候选（系统管理员/HR专员/部门主管）
+  const fetchManagerCandidates = useCallback(async () => {
+    setEmployeeLoading(true);
     try {
-      const params: any = { page: 1, size: 20 };
-      if (keyword) params.keyword = keyword;
-      if (deptId) params.departmentIds = [deptId];
-      const res = await listEmployeesUsingGet(params);
-      if (fetchId === fetchRef.current) {
-        const records = (res as any)?.data?.records ?? [];
-        setEmployeeOptions(records.map((e: any) => ({ value: e.id, label: `${e.employeeName} (${e.employeeNo})` })));
-      }
-    } catch { /* ignore */ }
+      const res = await listManagerCandidatesUsingGet();
+      const records: API.Employee[] = (res as any)?.data ?? [];
+      setEmployeeOptions(records.map((e) => ({
+        value: e.id!,
+        label: `${e.employeeName}（${e.employeeNo}）`,
+      })));
+    } catch {
+      setEmployeeOptions([]);
+    } finally {
+      setEmployeeLoading(false);
+    }
   }, []);
-
-  const debouncedSearch = useCallback((kw: string) => {
-    clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => searchEmployee(kw, selectedDeptId), 400);
-  }, [searchEmployee, selectedDeptId]);
-
-  // 部门变化时重新加载员工
-  useEffect(() => {
-    searchEmployee('', selectedDeptId);
-  }, [selectedDeptId, searchEmployee]);
 
   // 加载初始数据
   const loadData = useCallback(async () => {
@@ -112,6 +98,8 @@ const EmployeeAddPage: React.FC = () => {
         const roles: API.RoleVO[] = (roleRes.value as any)?.data ?? [];
         setRoleOptions(roles.filter((r) => r.roleName !== '系统管理员').map((r) => ({ label: r.roleName ?? '', value: r.id! })));
       }
+      // 加载部门负责人候选
+      fetchManagerCandidates();
     } catch { /* silent */ } finally {
       setLoading(false);
     }
@@ -284,7 +272,7 @@ const EmployeeAddPage: React.FC = () => {
               {/* 所属部门 + 职位 */}
               <Form.Item name="departmentId" label={<span style={{ fontSize: 13, color: '#333' }}>所属部门 <span style={{ color: '#ff4d4f' }}>*</span></span>}
                 rules={[{ required: true, message: '请选择所属部门' }]}>
-                <TreeSelect treeData={treeSelectData()} placeholder="请选择部门" allowClear style={inputStyle} />
+                <TreeSelect treeData={buildTreeData()} placeholder="请选择部门" allowClear style={inputStyle} />
               </Form.Item>
               <Form.Item name="positionId" label={<span style={{ fontSize: 13, color: '#333' }}>职位 <span style={{ color: '#ff4d4f' }}>*</span></span>}
                 rules={[{ required: true, message: '请选择职位' }]}>
@@ -301,8 +289,10 @@ const EmployeeAddPage: React.FC = () => {
                 </Form.Item>
               )}
               <Form.Item name="directReportId" label={<span style={{ fontSize: 13, color: '#333' }}>直属上级</span>}>
-                <Select placeholder="请输入姓名搜索" showSearch allowClear filterOption={false}
-                  onSearch={debouncedSearch}
+                <Select placeholder="请选择部门负责人" showSearch allowClear
+                  filterOption={(input, option) =>
+                    (option?.label as string)?.toLowerCase().includes(input.toLowerCase()) ?? false}
+                  loading={employeeLoading}
                   options={employeeOptions} style={inputStyle} />
               </Form.Item>
 

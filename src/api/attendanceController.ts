@@ -20,6 +20,19 @@ export async function getCalendarUsingGet(
   );
 }
 
+/** correctTodayLateStatus POST /api/attendance/correct-today-status */
+export async function correctTodayLateStatusUsingPost(options?: {
+  [key: string]: any;
+}) {
+  return request<API.BaseResponseMapStringObject_>(
+    '/api/attendance/correct-today-status',
+    {
+      method: 'POST',
+      ...(options || {}),
+    },
+  );
+}
+
 /** ensureTodayRecords POST /api/attendance/ensure-today */
 export async function ensureTodayRecordsUsingPost(options?: {
   [key: string]: any;

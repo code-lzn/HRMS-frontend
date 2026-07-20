@@ -1,5 +1,5 @@
 import { submitUsingPost3 } from '@/api/transferController';
-import { listEmployeesUsingGet } from '@/api/employeeController';
+import { listManagerCandidatesUsingGet } from '@/api/employeeController';
 import {
   Button, DatePicker, Descriptions, Divider, Form, Input, InputNumber,
   message, Modal, Select, TreeSelect,
@@ -27,21 +27,24 @@ const TransferModal: React.FC<Props> = ({
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [employeeOptions, setEmployeeOptions] = useState<{ label: string; value: number }[]>([]);
+  const [employeeLoading, setEmployeeLoading] = useState(false);
 
-  // 打开弹窗时加载在职员工列表（供新直属汇报人选择）
+  // 打开弹窗时加载部门负责人候选（供新直属汇报人选择）
   useEffect(() => {
     if (open) {
       (async () => {
+        setEmployeeLoading(true);
         try {
-          const res = await listEmployeesUsingGet({ page: 1, size: 500 });
-          const records = (res as any)?.data?.records ?? [];
-          const active = records.filter((e: any) => e.status === 1 || e.status === 2);
-          setEmployeeOptions(active.map((e: any) => ({
-            label: `${e.employeeName} (${e.employeeNo || '-'})`,
-            value: e.id,
+          const res = await listManagerCandidatesUsingGet();
+          const records: API.Employee[] = (res as any)?.data ?? [];
+          setEmployeeOptions(records.map((e) => ({
+            label: `${e.employeeName}（${e.employeeNo}）`,
+            value: e.id!,
           })));
         } catch {
           setEmployeeOptions([]);
+        } finally {
+          setEmployeeLoading(false);
         }
       })();
     }
@@ -132,10 +135,12 @@ const TransferModal: React.FC<Props> = ({
 
         <Form.Item name="toReporterId" label="新直属汇报人">
           <Select
-            placeholder="搜索员工（可选）"
+            placeholder="请选择（可选）"
             showSearch
             allowClear
-            optionFilterProp="label"
+            loading={employeeLoading}
+            filterOption={(input, option) =>
+              (option?.label as string)?.toLowerCase().includes(input.toLowerCase()) ?? false}
             options={employeeOptions}
           />
         </Form.Item>

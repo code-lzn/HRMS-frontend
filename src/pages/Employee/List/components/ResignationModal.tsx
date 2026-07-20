@@ -1,5 +1,5 @@
 import { submitUsingPost2 } from '@/api/resignationController';
-import { listEmployeesUsingGet } from '@/api/employeeController';
+import { listManagerCandidatesUsingGet } from '@/api/employeeController';
 import { Button, DatePicker, Descriptions, Divider, Form, Input, message, Modal, Select } from 'antd';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
@@ -15,21 +15,24 @@ const ResignationModal: React.FC<Props> = ({ open, employee, onCancel, onOk }) =
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [empList, setEmpList] = useState<{ label: string; value: number }[]>([]);
+  const [employeeLoading, setEmployeeLoading] = useState(false);
 
-  // 打开时加载在职员工列表（用于交接人选择）
+  // 打开时加载部门负责人候选（用于工作交接人选择）
   useEffect(() => {
     if (open) {
       (async () => {
+        setEmployeeLoading(true);
         try {
-          const res = await listEmployeesUsingGet({ page: 1, size: 500 });
-          const records = (res as any)?.data?.records ?? [];
-          const active = records.filter((e: any) => e.status === 1 || e.status === 2);
-          setEmpList(active.map((e: any) => ({
-            label: `${e.employeeName} (${e.employeeNo || '-'})`,
-            value: e.id,
+          const res = await listManagerCandidatesUsingGet();
+          const records: API.Employee[] = (res as any)?.data ?? [];
+          setEmpList(records.map((e) => ({
+            label: `${e.employeeName}（${e.employeeNo}）`,
+            value: e.id!,
           })));
         } catch {
           setEmpList([]);
+        } finally {
+          setEmployeeLoading(false);
         }
       })();
     }
@@ -146,7 +149,9 @@ const ResignationModal: React.FC<Props> = ({ open, employee, onCancel, onOk }) =
           <Select
             placeholder="搜索交接人"
             showSearch
-            optionFilterProp="label"
+            loading={employeeLoading}
+            filterOption={(input, option) =>
+              (option?.label as string)?.toLowerCase().includes(input.toLowerCase()) ?? false}
             options={empList}
           />
         </Form.Item>

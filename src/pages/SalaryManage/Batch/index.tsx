@@ -16,7 +16,7 @@ import {
   getCompositionUsingGet,
   getDeptDistributionUsingGet,
   getMonthlyTrendUsingGet,
-  getSocialSecurityUsingGet,
+  getSocialSecurityComparisonUsingGet,
 } from '@/api/salaryStatisticsController';
 import {
   CheckCircleOutlined,
@@ -173,7 +173,7 @@ const BatchPage: React.FC = () => {
         getMonthlyTrendUsingGet({ months: 6 }),
         getDeptDistributionUsingGet({ batchId }),
         getCompositionUsingGet({ batchId }),
-        getSocialSecurityUsingGet({ batchId }),
+        getSocialSecurityComparisonUsingGet({ batchId }),
         getChangeDistributionUsingGet({ batchId }),
       ]);
       setTrend((trendRes as any)?.data ?? []);
