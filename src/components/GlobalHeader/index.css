@@ -1,0 +1,53 @@
+.global-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 101;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 24px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.global-header-left {
+  display: flex;
+  align-items: center;
+}
+
+.global-header-logo-img {
+  width: 28px;
+  height: 28px;
+  margin-right: 15px;
+}
+
+.global-header-logo {
+  color: dodgerblue;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.global-header-right {
+  display: flex;
+  align-items: center;
+}
+
+.global-header-username {
+  font-size: 14px;
+  color: #374151;
+}
+
+.global-header-tag {
+  display: inline-block;
+  padding: 0 8px;
+  line-height: 20px;
+  font-size: 11px;
+  color: #ff4d4f;
+  border: 1px solid #ff4d4f;
+  border-radius: 10px;
+  background: transparent;
+}

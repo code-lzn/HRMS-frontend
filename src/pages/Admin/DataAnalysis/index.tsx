@@ -1,10 +1,8 @@
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
-  BellOutlined,
-  UserOutlined,
 } from '@ant-design/icons';
-import { Badge, Card, Col, Radio, Row, Table, Tag, Typography } from 'antd';
+import { Card, Col, Radio, Row, Table, Tag, Typography } from 'antd';
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts';
 import type { EChartsOption } from 'echarts';
@@ -210,56 +208,20 @@ const DataAnalysis: React.FC = () => {
   const optArea = useArea(revenue);
 
   return (
-    <div style={{ minHeight: '100vh' }}>
-      {/* ===== 顶部 Header（自定义，覆盖 ProLayout） ===== */}
-      <div
-        style={{
-          background: '#fff',
-          height: 64,
-          padding: '0 24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 10,
-        }}
-      >
-        <Text style={{ color: '#6b7280' }}>数据分析</Text>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <Badge count={3} size="small">
-            <BellOutlined style={{ fontSize: 18, color: '#9ca3af', cursor: 'pointer' }} />
-          </Badge>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div
-              style={{
-                width: 32, height: 32, borderRadius: '50%', background: '#e5e7eb',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
-            >
-              <UserOutlined style={{ color: '#6b7280' }} />
-            </div>
-            <Text style={{ color: '#374151' }}>管理员</Text>
-          </div>
+    <div style={{ background: '#f0f2f5', padding: '0 24px 24px', minHeight: '100vh' }}>
+      {/* 标题行 */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+        <div>
+          <Title level={3} style={{ margin: 0, fontWeight: 700 }}>数据分析</Title>
+          <Text type="secondary" style={{ marginTop: 4, display: 'block' }}>全渠道业务数据概览</Text>
         </div>
+        <Radio.Group value={range} onChange={e => setRange(e.target.value)} optionType="button" buttonStyle="solid" size="small">
+          <Radio.Button value="今日">今日</Radio.Button>
+          <Radio.Button value="近7天">近7天</Radio.Button>
+          <Radio.Button value="近30天">近30天</Radio.Button>
+          <Radio.Button value="自定义">自定义</Radio.Button>
+        </Radio.Group>
       </div>
-
-      {/* ===== Content ===== */}
-      <div style={{ background: '#f0f2f5', padding: 24 }}>
-        {/* 标题行 */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-          <div>
-            <Title level={3} style={{ margin: 0, fontWeight: 700 }}>数据分析</Title>
-            <Text type="secondary" style={{ marginTop: 4, display: 'block' }}>全渠道业务数据概览</Text>
-          </div>
-          <Radio.Group value={range} onChange={e => setRange(e.target.value)} optionType="button" buttonStyle="solid" size="small">
-            <Radio.Button value="今日">今日</Radio.Button>
-            <Radio.Button value="近7天">近7天</Radio.Button>
-            <Radio.Button value="近30天">近30天</Radio.Button>
-            <Radio.Button value="自定义">自定义</Radio.Button>
-          </Radio.Group>
-        </div>
 
         {/* 图表网格 */}
         <Row gutter={[16, 16]}>
@@ -297,7 +259,6 @@ const DataAnalysis: React.FC = () => {
         >
           <Table columns={COLUMNS} dataSource={TABLE_DATA} pagination={false} style={{ whiteSpace: 'nowrap' }} />
         </Card>
-      </div>
     </div>
   );
 };

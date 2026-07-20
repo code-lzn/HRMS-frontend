@@ -1,7 +1,7 @@
 import { applyUsingPost, cancelUsingPost, getBalanceUsingGet, getMyLeavesUsingGet } from '@/api/leaveController';
 import { getApprovalProgressUsingGet } from '@/api/leaveController';
-import { getMyMakeupPunchesUsingGet, getMakeupProgressUsingGet, cancelMakeupUsingPost } from '@/api/makeupPunchController';
-import { getMyOvertimesUsingGet, cancelOvertimeUsingPost } from '@/api/overtimeController';
+import { getMyMakeupPunchesUsingGet, getApprovalProgressUsingGet1, cancelUsingPost1 } from '@/api/makeupPunchController';
+import { getMyOvertimesUsingGet, cancelUsingPost2 } from '@/api/overtimeController';
 import { CalendarOutlined, CoffeeOutlined, MedicineBoxOutlined, ScheduleOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
@@ -141,7 +141,7 @@ const MyLeave: React.FC = () => {
       if (record._recordType === 'overtime') {
         setProgressData({ leave: record, progressNodes: [] });
       } else if (record._recordType === 'makeup') {
-        const res = await getMakeupProgressUsingGet({ id: record._rawId ?? record.id! });
+        const res = await getApprovalProgressUsingGet1({ id: record._rawId ?? record.id! });
         const data = res?.data;
         setProgressData(data
           ? { leave: { ...record, leaveTypeText: record.leaveTypeText }, progressNodes: data.progressNodes }
@@ -165,9 +165,9 @@ const MyLeave: React.FC = () => {
       onOk: async () => {
         try {
           if (isMakeup) {
-            await cancelMakeupUsingPost({ id: record._rawId ?? record.id! });
+            await cancelUsingPost1({ id: record._rawId ?? record.id! });
           } else if (isOvertime) {
-            await cancelOvertimeUsingPost({ id: record._rawId ?? record.id! });
+            await cancelUsingPost2({ id: record._rawId ?? record.id! });
           } else {
             await cancelUsingPost({ id: record.id! });
           }

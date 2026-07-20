@@ -12,7 +12,8 @@ export default defineConfig({
   routes: [
     {
       path: '/',
-      component: './Home',
+      // component: './Home',
+      redirect: '/home',
     },
     {
       name: '首页',
@@ -104,8 +105,7 @@ export default defineConfig({
       access: 'canAdmin',
       routes: [
         { path: '/admin', redirect: '/admin/dashboard' },
-        { name: '仪表盘', path: '/admin/dashboard', component: './Dashboard' },
-        { name: '数据分析', path: '/admin/analytics', component: './Admin/DataAnalysis', layout: false },
+        { name: '工作台', path: '/admin/dashboard', component: './Dashboard' },
         { name: '用户管理', path: '/admin/users', component: './Admin/UserManage' },
         { name: '角色权限', path: '/admin/roles', component: './Admin/RolePermission' },
         { name: '系统配置', path: '/admin/config', component: './Admin/SystemConfig' },
@@ -121,6 +121,7 @@ export default defineConfig({
         { name: '账套管理', path: '/salary-manage/account', component: './SalaryManage/Account' },
         { name: '薪资档案', path: '/salary-manage/employee', component: './SalaryManage/Employee' },
         { name: '月度核算', path: '/salary-manage/batch', component: './SalaryManage/Batch' },
+        { name: '工资条管理', path: '/salary-manage/slip', component: './SalaryManage/Slip' },
       ],
     },
     {

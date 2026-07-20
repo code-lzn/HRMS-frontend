@@ -1,0 +1,10 @@
+
+/* 内容区：向下偏移 56px，避免被固定 header 遮挡 */
+.ant-pro-layout .ant-pro-layout-content {
+  padding-top: 56px !important;
+}
+
+/* 隐藏侧边栏原有 logo 区域 */
+.ant-pro-layout .ant-pro-sider-logo {
+  display: none !important;
+}

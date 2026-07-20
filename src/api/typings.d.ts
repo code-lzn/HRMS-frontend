@@ -2527,4 +2527,67 @@ declare namespace API {
     date?: string;
     pageViews?: number;
   };
+
+  // ==================== 薪资统计 VO ====================
+
+  type SalaryMonthlyTrendVO = {
+    grossTotal?: number;
+    month?: string;
+    netTotal?: number;
+  };
+
+  type SalaryDeptDistributionVO = {
+    departmentName?: string;
+    employeeCount?: number;
+    grossTotal?: number;
+    netTotal?: number;
+  };
+
+  type SalaryCompositionVO = {
+    amount?: number;
+    itemName?: string;
+  };
+
+  type SalarySocialSecurityVO = {
+    companyAmount?: number;
+    itemName?: string;
+    personalAmount?: number;
+  };
+
+  type SalaryChangeDistributionVO = {
+    count?: number;
+    rangeLabel?: string;
+  };
+
+  // ==================== 统计 BaseResponse ====================
+
+  type BaseResponseListSalaryMonthlyTrendVO_ = {
+    code?: number;
+    data?: SalaryMonthlyTrendVO[];
+    message?: string;
+  };
+
+  type BaseResponseListSalaryDeptDistributionVO_ = {
+    code?: number;
+    data?: SalaryDeptDistributionVO[];
+    message?: string;
+  };
+
+  type BaseResponseListSalaryCompositionVO_ = {
+    code?: number;
+    data?: SalaryCompositionVO[];
+    message?: string;
+  };
+
+  type BaseResponseListSalarySocialSecurityVO_ = {
+    code?: number;
+    data?: SalarySocialSecurityVO[];
+    message?: string;
+  };
+
+  type BaseResponseListSalaryChangeDistributionVO_ = {
+    code?: number;
+    data?: SalaryChangeDistributionVO[];
+    message?: string;
+  };
 }

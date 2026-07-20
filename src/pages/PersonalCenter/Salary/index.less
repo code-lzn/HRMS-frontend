@@ -1,137 +1,224 @@
-.salary-slip-detail {
-  .slip-head {
-    text-align: center;
-    padding: 12px 0 16px;
-    border-bottom: 2px solid #e6f4ff;
-    margin-bottom: 16px;
+.salary-page {
+  // container styles (if needed)
+}
 
-    h3 {
-      font-size: 18px;
-      font-weight: 700;
-      color: #1a1a2e;
-      margin: 0 0 10px;
-      letter-spacing: 4px;
-    }
+// ==================== 工资条弹窗设计稿 ====================
 
-    .slip-head-row {
-      display: flex;
-      justify-content: center;
-      gap: 32px;
-      font-size: 13px;
+.payslip-modal {
+  .ant-modal-content {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .ant-modal-body {
+    padding: 0;
+  }
+}
 
-      .slip-head-item {
-        color: #8c8c8c;
+.payslip-container {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
 
-        strong {
-          color: #434343;
-          font-weight: 600;
-          margin-left: 4px;
-        }
-      }
-    }
+// ---------- 蓝色头部 ----------
+
+.payslip-header {
+  background: linear-gradient(135deg, #1890FF 0%, #1677ff 100%);
+  padding: 28px 32px 24px;
+  color: #fff;
+  text-align: center;
+}
+
+.payslip-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.payslip-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.payslip-header-dot {
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  border-radius: 2px;
+}
+
+.payslip-header-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: 2px;
+}
+
+.payslip-header-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.payslip-header-company {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+
+.payslip-header-month {
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 16px;
+}
+
+.payslip-header-employee {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  font-size: 13px;
+  color: rgba(255,255,255,0.75);
+
+  span {
+    padding: 0 16px;
   }
 
-  .slip-section {
-    margin-bottom: 12px;
+  strong {
+    color: #fff;
+    font-weight: 600;
+  }
+}
 
-    .slip-section-head {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
+.payslip-header-divider {
+  width: 1px;
+  height: 14px;
+  background: rgba(255,255,255,0.25) !important;
+  padding: 0 !important;
+}
 
-      .slip-section-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 2px;
-        flex-shrink: 0;
-      }
+// ---------- 主体双栏 ----------
 
-      .slip-section-label {
-        font-size: 13px;
-        font-weight: 600;
-        color: #434343;
-      }
-    }
+.payslip-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  padding: 20px 24px;
+}
 
-    .slip-items {
-      background: #fafafa;
-      border-radius: 6px;
-    }
+.payslip-column {
+  padding: 0 16px;
 
-    .slip-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 14px;
+  &:first-child {
+    border-right: 1px solid #f0f0f0;
+  }
+}
 
-      &:not(:last-child) {
-        border-bottom: 1px solid #f0f0f0;
-      }
+.payslip-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 12px;
+}
 
-      .slip-item-label {
-        font-size: 13px;
-        color: #595959;
-      }
+.payslip-section-bar {
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  flex-shrink: 0;
 
-      .slip-item-value {
-        font-size: 13px;
-        font-weight: 500;
-        color: #262626;
-        font-variant-numeric: tabular-nums;
-      }
-    }
+  &-green {
+    background: #52c41a;
   }
 
-  .slip-total {
-    background: linear-gradient(135deg, #f0f5ff 0%, #e6f4ff 100%);
-    border: 1px solid #bae0ff;
-    border-radius: 10px;
-    padding: 14px 20px;
-
-    .slip-total-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 4px 0;
-
-      .slip-total-label {
-        font-size: 13px;
-        color: #595959;
-      }
-
-      .slip-total-value {
-        font-size: 13px;
-        font-weight: 500;
-        color: #262626;
-        font-variant-numeric: tabular-nums;
-      }
-    }
-
-    .slip-total-divider {
-      height: 1px;
-      background: #91caff;
-      margin: 8px 0;
-      opacity: 0.4;
-    }
-
-    .slip-total-net {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      .slip-net-label {
-        font-size: 14px;
-        font-weight: 600;
-        color: #1a1a2e;
-      }
-
-      .slip-net-value {
-        font-size: 22px;
-        font-weight: 700;
-        color: #1677ff;
-        font-variant-numeric: tabular-nums;
-      }
-    }
+  &-red {
+    background: #ff4d4f;
   }
+}
+
+.payslip-items {
+  background: #fafafa;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.payslip-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 14px;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid #f0f0f0;
+  }
+}
+
+.payslip-item-label {
+  font-size: 13px;
+  color: #595959;
+}
+
+.payslip-item-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: #262626;
+  font-variant-numeric: tabular-nums;
+  font-family: 'SF Mono', 'DIN Alternate', 'Menlo', monospace;
+}
+
+.payslip-subtotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+
+  &-income {
+    background: #f6ffed;
+    color: #52c41a;
+  }
+
+  &-deduction {
+    background: #fff1f0;
+    color: #ff4d4f;
+  }
+}
+
+// ---------- 底部实发工资 ----------
+
+.payslip-footer {
+  margin: 0 24px 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f0f5ff 0%, #e6f7ff 100%);
+  border: 1px solid #bae0ff;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.payslip-footer-label {
+  font-size: 13px;
+  color: #8c8c8c;
+  margin-bottom: 6px;
+}
+
+.payslip-footer-amount {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1677ff;
+  font-variant-numeric: tabular-nums;
+  font-family: 'SF Mono', 'DIN Alternate', 'Menlo', monospace;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.payslip-footer-note {
+  font-size: 12px;
+  color: #8c8c8c;
 }
