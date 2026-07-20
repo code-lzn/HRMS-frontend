@@ -26,7 +26,7 @@ export default function usePermission() {
       canSeeSalaryMenu: canAny('salary:list', 'salary:view', 'salary:audit'),
       canSeeAttendanceMenu: canAny('attendance:list', 'attendance:manage'),
       canSeeApprovalMenu: can('approval:process'),
-      canSeeOrgMenu: can('org:manage'),
+      canSeeOrgMenu: can('org:manage') || canAny('employee:list', 'employee:detail'),
       canSeeRoleMenu: can('role:manage'),
 
       canAddEmployee: can('employee:add'),
