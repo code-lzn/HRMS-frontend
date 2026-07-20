@@ -75,3 +75,19 @@ export async function deleteAttendanceGroupUsingDelete(
     ...(options || {}),
   });
 }
+
+/** getAttendanceGroupDetail GET /api/attendance/groups/${param0} */
+export async function getAttendanceGroupDetailUsingGet(
+  params: { id: number },
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseAttendanceGroupVO_>(
+    `/api/attendance/groups/${param0}`,
+    {
+      method: 'GET',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}

@@ -8,22 +8,29 @@ import { PageContainer } from '@ant-design/pro-components';
 import { Card, Col, Empty, Row, Spin } from 'antd';
 import React, { useEffect, useState } from 'react';
 import {
-  BarChart,
   Bar,
-  LineChart,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
   Line,
-  PieChart,
+  LineChart,
   Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Cell,
 } from 'recharts';
 
-const COLORS = ['#1890ff', '#52c41a', '#faad14', '#f5222d', '#722ed1', '#13c2c2'];
+const COLORS = [
+  '#1890ff',
+  '#52c41a',
+  '#faad14',
+  '#f5222d',
+  '#722ed1',
+  '#13c2c2',
+];
 
 const StatCard: React.FC<{
   title: string;
@@ -72,20 +79,38 @@ const SalaryStatistics: React.FC = () => {
     <PageContainer title="薪资统计">
       <Row gutter={[16, 16]}>
         <Col span={12}>
-          <StatCard title="📈 薪资成本月度趋势" loading={loading} empty={trend.length === 0}>
+          <StatCard
+            title="📈 薪资成本月度趋势"
+            loading={loading}
+            empty={trend.length === 0}
+          >
             <LineChart data={trend}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="grossPay" name="应发总额" stroke="#1890ff" />
-              <Line type="monotone" dataKey="netPay" name="实发总额" stroke="#52c41a" />
+              <Line
+                type="monotone"
+                dataKey="grossPay"
+                name="应发总额"
+                stroke="#1890ff"
+              />
+              <Line
+                type="monotone"
+                dataKey="netPay"
+                name="实发总额"
+                stroke="#52c41a"
+              />
             </LineChart>
           </StatCard>
         </Col>
         <Col span={12}>
-          <StatCard title="🏢 部门薪资分布" loading={loading} empty={department.length === 0}>
+          <StatCard
+            title="🏢 部门薪资分布"
+            loading={loading}
+            empty={department.length === 0}
+          >
             <BarChart data={department}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
@@ -97,7 +122,11 @@ const SalaryStatistics: React.FC = () => {
           </StatCard>
         </Col>
         <Col span={12}>
-          <StatCard title="🥧 薪资构成占比" loading={loading} empty={composition.length === 0}>
+          <StatCard
+            title="🥧 薪资构成占比"
+            loading={loading}
+            empty={composition.length === 0}
+          >
             <PieChart>
               <Pie
                 data={composition}
@@ -106,7 +135,9 @@ const SalaryStatistics: React.FC = () => {
                 cx="50%"
                 cy="50%"
                 outerRadius={100}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }) =>
+                  `${name} ${(percent * 100).toFixed(0)}%`
+                }
               >
                 {composition.map((_, i) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
@@ -117,7 +148,11 @@ const SalaryStatistics: React.FC = () => {
           </StatCard>
         </Col>
         <Col span={12}>
-          <StatCard title="📊 薪资变动分布" loading={loading} empty={variation.length === 0}>
+          <StatCard
+            title="📊 薪资变动分布"
+            loading={loading}
+            empty={variation.length === 0}
+          >
             <BarChart data={variation}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="range" />

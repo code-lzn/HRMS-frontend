@@ -15,10 +15,12 @@ import {
   Space,
   Spin,
   Tag,
+  message,
 } from 'antd';
 import { ArrowRightOutlined } from '@ant-design/icons';
 import React, { useEffect, useState } from 'react';
-import { TransferDetail as TransferDetailType, transferDetails } from '../mock';
+import { TransferDetail as TransferDetailType } from '../mock';
+import { getDetailUsingGet4 } from '@/api/transferController';
 
 const TransferDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,11 +28,21 @@ const TransferDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDetail(id ? transferDetails[Number(id)] || null : null);
-      setLoading(false);
-    }, 300);
-    return () => clearTimeout(timer);
+    if (!id) { setLoading(false); return; }
+    setLoading(true);
+    getDetailUsingGet4({ id: Number(id) })
+      .then((res) => {
+        if (res.code === 0 && res.data) {
+          setDetail(res.data as unknown as TransferDetailType);
+        } else {
+          setDetail(null);
+        }
+      })
+      .catch(() => {
+        message.error('获取调岗详情失败');
+        setDetail(null);
+      })
+      .finally(() => setLoading(false));
   }, [id]);
 
   if (loading) {

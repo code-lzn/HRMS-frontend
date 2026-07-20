@@ -1,6 +1,9 @@
-import { getEmployeeSalaryUsingGet } from '@/api/salaryController';
 import { getEmployeeListUsingGet } from '@/api/employeeController';
-import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
+import {
+  PageContainer,
+  ProColumns,
+  ProTable,
+} from '@ant-design/pro-components';
 import { history } from '@umijs/max';
 import { Space } from 'antd';
 import React from 'react';
@@ -31,7 +34,9 @@ const EmployeeSalaryList: React.FC = () => {
           <a onClick={() => history.push(`/salary/employees/${record.id}`)}>
             薪资详情
           </a>
-          <a onClick={() => history.push(`/salary/employees/${record.id}/edit`)}>
+          <a
+            onClick={() => history.push(`/salary/employees/${record.id}/edit`)}
+          >
             编辑
           </a>
         </Space>

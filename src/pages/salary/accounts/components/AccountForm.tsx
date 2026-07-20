@@ -1,9 +1,7 @@
 import { SCOPE_TYPE_MAP } from '@/constants/enums';
-import { Form, Input, InputNumber, Modal, Select } from 'antd';
+import { Form, Input, Modal, Select } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect } from 'react';
-
-const { TextArea } = Input;
 
 interface AccountFormProps {
   open: boolean;

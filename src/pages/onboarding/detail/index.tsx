@@ -26,7 +26,15 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
-import { OnboardingDetail as OnboardingDetailType, onboardingDetails } from '../mock';
+import { OnboardingDetail as OnboardingDetailType } from '../mock';
+import {
+  getDetailUsingGet1,
+  submitToApprovalUsingPost,
+  cancelUsingPost1,
+  confirmJoinUsingPost,
+  abandonUsingPost,
+  deleteDraftUsingDelete,
+} from '@/api/onboardingController';
 
 const OnboardingDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -38,25 +46,51 @@ const OnboardingDetailPage: React.FC = () => {
   const [confirmForm] = Form.useForm();
 
   useEffect(() => {
+    if (!id) { setLoading(false); return; }
     setLoading(true);
-    // 模拟 API 请求
-    const timer = setTimeout(() => {
-      const data = id ? onboardingDetails[Number(id)] : null;
-      setDetail(data || null);
-      setLoading(false);
-    }, 300);
-    return () => clearTimeout(timer);
+    getDetailUsingGet1({ id: Number(id) })
+      .then((res) => {
+        if (res.code === 0 && res.data) {
+          setDetail(res.data as unknown as OnboardingDetailType);
+        } else {
+          setDetail(null);
+        }
+      })
+      .catch(() => {
+        message.error('获取入职详情失败');
+        setDetail(null);
+      })
+      .finally(() => setLoading(false));
   }, [id]);
 
   const isHR = access.isHR || access.isAdmin;
   const isCreator = true; // Mock: 当前用户视为申请人
+
+  const doAction = async (action: () => Promise<any>, successMsg: string) => {
+    try {
+      setActionLoading(successMsg);
+      const res = await action();
+      if (res.code === 0) {
+        message.success(successMsg);
+      } else {
+        message.error(res.message || '操作失败');
+      }
+    } catch (e: any) {
+      message.error(e?.message || '操作失败');
+    } finally {
+      setActionLoading('');
+    }
+  };
 
   // 提交审批
   const handleSubmit = () => {
     Modal.confirm({
       title: '确认提交审批',
       content: '提交后不可修改，确定要提交该入职申请吗？',
-      onOk: () => message.success('已提交审批'),
+      onOk: () => doAction(
+        () => submitToApprovalUsingPost({ id: Number(id) }),
+        '已提交审批',
+      ),
     });
   };
 
@@ -65,7 +99,10 @@ const OnboardingDetailPage: React.FC = () => {
     Modal.confirm({
       title: '确认撤回',
       content: '撤回后该入职申请将变更为草稿状态',
-      onOk: () => message.success('已撤回'),
+      onOk: () => doAction(
+        () => cancelUsingPost1({ id: Number(id) }),
+        '已撤回',
+      ),
     });
   };
 
@@ -73,13 +110,13 @@ const OnboardingDetailPage: React.FC = () => {
   const handleConfirmJoin = async () => {
     try {
       const values = await confirmForm.validateFields();
-      setActionLoading('confirm');
-      message.success(`已确认入职，实际到岗日期：${values.actualHireDate.format('YYYY-MM-DD')}`);
+      doAction(
+        () => confirmJoinUsingPost({ id: Number(id), actualHireDate: values.actualHireDate.format('YYYY-MM-DD') }),
+        `已确认入职，实际到岗日期：${values.actualHireDate.format('YYYY-MM-DD')}`,
+      );
       setConfirmOpen(false);
     } catch {
       // validateFields error
-    } finally {
-      setActionLoading('');
     }
   };
 
@@ -89,7 +126,10 @@ const OnboardingDetailPage: React.FC = () => {
       title: '确认放弃入职',
       content: '操作不可恢复，确定要放弃该候选人的入职吗？',
       okButtonProps: { danger: true },
-      onOk: () => message.success('已标记放弃入职'),
+      onOk: () => doAction(
+        () => abandonUsingPost({ id: Number(id) }),
+        '已标记放弃入职',
+      ),
     });
   };
 
@@ -99,10 +139,10 @@ const OnboardingDetailPage: React.FC = () => {
       title: '确认删除',
       content: '删除后将不可恢复，确定要删除该草稿吗？',
       okButtonProps: { danger: true },
-      onOk: () => {
-        message.success('已删除');
-        history.push('/hr-change/onboarding');
-      },
+      onOk: () => doAction(
+        () => deleteDraftUsingDelete({ id: Number(id) }),
+        '已删除',
+      ).then(() => history.push('/hr-change/onboarding')),
     });
   };
 
@@ -137,6 +177,7 @@ const OnboardingDetailPage: React.FC = () => {
   const isApprovedPending = status === ONBOARDING_STATUS.APPROVED_PENDING_JOIN;
   const isJoined = status === ONBOARDING_STATUS.JOINED;
   const isRejected = status === ONBOARDING_STATUS.REJECTED;
+  const isAbandoned = status === ONBOARDING_STATUS.ABANDONED;
   const canSubmit = isDraft && isCreator;
   const canCancel = isPending && isCreator;
   const canConfirm = isApprovedPending;
@@ -242,7 +283,7 @@ const OnboardingDetailPage: React.FC = () => {
       </Card>
 
       {/* 审批进度 */}
-      {(isPending || isApprovedPending || isRejected) && detail.approvalProgress && (
+      {(isPending || isApprovedPending || isRejected || isAbandoned) && detail.approvalProgress && (
         <Card title="审批进度" style={{ marginBottom: 16 }}>
           <ApprovalTimeline
             nodes={detail.approvalProgress.nodes}

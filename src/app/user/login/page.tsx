@@ -1,5 +1,4 @@
 import { userLoginUsingPost } from '@/api/userController';
-import logo from '@/assets/logo.jpg';
 import { setCachedLoginUser } from '@/libs/loginCache';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProForm, ProFormText } from '@ant-design/pro-components';
@@ -15,21 +14,32 @@ const UserLoginPage: React.FC = () => {
   const { setInitialState } = useModel('@@initialState');
 
   const searchParams = new URLSearchParams(location.search);
-  const redirect = searchParams.get('redirect') || '/';
+  let redirect = searchParams.get('redirect') || '/employees';
+  if (redirect.startsWith('http://') || redirect.startsWith('https://')) {
+    try {
+      const u = new URL(redirect);
+      redirect = u.pathname + u.search;
+    } catch {
+      redirect = '/employees';
+    }
+  }
 
   const doSubmit = async (values: API.UserLoginRequest) => {
     try {
       const res = await userLoginUsingPost(values);
       if (res.data) {
         message.success('登录成功');
-        // 同步更新本地缓存，避免路由切换时再次调 getLoginUser
         setCachedLoginUser(res.data as API.LoginUserVO);
-        // 更新全局登录用户状态
         setInitialState((pre: any) => ({
           ...pre,
           currentUser: res.data,
         }));
-        navigate(redirect, { replace: true });
+        const data = res.data as API.LoginUserVO;
+        if (data.pwdReset === 1) {
+          navigate(`/user/reset-password?redirect=${encodeURIComponent(redirect)}`, { replace: true });
+        } else {
+          navigate(redirect, { replace: true });
+        }
         form.resetFields();
       }
     } catch (e: any) {
@@ -43,21 +53,49 @@ const UserLoginPage: React.FC = () => {
         <div className="login-brand">
           <div className="login-brand-icon">
             <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-              <rect width="48" height="48" rx="10" fill="rgba(255,255,255,0.15)"/>
-              <path d="M14 32V18L24 12L34 18V32L24 38L14 32Z" stroke="white" strokeWidth="2" strokeLinejoin="round"/>
-              <circle cx="24" cy="25" r="5" stroke="white" strokeWidth="2"/>
-              <path d="M24 20V22" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M24 28V30" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M19 25H21" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-              <path d="M27 25H29" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+              <rect
+                width="48"
+                height="48"
+                rx="10"
+                fill="rgba(255,255,255,0.15)"
+              />
+              <path
+                d="M14 32V18L24 12L34 18V32L24 38L14 32Z"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinejoin="round"
+              />
+              <circle cx="24" cy="25" r="5" stroke="white" strokeWidth="2" />
+              <path
+                d="M24 20V22"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M24 28V30"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M19 25H21"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+              <path
+                d="M27 25H29"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </svg>
           </div>
           <h1>HRMS</h1>
           <p>Human Resource Management System</p>
           <div className="login-brand-divider" />
-          <span className="login-brand-desc">
-            高效 · 安全 · 智能
-          </span>
+          <span className="login-brand-desc">高效 · 安全 · 智能</span>
         </div>
       </div>
 

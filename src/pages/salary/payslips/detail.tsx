@@ -1,9 +1,19 @@
 import { getPayslipDetailUsingGet, verifyPayslipUsingPost, sendPayslipVerifyCodeUsingPost } from '@/api/salaryController';
 import { PageContainer } from '@ant-design/pro-components';
 import { ArrowLeftOutlined, SafetyOutlined, MailOutlined, KeyOutlined } from '@ant-design/icons';
-import { Button, Card, Descriptions, Empty, message, Modal, Spin, Table, Tabs } from 'antd';
-import React, { useEffect, useState } from 'react';
 import { history, useParams } from '@umijs/max';
+import {
+  Button,
+  Card,
+  Descriptions,
+  Empty,
+  message,
+  Modal,
+  Spin,
+  Table,
+  Tabs,
+} from 'antd';
+import React, { useEffect, useState } from 'react';
 
 const PayslipDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -78,7 +88,8 @@ const PayslipDetail: React.FC = () => {
     history.push('/salary/payslips');
   };
 
-  if (loading) return <Spin style={{ display: 'block', margin: '120px auto' }} />;
+  if (loading)
+    return <Spin style={{ display: 'block', margin: '120px auto' }} />;
   if (!payslip) return <Empty description="工资条不存在" />;
 
   // 未验证时隐藏工资明细，只显示验证弹窗
@@ -187,7 +198,10 @@ const PayslipDetail: React.FC = () => {
     <PageContainer
       title="工资条详情"
       extra={
-        <Button icon={<ArrowLeftOutlined />} onClick={() => history.push('/salary/payslips')}>
+        <Button
+          icon={<ArrowLeftOutlined />}
+          onClick={() => history.push('/salary/payslips')}
+        >
           返回列表
         </Button>
       }
@@ -196,9 +210,15 @@ const PayslipDetail: React.FC = () => {
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <h2 style={{ margin: 0 }}>{payslip.salaryMonth} 工资条</h2>
           <Descriptions column={3} size="small" style={{ marginTop: 16 }}>
-            <Descriptions.Item label="姓名">{payslip.employeeName}</Descriptions.Item>
-            <Descriptions.Item label="工号">{payslip.employeeNo}</Descriptions.Item>
-            <Descriptions.Item label="部门">{payslip.departmentName}</Descriptions.Item>
+            <Descriptions.Item label="姓名">
+              {payslip.employeeName}
+            </Descriptions.Item>
+            <Descriptions.Item label="工号">
+              {payslip.employeeNo}
+            </Descriptions.Item>
+            <Descriptions.Item label="部门">
+              {payslip.departmentName}
+            </Descriptions.Item>
           </Descriptions>
         </div>
 

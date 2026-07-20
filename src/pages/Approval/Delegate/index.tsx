@@ -1,5 +1,5 @@
 import { cancelDelegate, createDelegate, getMyDelegates } from '@/api/approvalController';
-import { getEmployeeList } from '@/api/employeeController';
+import request from '@/libs/request';
 import { PageContainer } from '@ant-design/pro-components';
 import { Button, Card, DatePicker, Form, Input, Select, Tag, Avatar, message, Modal } from 'antd';
 import { UserOutlined, PlusOutlined } from '@ant-design/icons';
@@ -10,6 +10,7 @@ const ApprovalDelegate: React.FC = () => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
   const [delegates, setDelegates] = useState<any[]>([]);
+  const [myDelegates, setMyDelegates] = useState<any[]>([]); // 别人委托我
   const [empOptions, setEmpOptions] = useState<{ label: string; value: number }[]>([]);
   const [empLoading, setEmpLoading] = useState(false);
 
@@ -17,6 +18,7 @@ const ApprovalDelegate: React.FC = () => {
     try {
       const res = await getMyDelegates();
       setDelegates(res?.data?.asDelegator || []);
+      setMyDelegates(res?.data?.asDelegate || []);
     } catch (e: any) {
       message.error(e?.message || '加载失败');
     }
@@ -33,9 +35,9 @@ const ApprovalDelegate: React.FC = () => {
     }
     setEmpLoading(true);
     try {
-      const res = await getEmployeeList({ current: 1, pageSize: 20, name: kw });
+      const res = await request('/api/employees/search', { params: { keyword: kw } });
       setEmpOptions(
-        (res?.data?.records || []).map((e: any) => ({
+        (res?.data || []).map((e: any) => ({
           label: `${e.name} (${e.positionName || ''})`,
           value: e.id,
         })),
@@ -52,8 +54,8 @@ const ApprovalDelegate: React.FC = () => {
     try {
       await createDelegate({
         delegateId: values.delegateId,
-        startTime: values.startDate.format('YYYY-MM-DD HH:mm:ss'),
-        endTime: values.endDate.format('YYYY-MM-DD HH:mm:ss'),
+        startTime: values.startDate.format('YYYY-MM-DDTHH:mm:ss'),
+        endTime: values.endDate.format('YYYY-MM-DDTHH:mm:ss'),
       });
       message.success('委托设置成功');
       form.resetFields();
@@ -212,53 +214,75 @@ const ApprovalDelegate: React.FC = () => {
         </Form>
       </Card>
 
-      {currentDelegate && (
+      {(currentDelegate || myDelegates.filter((d: any) => getStatus(d).t === '生效中').length > 0) && (
         <Card
           style={{ borderRadius: 12, border: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#22c55e' }} />
               <span style={{ fontSize: 16, fontWeight: 600 }}>当前有效委托</span>
-              <span style={{ fontSize: 13, color: '#999' }}>{delegates.length}条</span>
+              <span style={{ fontSize: 13, color: '#999' }}>
+                {(currentDelegate ? 1 : 0) + myDelegates.filter((d: any) => getStatus(d).t === '生效中').length}条
+              </span>
             </div>
           </div>
-          <div style={{ marginTop: 16, padding: 16, background: '#f9fafb', borderRadius: 8 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <Avatar
-                size={52}
-                icon={<UserOutlined />}
-                style={{ backgroundColor: '#6366f1', fontSize: 22 }}
-              >
-                {getInitial(currentDelegate.delegateName)}
-              </Avatar>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 16, fontWeight: 600 }}>{currentDelegate.delegateName}</span>
-                  <span style={{ fontSize: 13, color: '#999' }}>{currentDelegate.delegatePosition || '高级经理'}</span>
-                  <Tag color="green" style={{ fontSize: 12, background: '#dcfce7', color: '#16a34a', borderRadius: 4 }}>生效中</Tag>
+          {/* 我委托别人 */}
+          {currentDelegate && (
+            <div style={{ padding: 16, background: '#f9fafb', borderRadius: 8, marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <Avatar size={52} icon={<UserOutlined />} style={{ backgroundColor: '#6366f1', fontSize: 22 }}>
+                    {getInitial(currentDelegate.delegateName)}
+                  </Avatar>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 16, fontWeight: 600 }}>{currentDelegate.delegateName}</span>
+                      {currentDelegate.delegatePosition && (
+                        <span style={{ fontSize: 13, color: '#999' }}>{currentDelegate.delegatePosition}</span>
+                      )}
+                      <Tag color="blue" style={{ fontSize: 12, borderRadius: 4 }}>我委托</Tag>
+                      <Tag color="green" style={{ fontSize: 12, background: '#dcfce7', color: '#16a34a', borderRadius: 4 }}>生效中</Tag>
+                    </div>
+                    <div style={{ marginTop: 6, fontSize: 13, color: '#666' }}>
+                      <span>{dayjs(currentDelegate.startTime).format('YYYY-MM-DD')}</span>
+                      <span style={{ margin: '0 8px' }}>至</span>
+                      <span>{dayjs(currentDelegate.endTime).format('YYYY-MM-DD')}</span>
+                      {currentDelegate.reason && (
+                        <span style={{ marginLeft: 12, color: '#dc2626' }}>- {currentDelegate.reason}</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div style={{ marginTop: 6, fontSize: 13, color: '#666' }}>
-                  <span>{dayjs(currentDelegate.startTime).format('YYYY-MM-DD')}</span>
-                  <span style={{ margin: '0 8px' }}>至</span>
-                  <span>{dayjs(currentDelegate.endTime).format('YYYY-MM-DD')}</span>
-                  {currentDelegate.reason && (
-                    <span style={{ marginLeft: 12, color: '#dc2626' }}>- {currentDelegate.reason}</span>
-                  )}
+                <Button danger type="text" onClick={() => handleCancel(currentDelegate.id)}
+                  style={{ color: '#dc2626', padding: '4px 8px', flexShrink: 0 }}>
+                  取消委托
+                </Button>
+              </div>
+            </div>
+          )}
+          {/* 别人委托我 */}
+          {myDelegates.filter((d: any) => getStatus(d).t === '生效中').map((d: any) => (
+            <div key={d.id} style={{ padding: 16, background: '#f9fafb', borderRadius: 8, marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <Avatar size={52} icon={<UserOutlined />} style={{ backgroundColor: '#8b5cf6', fontSize: 22 }}>
+                  {getInitial(d.delegatorName)}
+                </Avatar>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 16, fontWeight: 600 }}>{d.delegatorName || '委托人'}</span>
+                    <Tag color="purple" style={{ fontSize: 12, borderRadius: 4 }}>委托我</Tag>
+                    <Tag color="green" style={{ fontSize: 12, background: '#dcfce7', color: '#16a34a', borderRadius: 4 }}>生效中</Tag>
+                  </div>
+                  <div style={{ marginTop: 6, fontSize: 13, color: '#666' }}>
+                    <span>{dayjs(d.startTime).format('YYYY-MM-DD')}</span>
+                    <span style={{ margin: '0 8px' }}>至</span>
+                    <span>{dayjs(d.endTime).format('YYYY-MM-DD')}</span>
+                  </div>
                 </div>
               </div>
             </div>
-            <div style={{ float: 'right' }}>
-              <Button
-                danger
-                type="text"
-                onClick={() => handleCancel(currentDelegate.id)}
-                style={{ color: '#dc2626', padding: '4px 8px' }}
-              >
-                取消委托
-              </Button>
-            </div>
-          </div>
+          ))}
         </Card>
       )}
     </PageContainer>

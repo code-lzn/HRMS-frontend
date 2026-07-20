@@ -7,7 +7,7 @@ import { queryKeys } from './queryKeys';
  * 后端约定：按 level ASC, sortOrder ASC 排序返回的平铺列表，
  * 前端按 parentId 分组递归构建树（null 为根节点）
  */
-function buildTree(
+export function buildTree(
   flatList: API.DepartmentTreeNode[],
 ): API.DepartmentTreeNode[] {
   // parentId → 子节点列表

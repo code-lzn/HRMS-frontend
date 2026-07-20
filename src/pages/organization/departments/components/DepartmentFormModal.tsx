@@ -248,6 +248,10 @@ const DepartmentFormModal: React.FC<DepartmentFormModalProps> = ({
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
+      // 如果用户清除了负责人，显式传 null 让后端清空
+      if (!selectedManager) {
+        values.managerId = null;
+      }
       setLoading(true);
       if (isEdit && deptId) {
         await updateDepartmentUsingPut({ id: deptId }, values);
@@ -437,6 +441,7 @@ const DepartmentFormModal: React.FC<DepartmentFormModalProps> = ({
         onCancel={() => setPickerOpen(false)}
         footer={null}
         centered
+        zIndex={1050}
         width={560}
       >
         <Input

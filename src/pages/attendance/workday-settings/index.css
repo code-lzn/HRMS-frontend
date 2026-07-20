@@ -1,0 +1,9 @@
+/* 隐藏日历内部滚动条 */
+.ant-picker-calendar-full .ant-picker-panel .ant-picker-body {
+  overflow: hidden !important;
+}
+
+.ant-picker-calendar-full .ant-picker-calendar-date-content {
+  height: auto !important;
+  overflow: hidden !important;
+}

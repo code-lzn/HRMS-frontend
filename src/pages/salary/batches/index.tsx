@@ -10,7 +10,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { history, useAccess } from '@umijs/max';
-import { Button, message, Modal, Space, Tag } from 'antd';
+import { Button, message, Modal, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React, { useRef, useState } from 'react';
 
@@ -21,7 +21,10 @@ const SalaryBatchList: React.FC = () => {
   const [month, setMonth] = useState('');
 
   const handleCreate = async () => {
-    if (!month) { message.warning('请选择月份'); return; }
+    if (!month) {
+      message.warning('请选择月份');
+      return;
+    }
     await createBatchUsingPost({ salaryMonth: month });
     message.success('批次创建成功');
     setCreateOpen(false);
@@ -45,7 +48,10 @@ const SalaryBatchList: React.FC = () => {
         return <Tag color={s?.color}>{s?.label || '-'}</Tag>;
       },
       valueEnum: Object.fromEntries(
-        Object.entries(BATCH_STATUS_MAP).map(([k, v]) => [k, { text: v.label }]),
+        Object.entries(BATCH_STATUS_MAP).map(([k, v]) => [
+          k,
+          { text: v.label },
+        ]),
       ),
     },
     {
@@ -74,7 +80,9 @@ const SalaryBatchList: React.FC = () => {
       width: 160,
       search: false,
       render: (_, record) =>
-        record.createTime ? dayjs(record.createTime).format('YYYY-MM-DD HH:mm') : '-',
+        record.createTime
+          ? dayjs(record.createTime).format('YYYY-MM-DD HH:mm')
+          : '-',
     },
     {
       title: '操作',
@@ -111,11 +119,17 @@ const SalaryBatchList: React.FC = () => {
         }}
         toolBarRender={() => [
           access.canManageSalaryBatch && (
-            <Button key="create" type="primary" onClick={() => setCreateOpen(true)}>
+            <Button
+              key="create"
+              type="primary"
+              onClick={() => setCreateOpen(true)}
+            >
               创建批次
             </Button>
           ),
-          <Button key="reload" onClick={() => actionRef.current?.reload()}>刷新</Button>,
+          <Button key="reload" onClick={() => actionRef.current?.reload()}>
+            刷新
+          </Button>,
         ]}
       />
       <Modal
@@ -128,7 +142,12 @@ const SalaryBatchList: React.FC = () => {
           <label>薪资月份（格式 yyyy-MM）：</label>
           <input
             type="month"
-            style={{ width: '100%', marginTop: 8, padding: '4px 8px', fontSize: 14 }}
+            style={{
+              width: '100%',
+              marginTop: 8,
+              padding: '4px 8px',
+              fontSize: 14,
+            }}
             onChange={(e) => setMonth(e.target.value)}
           />
         </div>
