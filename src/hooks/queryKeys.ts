@@ -49,7 +49,10 @@ export const queryKeys = {
       detail: (employeeId: number) =>
         [...queryKeys.salary.employeeSalaries.all, employeeId] as const,
       history: (employeeId: number) =>
-        [...queryKeys.salary.employeeSalaries.detail(employeeId), 'history'] as const,
+        [
+          ...queryKeys.salary.employeeSalaries.detail(employeeId),
+          'history',
+        ] as const,
     },
     batches: {
       all: ['salary', 'batches'] as const,
@@ -63,15 +66,17 @@ export const queryKeys = {
     payslips: {
       all: ['salary', 'payslips'] as const,
       my: () => [...queryKeys.salary.payslips.all, 'my'] as const,
-      detail: (id: number) =>
-        [...queryKeys.salary.payslips.all, id] as const,
+      detail: (id: number) => [...queryKeys.salary.payslips.all, id] as const,
     },
     statistics: {
       all: ['salary', 'statistics'] as const,
       trend: () => [...queryKeys.salary.statistics.all, 'trend'] as const,
-      department: () => [...queryKeys.salary.statistics.all, 'department'] as const,
-      composition: () => [...queryKeys.salary.statistics.all, 'composition'] as const,
-      variation: () => [...queryKeys.salary.statistics.all, 'variation'] as const,
+      department: () =>
+        [...queryKeys.salary.statistics.all, 'department'] as const,
+      composition: () =>
+        [...queryKeys.salary.statistics.all, 'composition'] as const,
+      variation: () =>
+        [...queryKeys.salary.statistics.all, 'variation'] as const,
     },
   },
 };

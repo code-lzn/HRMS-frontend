@@ -9,21 +9,19 @@ import {
   submitForApprovalUsingPut,
 } from '@/api/salaryController';
 import { ABNORMAL_LEVEL_MAP, BATCH_STATUS_MAP } from '@/constants/enums';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 import { PageContainer, ProTable } from '@ant-design/pro-components';
+import { history, useAccess, useParams } from '@umijs/max';
 import {
   Button,
   Card,
   Descriptions,
   message,
   Modal,
-  Space,
   Statistic,
   Tag,
 } from 'antd';
-import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { history, useAccess, useParams } from '@umijs/max';
-import { ArrowLeftOutlined } from '@ant-design/icons';
 import AdjustModal from './components/AdjustModal';
 
 const BatchDetailPage: React.FC = () => {
@@ -44,7 +42,9 @@ const BatchDetailPage: React.FC = () => {
     setLoading(false);
   }, [bId]);
 
-  useEffect(() => { fetchBatch(); }, [fetchBatch]);
+  useEffect(() => {
+    fetchBatch();
+  }, [fetchBatch]);
 
   const handleAction = async (action: string) => {
     try {
@@ -100,25 +100,29 @@ const BatchDetailPage: React.FC = () => {
       title: '应发工资',
       dataIndex: 'grossPay',
       width: 110,
-      render: (_: any, r: API.SalaryDetailVO) => `¥${(r.grossPay ?? 0).toLocaleString()}`,
+      render: (_: any, r: API.SalaryDetailVO) =>
+        `¥${(r.grossPay ?? 0).toLocaleString()}`,
     },
     {
       title: '社保',
       dataIndex: 'socialSecurity',
       width: 90,
-      render: (_: any, r: API.SalaryDetailVO) => `¥${(r.socialSecurity ?? 0).toLocaleString()}`,
+      render: (_: any, r: API.SalaryDetailVO) =>
+        `¥${(r.socialSecurity ?? 0).toLocaleString()}`,
     },
     {
       title: '公积金',
       dataIndex: 'housingFund',
       width: 90,
-      render: (_: any, r: API.SalaryDetailVO) => `¥${(r.housingFund ?? 0).toLocaleString()}`,
+      render: (_: any, r: API.SalaryDetailVO) =>
+        `¥${(r.housingFund ?? 0).toLocaleString()}`,
     },
     {
       title: '个税',
       dataIndex: 'incomeTax',
       width: 90,
-      render: (_: any, r: API.SalaryDetailVO) => `¥${(r.incomeTax ?? 0).toLocaleString()}`,
+      render: (_: any, r: API.SalaryDetailVO) =>
+        `¥${(r.incomeTax ?? 0).toLocaleString()}`,
     },
     {
       title: '实发',
@@ -163,7 +167,10 @@ const BatchDetailPage: React.FC = () => {
     <PageContainer
       title="批次详情"
       extra={
-        <Button icon={<ArrowLeftOutlined />} onClick={() => history.push('/salary/batches')}>
+        <Button
+          icon={<ArrowLeftOutlined />}
+          onClick={() => history.push('/salary/batches')}
+        >
           返回列表
         </Button>
       }
@@ -174,8 +181,12 @@ const BatchDetailPage: React.FC = () => {
           <Card style={{ marginBottom: 24 }}>
             <div style={{ display: 'flex', gap: 48, flexWrap: 'wrap' }}>
               <Descriptions column={3} size="small" style={{ flex: 1 }}>
-                <Descriptions.Item label="批次号">{batch.batchNo}</Descriptions.Item>
-                <Descriptions.Item label="薪资月份">{batch.salaryMonth}</Descriptions.Item>
+                <Descriptions.Item label="批次号">
+                  {batch.batchNo}
+                </Descriptions.Item>
+                <Descriptions.Item label="薪资月份">
+                  {batch.salaryMonth}
+                </Descriptions.Item>
                 <Descriptions.Item label="状态">
                   <Tag color={BATCH_STATUS_MAP[status]?.color}>
                     {BATCH_STATUS_MAP[status]?.label}
@@ -183,15 +194,32 @@ const BatchDetailPage: React.FC = () => {
                 </Descriptions.Item>
               </Descriptions>
               <div style={{ display: 'flex', gap: 32 }}>
-                <Statistic title="员工数" value={batch.totalEmployees ?? 0} suffix="人" />
-                <Statistic title="应发总额" value={batch.totalGrossPay ?? 0} prefix="¥" precision={2} />
-                <Statistic title="实发总额" value={batch.totalNetPay ?? 0} prefix="¥" precision={2} />
+                <Statistic
+                  title="员工数"
+                  value={batch.totalEmployees ?? 0}
+                  suffix="人"
+                />
+                <Statistic
+                  title="应发总额"
+                  value={batch.totalGrossPay ?? 0}
+                  prefix="¥"
+                  precision={2}
+                />
+                <Statistic
+                  title="实发总额"
+                  value={batch.totalNetPay ?? 0}
+                  prefix="¥"
+                  precision={2}
+                />
               </div>
             </div>
             <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
               {/* Status-based action buttons */}
               {status === 1 && access.canManageSalaryBatch && (
-                <Button type="primary" onClick={() => handleAction('calculate')}>
+                <Button
+                  type="primary"
+                  onClick={() => handleAction('calculate')}
+                >
                   执行计算
                 </Button>
               )}
@@ -202,7 +230,10 @@ const BatchDetailPage: React.FC = () => {
               )}
               {status === 4 && access.canApproveSalary && (
                 <>
-                  <Button type="primary" onClick={() => handleAction('approve')}>
+                  <Button
+                    type="primary"
+                    onClick={() => handleAction('approve')}
+                  >
                     审批通过
                   </Button>
                   <Button danger onClick={() => setRejectOpen(true)}>

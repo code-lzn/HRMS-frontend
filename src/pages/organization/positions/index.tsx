@@ -7,8 +7,6 @@ import { queryKeys } from '@/hooks/queryKeys';
 import {
   BookOutlined,
   CrownOutlined,
-  DeleteOutlined,
-  EditOutlined,
   PlusOutlined,
   SafetyCertificateOutlined,
   UserOutlined,
@@ -239,9 +237,9 @@ const PositionManagement: React.FC = () => {
         return (
           <Space size={4}>
             <Button
-              type="link"
               size="small"
-              icon={<EditOutlined />}
+              shape="round"
+              style={{ color: '#1677ff', borderColor: '#1677ff' }}
               onClick={() => handleEdit(record)}
             >
               编辑
@@ -253,7 +251,7 @@ const PositionManagement: React.FC = () => {
               cancelText="取消"
               okButtonProps={{ danger: true }}
             >
-              <Button type="link" danger size="small" icon={<DeleteOutlined />}>
+              <Button danger size="small" shape="round">
                 删除
               </Button>
             </Popconfirm>

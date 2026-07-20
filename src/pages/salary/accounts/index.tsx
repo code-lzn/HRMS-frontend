@@ -21,7 +21,8 @@ const SalaryAccountList: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const access = useAccess();
   const [modalOpen, setModalOpen] = React.useState(false);
-  const [editingRecord, setEditingRecord] = React.useState<API.SalaryAccountVO | null>(null);
+  const [editingRecord, setEditingRecord] =
+    React.useState<API.SalaryAccountVO | null>(null);
 
   const handleCreate = () => {
     setEditingRecord(null);
@@ -47,7 +48,10 @@ const SalaryAccountList: React.FC = () => {
 
   const handleModalOk = async (values: any) => {
     if (editingRecord) {
-      await updateAccountUsingPut(editingRecord.id!, { ...values, id: editingRecord.id });
+      await updateAccountUsingPut(editingRecord.id!, {
+        ...values,
+        id: editingRecord.id,
+      });
       message.success('更新成功');
     } else {
       await createAccountUsingPost(values);
@@ -72,7 +76,11 @@ const SalaryAccountList: React.FC = () => {
       render: (_, record) => (
         <Tag>{SCOPE_TYPE_MAP[record.scopeType!] || '-'}</Tag>
       ),
-      valueEnum: { 1: { text: '部门' }, 2: { text: '职位' }, 3: { text: '职级' } },
+      valueEnum: {
+        1: { text: '部门' },
+        2: { text: '职位' },
+        3: { text: '职级' },
+      },
     },
     {
       title: '生效日期',
@@ -80,7 +88,9 @@ const SalaryAccountList: React.FC = () => {
       width: 120,
       search: false,
       render: (_, record) =>
-        record.effectiveDate ? dayjs(record.effectiveDate).format('YYYY-MM-DD') : '-',
+        record.effectiveDate
+          ? dayjs(record.effectiveDate).format('YYYY-MM-DD')
+          : '-',
     },
     {
       title: '工资项目数',
@@ -95,7 +105,9 @@ const SalaryAccountList: React.FC = () => {
       width: 160,
       search: false,
       render: (_, record) =>
-        record.createTime ? dayjs(record.createTime).format('YYYY-MM-DD HH:mm') : '-',
+        record.createTime
+          ? dayjs(record.createTime).format('YYYY-MM-DD HH:mm')
+          : '-',
     },
     {
       title: '操作',
@@ -105,11 +117,18 @@ const SalaryAccountList: React.FC = () => {
       search: false,
       render: (_, record) => (
         <Space>
-          <a onClick={() => history.push(`/salary/accounts/${record.id}`)}>详情</a>
+          <a onClick={() => history.push(`/salary/accounts/${record.id}`)}>
+            详情
+          </a>
           {access.canManageSalaryAccount && (
             <>
               <a onClick={() => handleEdit(record)}>编辑</a>
-              <a style={{ color: '#ff4d4f' }} onClick={() => handleDelete(record)}>删除</a>
+              <a
+                style={{ color: '#ff4d4f' }}
+                onClick={() => handleDelete(record)}
+              >
+                删除
+              </a>
             </>
           )}
         </Space>

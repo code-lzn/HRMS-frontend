@@ -68,9 +68,10 @@ export async function sendMessage(
  * 后端在回复末尾嵌入 <!--ROUTE:{"type":"route_push","route":{...}}-->
  * 前端解析后渲染为路由跳转卡片，并从文本中移除该注释
  */
-export function parseRouteFromResponse(
-  response: string,
-): { cleanText: string; route: RouteInfo | null } {
+export function parseRouteFromResponse(response: string): {
+  cleanText: string;
+  route: RouteInfo | null;
+} {
   const routeRegex = /<!--ROUTE:(\{.*?\})-->/;
   const match = response.match(routeRegex);
 

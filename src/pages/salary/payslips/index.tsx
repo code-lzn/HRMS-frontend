@@ -1,5 +1,9 @@
 import { getMyPayslipsUsingGet } from '@/api/salaryController';
-import { PageContainer, ProColumns, ProTable } from '@ant-design/pro-components';
+import {
+  PageContainer,
+  ProColumns,
+  ProTable,
+} from '@ant-design/pro-components';
 import { history } from '@umijs/max';
 import { Tag } from 'antd';
 import dayjs from 'dayjs';
@@ -27,14 +31,17 @@ const MyPayslips: React.FC = () => {
       title: '扣除合计',
       dataIndex: 'totalDeductions',
       width: 120,
-      render: (_, record) => `¥${(record.totalDeductions ?? 0).toLocaleString()}`,
+      render: (_, record) =>
+        `¥${(record.totalDeductions ?? 0).toLocaleString()}`,
     },
     {
       title: '实发工资',
       dataIndex: 'netPay',
       width: 130,
       render: (_, record) => (
-        <strong style={{ fontSize: 15 }}>¥{(record.netPay ?? 0).toLocaleString()}</strong>
+        <strong style={{ fontSize: 15 }}>
+          ¥{(record.netPay ?? 0).toLocaleString()}
+        </strong>
       ),
     },
     {
@@ -53,7 +60,9 @@ const MyPayslips: React.FC = () => {
       dataIndex: 'createTime',
       width: 160,
       render: (_, record) =>
-        record.createTime ? dayjs(record.createTime).format('YYYY-MM-DD HH:mm') : '-',
+        record.createTime
+          ? dayjs(record.createTime).format('YYYY-MM-DD HH:mm')
+          : '-',
     },
   ];
 

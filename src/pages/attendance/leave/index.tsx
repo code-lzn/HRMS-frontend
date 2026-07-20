@@ -1,10 +1,12 @@
 import {
-  getBalancesUsingGet,
   queryRequestsUsingGet,
+  submitLeaveRequestUsingPost,
 } from '@/api/leaveController';
-import request from '@/libs/request';
 import {
   CalendarOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
   PlusOutlined,
   SearchOutlined,
 } from '@ant-design/icons';
@@ -18,74 +20,144 @@ import {
   Empty,
   Form,
   Input,
-  InputNumber,
   message,
   Modal,
-  Progress,
   Result,
   Row,
   Select,
-  Space,
-  Statistic,
   Table,
   Tag,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useState } from 'react';
+import dayjs from 'dayjs';
+import React, { useMemo, useState } from 'react';
 
 const { RangePicker } = DatePicker;
 
 interface LeaveRow {
   id: number;
-  userName: string;
-  type: string;
-  startDate: string;
-  endDate: string;
-  days: number;
+  employeeName: string;
+  leaveType: number;
+  leaveTypeDesc: string;
+  startTime: string;
+  endTime: string;
+  leaveDays: number;
   reason: string;
-  status: string;
+  status: number;
+  statusDesc: string;
   createTime: string;
 }
 
-interface BalanceItem {
-  type: string;
-  total: number;
-  used: number;
-  remaining: number;
+interface StatCardProps {
+  title: string;
+  value: number | string;
+  icon: React.ReactNode;
+  color: string;
+  suffix?: string;
 }
+
+const StatCard: React.FC<StatCardProps> = ({
+  title,
+  value,
+  icon,
+  color,
+  suffix,
+}) => (
+  <Card
+    bordered={false}
+    style={{
+      borderRadius: 8,
+      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+      transition: 'all 0.3s',
+    }}
+    styles={{ body: { padding: '20px 24px' } }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = 'translateY(-2px)';
+      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = 'translateY(0)';
+      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
+    }}
+  >
+    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div
+        style={{
+          width: 56,
+          height: 56,
+          borderRadius: 12,
+          backgroundColor: color + '15',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          fontSize: 24,
+          color: color,
+        }}
+      >
+        {icon}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 13,
+            color: '#8c8c8c',
+            marginBottom: 4,
+          }}
+        >
+          {title}
+        </div>
+        <div
+          style={{
+            fontSize: 28,
+            fontWeight: 600,
+            color: color,
+            lineHeight: 1.2,
+          }}
+        >
+          {value}
+          {suffix && (
+            <span style={{ fontSize: 14, fontWeight: 400, marginLeft: 4 }}>
+              {suffix}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  </Card>
+);
 
 const LeaveManagement: React.FC = () => {
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [keyword, setKeyword] = useState('');
-  const [status, setStatus] = useState<string | undefined>();
+  const [status, setStatus] = useState<number | undefined>();
+  const [leaveType, setLeaveType] = useState<number | undefined>();
   const [form] = Form.useForm();
 
-  // 假期余额
-  const { data: balanceResp } = useQuery({
-    queryKey: ['leave', 'balances'],
-    queryFn: async () => getBalancesUsingGet({}),
-  });
-  const balanceData = balanceResp?.data;
-  const balances: BalanceItem[] = Array.isArray(balanceData)
-    ? (balanceData as BalanceItem[])
-    : balanceData
-    ? [balanceData as BalanceItem]
-    : [];
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [searchStatus, setSearchStatus] = useState<number | undefined>();
+  const [searchLeaveType, setSearchLeaveType] = useState<number | undefined>();
 
-  // 请假记录
   const {
     data: listResp,
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ['leave', 'requests', keyword, status],
+    queryKey: [
+      'leave',
+      'requests',
+      searchKeyword,
+      searchStatus,
+      searchLeaveType,
+    ],
     queryFn: async () =>
       queryRequestsUsingGet({
         page: 1,
-        size: 20,
-        keyword: keyword || undefined,
-        status: status || undefined,
+        size: 100,
+        keyword: searchKeyword || undefined,
+        status: searchStatus || undefined,
+        leaveType: searchLeaveType || undefined,
       } as any),
   });
   const raw = (listResp as any)?.data?.records;
@@ -95,22 +167,52 @@ const LeaveManagement: React.FC = () => {
     年假: 1, 病假: 2, 事假: 3, 婚假: 4, 产假: 5, 丧假: 6, 调休: 7,
   };
 
-  // 提交请假
+  const stats = useMemo(() => {
+    let pending = 0;
+    let approved = 0;
+    let rejected = 0;
+    let thisMonthDays = 0;
+    const now = dayjs();
+    const thisMonth = now.month();
+    const thisYear = now.year();
+
+    list.forEach((item) => {
+      if (item.status === 2) pending++;
+      if (item.status === 3) approved++;
+      if (item.status === 4) rejected++;
+      const start = dayjs(item.startTime);
+      if (start.month() === thisMonth && start.year() === thisYear) {
+        thisMonthDays += item.leaveDays || 0;
+      }
+    });
+
+    return { pending, approved, rejected, thisMonthDays };
+  }, [list]);
+
+  const handleSearch = () => {
+    setSearchKeyword(keyword);
+    setSearchStatus(status);
+    setSearchLeaveType(leaveType);
+  };
+
+  const handleReset = () => {
+    setKeyword('');
+    setStatus(undefined);
+    setLeaveType(undefined);
+    setSearchKeyword('');
+    setSearchStatus(undefined);
+    setSearchLeaveType(undefined);
+  };
+
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
       const [start, end] = values.dateRange ?? [];
-      await request('/api/leave/requests', {
-        method: 'POST',
-        data: {
-          leaveType: LEAVE_TYPE_MAP[values.type] ?? 3,
-          startTime: start?.format('YYYY-MM-DDTHH:mm:ss'),
-          endTime: end?.format('YYYY-MM-DDTHH:mm:ss'),
-          leaveDays: values.days,
-          reason: values.reason,
-          submitDirectly: true,
-        },
-      });
+      await submitLeaveRequestUsingPost({
+        ...values,
+        startDate: start?.format('YYYY-MM-DD'),
+        endDate: end?.format('YYYY-MM-DD'),
+      } as any);
       message.success('请假申请已提交');
       setModalOpen(false);
       form.resetFields();
@@ -121,56 +223,92 @@ const LeaveManagement: React.FC = () => {
     }
   };
 
+  const getLeaveTypeTag = (type: number, desc: string) => {
+    const colorMap: Record<number, string> = {
+      1: 'blue',
+      2: 'red',
+      3: 'orange',
+      4: 'pink',
+      5: 'purple',
+      6: 'cyan',
+      7: 'green',
+    };
+    return <Tag color={colorMap[type] || 'default'}>{desc || '-'}</Tag>;
+  };
+
+  const getStatusTag = (s: number, desc: string) => {
+    const map: Record<number, { color: string; icon: React.ReactNode }> = {
+      1: { color: 'default', icon: null },
+      2: { color: 'processing', icon: <ClockCircleOutlined /> },
+      3: { color: 'success', icon: <CheckCircleOutlined /> },
+      4: { color: 'error', icon: <CloseCircleOutlined /> },
+      5: { color: 'default', icon: null },
+    };
+    const cfg = map[s] ?? { color: 'default', icon: null };
+    return (
+      <Tag icon={cfg.icon} color={cfg.color}>
+        {desc || '-'}
+      </Tag>
+    );
+  };
+
   const columns: ColumnsType<LeaveRow> = [
-    { title: '申请人', dataIndex: 'userName', key: 'userName', width: 120 },
+    {
+      title: '申请人',
+      dataIndex: 'employeeName',
+      key: 'employeeName',
+      width: 100,
+    },
     {
       title: '类型',
-      dataIndex: 'type',
-      key: 'type',
+      dataIndex: 'leaveType',
+      key: 'leaveType',
       width: 100,
-      render: (v: string) => {
-        const map: Record<string, string> = {
-          事假: 'orange',
-          病假: 'red',
-          年假: 'blue',
-          婚假: 'magenta',
-          产假: 'purple',
-          调休: 'green',
-        };
-        return <Tag color={map[v] ?? 'default'}>{v}</Tag>;
-      },
+      align: 'center',
+      render: (v: number, record) => getLeaveTypeTag(v, record.leaveTypeDesc),
     },
-    { title: '开始', dataIndex: 'startDate', key: 'startDate', width: 120 },
-    { title: '结束', dataIndex: 'endDate', key: 'endDate', width: 120 },
+    {
+      title: '开始时间',
+      dataIndex: 'startTime',
+      key: 'startTime',
+      width: 120,
+      render: (v: string) => (v ? dayjs(v).format('YYYY-MM-DD') : '-'),
+    },
+    {
+      title: '结束时间',
+      dataIndex: 'endTime',
+      key: 'endTime',
+      width: 120,
+      render: (v: string) => (v ? dayjs(v).format('YYYY-MM-DD') : '-'),
+    },
     {
       title: '天数',
-      dataIndex: 'days',
-      key: 'days',
+      dataIndex: 'leaveDays',
+      key: 'leaveDays',
       width: 80,
-      align: 'right',
+      align: 'center',
+      render: (v: number) => (v !== null && v !== undefined ? `${v} 天` : '-'),
     },
-    { title: '原因', dataIndex: 'reason', key: 'reason' },
+    {
+      title: '原因',
+      dataIndex: 'reason',
+      key: 'reason',
+      ellipsis: true,
+    },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
       width: 100,
-      render: (s: string) => {
-        const map: Record<string, { color: string; text: string }> = {
-          待审批: { color: 'processing', text: '待审批' },
-          已通过: { color: 'success', text: '已通过' },
-          已拒绝: { color: 'error', text: '已拒绝' },
-          已撤回: { color: 'default', text: '已撤回' },
-        };
-        const cfg = map[s] ?? { color: 'default', text: s ?? '-' };
-        return <Tag color={cfg.color}>{cfg.text}</Tag>;
-      },
+      align: 'center',
+      render: (s: number, record) => getStatusTag(s, record.statusDesc),
     },
     {
       title: '申请时间',
       dataIndex: 'createTime',
       key: 'createTime',
-      width: 160,
+      width: 120,
+      render: (v: string) => (v ? dayjs(v).format('YYYY-MM-DD') : '-'),
     },
   ];
 
@@ -181,71 +319,117 @@ const LeaveManagement: React.FC = () => {
         title: '请假管理',
       }}
     >
-      {/* 假期余额 */}
-      <Row gutter={16} style={{ marginBottom: 16 }}>
-        {balances.length === 0 ? (
-          <Col span={24}>
-            <Card bordered={false}>
-              <Empty description="暂无假期余额数据" />
-            </Card>
-          </Col>
-        ) : (
-          balances.map((b) => {
-            const usedPercent = b.total > 0 ? (b.used / b.total) * 100 : 0;
-            return (
-              <Col span={6} key={b.type}>
-                <Card bordered={false}>
-                  <Space
-                    direction="vertical"
-                    style={{ width: '100%' }}
-                    size={8}
-                  >
-                    <Space>
-                      <CalendarOutlined style={{ color: '#1677ff' }} />
-                      <strong>{b.type}</strong>
-                    </Space>
-                    <Statistic
-                      title="剩余"
-                      value={b.remaining ?? 0}
-                      suffix="天"
-                      valueStyle={{ color: '#1677ff' }}
-                    />
-                    <Progress
-                      percent={Number(usedPercent.toFixed(1))}
-                      size="small"
-                      format={() => `已用 ${b.used ?? 0} / 共 ${b.total ?? 0}`}
-                    />
-                  </Space>
-                </Card>
-              </Col>
-            );
-          })
-        )}
+      {/* 统计卡片 */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+        <Col xs={12} sm={6}>
+          <StatCard
+            title="待审批"
+            value={stats.pending}
+            icon={<ClockCircleOutlined />}
+            color="#1677ff"
+          />
+        </Col>
+        <Col xs={12} sm={6}>
+          <StatCard
+            title="已通过"
+            value={stats.approved}
+            icon={<CheckCircleOutlined />}
+            color="#52c41a"
+          />
+        </Col>
+        <Col xs={12} sm={6}>
+          <StatCard
+            title="已拒绝"
+            value={stats.rejected}
+            icon={<CloseCircleOutlined />}
+            color="#ff4d4f"
+          />
+        </Col>
+        <Col xs={12} sm={6}>
+          <StatCard
+            title="本月请假天数"
+            value={stats.thisMonthDays}
+            suffix="天"
+            icon={<CalendarOutlined />}
+            color="#722ed1"
+          />
+        </Col>
       </Row>
 
-      {/* 筛选 */}
-      <Card bordered={false} style={{ marginBottom: 16 }}>
-        <Space size="middle" wrap>
-          <Input
-            placeholder="搜索申请人"
-            prefix={<SearchOutlined />}
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            allowClear
-            style={{ width: 200 }}
-          />
-          <Select
-            placeholder="状态"
-            value={status}
-            onChange={setStatus}
-            allowClear
-            style={{ width: 140 }}
-            options={[
-              { value: '待审批', label: '待审批' },
-              { value: '已通过', label: '已通过' },
-              { value: '已拒绝', label: '已拒绝' },
-            ]}
-          />
+      {/* 筛选区 */}
+      <Card
+        bordered={false}
+        style={{ marginBottom: 16, borderRadius: 8 }}
+        styles={{ body: { padding: '20px 24px' } }}
+      >
+        <Row gutter={[16, 16]} align="middle">
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Input
+              placeholder="搜索申请人"
+              prefix={<SearchOutlined />}
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              allowClear
+              onPressEnter={handleSearch}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Select
+              placeholder="请假类型"
+              value={leaveType}
+              onChange={setLeaveType}
+              allowClear
+              style={{ width: '100%' }}
+              options={[
+                { value: 1, label: '年假' },
+                { value: 2, label: '病假' },
+                { value: 3, label: '事假' },
+                { value: 4, label: '婚假' },
+                { value: 5, label: '产假' },
+                { value: 6, label: '丧假' },
+                { value: 7, label: '调休' },
+              ]}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <Select
+              placeholder="状态"
+              value={status}
+              onChange={setStatus}
+              allowClear
+              style={{ width: '100%' }}
+              options={[
+                { value: 2, label: '审批中' },
+                { value: 3, label: '已通过' },
+                { value: 4, label: '已拒绝' },
+              ]}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8} lg={6}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Button
+                type="primary"
+                icon={<SearchOutlined />}
+                onClick={handleSearch}
+              >
+                查询
+              </Button>
+              <Button onClick={handleReset}>重置</Button>
+            </div>
+          </Col>
+        </Row>
+      </Card>
+
+      {/* 列表区 */}
+      <Card
+        bordered={false}
+        style={{ borderRadius: 8 }}
+        title={
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span style={{ fontWeight: 600, fontSize: 16 }}>请假列表</span>
+          </div>
+        }
+        extra={
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -253,16 +437,20 @@ const LeaveManagement: React.FC = () => {
           >
             申请请假
           </Button>
-        </Space>
-      </Card>
-
-      {/* 列表 */}
-      <Card bordered={false} title="请假记录">
+        }
+        styles={{ body: { padding: 0 } }}
+      >
         <Table
           rowKey="id"
           columns={columns}
           dataSource={isError ? [] : list}
           loading={isLoading}
+          pagination={{
+            showSizeChanger: true,
+            defaultPageSize: 10,
+            showTotal: (t) => `共 ${t} 条`,
+            style: { padding: '16px 24px' },
+          }}
           locale={{
             emptyText: isError ? (
               <Result
@@ -290,18 +478,19 @@ const LeaveManagement: React.FC = () => {
       >
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
           <Form.Item
-            name="type"
+            name="leaveType"
             label="请假类型"
             rules={[{ required: true, message: '请选择请假类型' }]}
           >
             <Select
               options={[
-                { value: '事假', label: '事假' },
-                { value: '病假', label: '病假' },
-                { value: '年假', label: '年假' },
-                { value: '婚假', label: '婚假' },
-                { value: '产假', label: '产假' },
-                { value: '调休', label: '调休' },
+                { value: 3, label: '事假' },
+                { value: 2, label: '病假' },
+                { value: 1, label: '年假' },
+                { value: 4, label: '婚假' },
+                { value: 5, label: '产假' },
+                { value: 6, label: '丧假' },
+                { value: 7, label: '调休' },
               ]}
             />
           </Form.Item>
@@ -311,19 +500,6 @@ const LeaveManagement: React.FC = () => {
             rules={[{ required: true, message: '请选择请假时间' }]}
           >
             <RangePicker style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item
-            name="days"
-            label="请假天数"
-            rules={[{ required: true, message: '请输入请假天数' }]}
-          >
-            <InputNumber
-              min={0.5}
-              max={365}
-              step={0.5}
-              style={{ width: '100%' }}
-              placeholder="可填 0.5"
-            />
           </Form.Item>
           <Form.Item
             name="reason"

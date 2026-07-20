@@ -9,13 +9,18 @@
  */
 
 import {
+  parseRouteFromResponse,
+  sendMessage,
+  type RouteInfo,
+} from '@/services/assistant';
+import {
+  CloseOutlined,
   CustomerServiceOutlined,
+  ExclamationCircleOutlined,
+  LinkOutlined,
   RobotOutlined,
   SendOutlined,
   UserOutlined,
-  LinkOutlined,
-  CloseOutlined,
-  ExclamationCircleOutlined,
 } from '@ant-design/icons';
 import { history } from '@umijs/max';
 import {
@@ -29,35 +34,13 @@ import {
   Typography,
   message,
 } from 'antd';
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  sendMessage,
-  parseRouteFromResponse,
-  type RouteInfo,
-} from '@/services/assistant';
 import './index.less';
 
 const { Text } = Typography;
 
 // ── 轻量 Markdown 渲染（替代 react-markdown） ──────────────
-
-function renderMarkdown(text: string): React.ReactNode {
-  const paragraphs = text.split(/\n\n+/);
-  return paragraphs.map((para, pi) => {
-    const lines = para.split('\n');
-    return (
-      <p key={pi} style={{ margin: '0 0 4px 0' }}>
-        {lines.map((line, li) => (
-          <span key={li}>
-            {li > 0 && <br />}
-            {renderInline(line)}
-          </span>
-        ))}
-      </p>
-    );
-  });
-}
 
 function renderInline(text: string): React.ReactNode {
   const parts: React.ReactNode[] = [];
@@ -74,13 +57,23 @@ function renderInline(text: string): React.ReactNode {
       parts.push(<strong key={key++}>{match[2]}</strong>);
     } else if (match[3]) {
       parts.push(
-        <code key={key++} style={{ padding: '1px 5px', borderRadius: 3, fontSize: 12, background: 'rgba(0,0,0,0.06)' }}>
+        <code
+          key={key++}
+          style={{
+            padding: '1px 5px',
+            borderRadius: 3,
+            fontSize: 12,
+            background: 'rgba(0,0,0,0.06)',
+          }}
+        >
           {match[4]}
         </code>,
       );
     } else if (match[5]) {
       parts.push(
-        <a key={key++} href={match[7]} target="_blank" rel="noreferrer">{match[6]}</a>,
+        <a key={key++} href={match[7]} target="_blank" rel="noreferrer">
+          {match[6]}
+        </a>,
       );
     }
     lastIndex = match.index + match[0].length;
@@ -89,6 +82,23 @@ function renderInline(text: string): React.ReactNode {
     parts.push(text.slice(lastIndex));
   }
   return parts.length > 0 ? parts : text;
+}
+
+function renderMarkdown(text: string): React.ReactNode {
+  const paragraphs = text.split(/\n\n+/);
+  return paragraphs.map((para, pi) => {
+    const lines = para.split('\n');
+    return (
+      <p key={pi} style={{ margin: '0 0 4px 0' }}>
+        {lines.map((line, li) => (
+          <span key={li}>
+            {li > 0 && <br />}
+            {renderInline(line)}
+          </span>
+        ))}
+      </p>
+    );
+  });
 }
 
 // ── 消息类型 ──────────────────────────────────────────────
@@ -118,34 +128,65 @@ function RouteCard({ route, onNavigate }: RouteCardProps) {
       className="assistant-route-card"
       title={
         <Space size={4}>
-          {exist ? <LinkOutlined style={{ color: '#1677ff' }} /> : <ExclamationCircleOutlined style={{ color: '#faad14' }} />}
+          {exist ? (
+            <LinkOutlined style={{ color: '#1677ff' }} />
+          ) : (
+            <ExclamationCircleOutlined style={{ color: '#faad14' }} />
+          )}
           <span>{exist ? route.name : `${route.name}（待开发）`}</span>
           {!exist && <Tag color="warning">开发中</Tag>}
         </Space>
       }
     >
       {route.description && (
-        <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+        <Text
+          type="secondary"
+          style={{ fontSize: 12, display: 'block', marginBottom: 8 }}
+        >
           {route.description}
         </Text>
       )}
       <Space direction="vertical" size={4} style={{ width: '100%' }}>
         {exist && route.path ? (
-          <Button type="primary" size="small" icon={<LinkOutlined />} onClick={() => onNavigate(route.path)}>
+          <Button
+            type="primary"
+            size="small"
+            icon={<LinkOutlined />}
+            onClick={() => onNavigate(route.path)}
+          >
             前往「{route.name}」
           </Button>
         ) : route.fallback_path ? (
-          <Button size="small" icon={<LinkOutlined />} onClick={() => onNavigate(route.fallback_path!)}>
+          <Button
+            size="small"
+            icon={<LinkOutlined />}
+            onClick={() => onNavigate(route.fallback_path!)}
+          >
             前往「{route.fallback_name || route.fallback_path}」（降级入口）
           </Button>
         ) : null}
-        {route.fallback_reason && <Text type="secondary" style={{ fontSize: 11 }}>说明：{route.fallback_reason}</Text>}
+        {route.fallback_reason && (
+          <Text type="secondary" style={{ fontSize: 11 }}>
+            说明：{route.fallback_reason}
+          </Text>
+        )}
         {route.related_routes && route.related_routes.length > 0 && (
           <div style={{ marginTop: 4 }}>
-            <Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 4 }}>相关入口：</Text>
+            <Text
+              type="secondary"
+              style={{ fontSize: 11, display: 'block', marginBottom: 4 }}
+            >
+              相关入口：
+            </Text>
             <Space wrap size={[4, 4]}>
               {route.related_routes.map((r, idx) => (
-                <Button key={idx} size="small" type="dashed" icon={<LinkOutlined />} onClick={() => onNavigate(r.path)}>
+                <Button
+                  key={idx}
+                  size="small"
+                  type="dashed"
+                  icon={<LinkOutlined />}
+                  onClick={() => onNavigate(r.path)}
+                >
                   {r.name}
                 </Button>
               ))}
@@ -177,7 +218,9 @@ export default function HRMSAssistant() {
   const [inputValue, setInputValue] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const threadIdRef = useRef(`thread-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+  const threadIdRef = useRef(
+    `thread-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  );
   const [mounted, setMounted] = useState(false);
 
   // 确保只在客户端渲染（避免 SSR 时 document.body 不存在）
@@ -214,21 +257,27 @@ export default function HRMSAssistant() {
     try {
       const res = await sendMessage(text, threadIdRef.current);
       const { cleanText, route } = parseRouteFromResponse(res.response);
-      setMessages((prev) => [...prev, {
-        id: `a-${Date.now()}`,
-        role: 'assistant',
-        content: cleanText || '抱歉，我暂时无法回答这个问题。',
-        route: route || res.route || null,
-        timestamp: Date.now(),
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `a-${Date.now()}`,
+          role: 'assistant',
+          content: cleanText || '抱歉，我暂时无法回答这个问题。',
+          route: route || res.route || null,
+          timestamp: Date.now(),
+        },
+      ]);
     } catch (err: any) {
-      setMessages((prev) => [...prev, {
-        id: `e-${Date.now()}`,
-        role: 'assistant',
-        content: '抱歉，连接助手服务失败，请稍后重试。',
-        route: null,
-        timestamp: Date.now(),
-      }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `e-${Date.now()}`,
+          role: 'assistant',
+          content: '抱歉，连接助手服务失败，请稍后重试。',
+          route: null,
+          timestamp: Date.now(),
+        },
+      ]);
       message.error(`请求失败: ${err.message || '未知错误'}`);
     } finally {
       setLoading(false);
@@ -286,19 +335,40 @@ export default function HRMSAssistant() {
         width={420}
         open={open}
         onClose={() => setOpen(false)}
-        extra={<Button type="text" size="small" icon={<CloseOutlined />} onClick={() => setOpen(false)} />}
-        styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column', height: '100%' } }}
+        extra={
+          <Button
+            type="text"
+            size="small"
+            icon={<CloseOutlined />}
+            onClick={() => setOpen(false)}
+          />
+        }
+        styles={{
+          body: {
+            padding: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+          },
+        }}
       >
         {/* 消息列表 */}
         <div className="assistant-messages">
           {messages.map((msg) => (
-            <div key={msg.id} className={`assistant-message ${msg.role === 'user' ? 'user' : 'assistant'}`}>
+            <div
+              key={msg.id}
+              className={`assistant-message ${
+                msg.role === 'user' ? 'user' : 'assistant'
+              }`}
+            >
               <div className="assistant-message-bubble">
                 <div className="assistant-avatar">
                   {msg.role === 'user' ? <UserOutlined /> : <RobotOutlined />}
                 </div>
                 <div className="assistant-content">
-                  <div className="assistant-text">{renderMarkdown(msg.content)}</div>
+                  <div className="assistant-text">
+                    {renderMarkdown(msg.content)}
+                  </div>
                   {msg.route && msg.route.name && (
                     <RouteCard route={msg.route} onNavigate={handleNavigate} />
                   )}
@@ -309,8 +379,12 @@ export default function HRMSAssistant() {
           {loading && (
             <div className="assistant-message assistant">
               <div className="assistant-message-bubble">
-                <div className="assistant-avatar"><RobotOutlined /></div>
-                <div className="assistant-content"><Spin size="small" /> 思考中...</div>
+                <div className="assistant-avatar">
+                  <RobotOutlined />
+                </div>
+                <div className="assistant-content">
+                  <Spin size="small" /> 思考中...
+                </div>
               </div>
             </div>
           )}
@@ -325,11 +399,20 @@ export default function HRMSAssistant() {
             placeholder="输入问题，如「年假怎么请」或「帮我查工资」"
             autoSize={{ minRows: 1, maxRows: 4 }}
             onPressEnter={(e) => {
-              if (!e.shiftKey) { e.preventDefault(); handleSend(); }
+              if (!e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
             }}
             disabled={loading}
           />
-          <Button type="primary" icon={<SendOutlined />} onClick={handleSend} loading={loading} disabled={!inputValue.trim()}>
+          <Button
+            type="primary"
+            icon={<SendOutlined />}
+            onClick={handleSend}
+            loading={loading}
+            disabled={!inputValue.trim()}
+          >
             发送
           </Button>
         </div>

@@ -98,7 +98,10 @@ export const SCOPE_TYPE_MAP: Record<number, string> = {
 };
 
 // ==================== 核算批次状态 ====================
-export const BATCH_STATUS_MAP: Record<number, { label: string; color: string }> = {
+export const BATCH_STATUS_MAP: Record<
+  number,
+  { label: string; color: string }
+> = {
   1: { label: '草稿', color: 'default' },
   2: { label: '计算中', color: 'processing' },
   3: { label: '待确认', color: 'warning' },
@@ -109,7 +112,10 @@ export const BATCH_STATUS_MAP: Record<number, { label: string; color: string }> 
 };
 
 // ==================== 异常级别 ====================
-export const ABNORMAL_LEVEL_MAP: Record<number, { label: string; color: string }> = {
+export const ABNORMAL_LEVEL_MAP: Record<
+  number,
+  { label: string; color: string }
+> = {
   0: { label: '正常', color: 'default' },
   1: { label: '黄色预警', color: 'warning' },
   2: { label: '红色预警', color: 'error' },
@@ -136,7 +142,6 @@ export const VERIFY_TYPE_MAP: Record<number, string> = {
   1: '短信验证码',
   2: '登录密码',
 };
-
 // ==================== 考勤班次类型 ====================
 export const SHIFT_TYPE_MAP: Record<number, string> = {
   1: '固定班',

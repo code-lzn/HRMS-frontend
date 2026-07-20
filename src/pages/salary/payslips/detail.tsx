@@ -1,9 +1,21 @@
-import { getPayslipDetailUsingGet, verifyPayslipUsingPost } from '@/api/salaryController';
-import { PageContainer } from '@ant-design/pro-components';
+import {
+  getPayslipDetailUsingGet,
+  verifyPayslipUsingPost,
+} from '@/api/salaryController';
 import { ArrowLeftOutlined, SafetyOutlined } from '@ant-design/icons';
-import { Button, Card, Descriptions, Empty, message, Modal, Spin, Table } from 'antd';
-import React, { useEffect, useState } from 'react';
+import { PageContainer } from '@ant-design/pro-components';
 import { history, useParams } from '@umijs/max';
+import {
+  Button,
+  Card,
+  Descriptions,
+  Empty,
+  message,
+  Modal,
+  Spin,
+  Table,
+} from 'antd';
+import React, { useEffect, useState } from 'react';
 
 const PayslipDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,7 +45,8 @@ const PayslipDetail: React.FC = () => {
     setVerifyOpen(false);
   };
 
-  if (loading) return <Spin style={{ display: 'block', margin: '120px auto' }} />;
+  if (loading)
+    return <Spin style={{ display: 'block', margin: '120px auto' }} />;
   if (!payslip) return <Empty description="工资条不存在" />;
 
   const incomeCols = [
@@ -62,7 +75,10 @@ const PayslipDetail: React.FC = () => {
     <PageContainer
       title="工资条详情"
       extra={
-        <Button icon={<ArrowLeftOutlined />} onClick={() => history.push('/salary/payslips')}>
+        <Button
+          icon={<ArrowLeftOutlined />}
+          onClick={() => history.push('/salary/payslips')}
+        >
           返回列表
         </Button>
       }
@@ -71,9 +87,15 @@ const PayslipDetail: React.FC = () => {
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <h2 style={{ margin: 0 }}>{payslip.salaryMonth} 工资条</h2>
           <Descriptions column={3} size="small" style={{ marginTop: 16 }}>
-            <Descriptions.Item label="姓名">{payslip.employeeName}</Descriptions.Item>
-            <Descriptions.Item label="工号">{payslip.employeeNo}</Descriptions.Item>
-            <Descriptions.Item label="部门">{payslip.departmentName}</Descriptions.Item>
+            <Descriptions.Item label="姓名">
+              {payslip.employeeName}
+            </Descriptions.Item>
+            <Descriptions.Item label="工号">
+              {payslip.employeeNo}
+            </Descriptions.Item>
+            <Descriptions.Item label="部门">
+              {payslip.departmentName}
+            </Descriptions.Item>
           </Descriptions>
         </div>
 
@@ -122,7 +144,11 @@ const PayslipDetail: React.FC = () => {
       </Card>
 
       <Modal
-        title={<><SafetyOutlined /> 二次验证</>}
+        title={
+          <>
+            <SafetyOutlined /> 二次验证
+          </>
+        }
         open={verifyOpen}
         onOk={handleVerify}
         onCancel={() => setVerifyOpen(false)}

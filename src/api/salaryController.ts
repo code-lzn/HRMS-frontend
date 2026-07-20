@@ -11,11 +11,14 @@ export async function listAccountsUsingGet(
   params?: API.SalaryAccountQueryRequest,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseListSalaryAccountVO_>(`${BASE}/salary-accounts`, {
-    method: 'GET',
-    params,
-    ...(options || {}),
-  });
+  return request<API.BaseResponseListSalaryAccountVO_>(
+    `${BASE}/salary-accounts`,
+    {
+      method: 'GET',
+      params,
+      ...(options || {}),
+    },
+  );
 }
 
 /** getAccount GET /api/v1/salary-accounts/{id} */
@@ -23,10 +26,13 @@ export async function getAccountUsingGet(
   id: number,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseSalaryAccountVO_>(`${BASE}/salary-accounts/${id}`, {
-    method: 'GET',
-    ...(options || {}),
-  });
+  return request<API.BaseResponseSalaryAccountVO_>(
+    `${BASE}/salary-accounts/${id}`,
+    {
+      method: 'GET',
+      ...(options || {}),
+    },
+  );
 }
 
 /** createAccount POST /api/v1/salary-accounts */
@@ -76,7 +82,7 @@ export async function listItemsUsingGet(
 ) {
   return request<API.BaseResponseListSalaryItemVO_>(
     `${BASE}/salary-accounts/${accountId}/items`,
-    { method: 'GET', ...(options || {} ) },
+    { method: 'GET', ...(options || {}) },
   );
 }
 
@@ -86,12 +92,15 @@ export async function addItemUsingPost(
   body: API.SalaryItemAddRequest,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseLong_>(`${BASE}/salary-accounts/${accountId}/items`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    data: body,
-    ...(options || {}),
-  });
+  return request<API.BaseResponseLong_>(
+    `${BASE}/salary-accounts/${accountId}/items`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: body,
+      ...(options || {}),
+    },
+  );
 }
 
 /** updateItem PUT /api/v1/salary-accounts/items/{itemId} */
@@ -100,12 +109,15 @@ export async function updateItemUsingPut(
   body: API.SalaryItemUpdateRequest,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseBoolean_>(`${BASE}/salary-accounts/items/${itemId}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    data: body,
-    ...(options || {}),
-  });
+  return request<API.BaseResponseBoolean_>(
+    `${BASE}/salary-accounts/items/${itemId}`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      data: body,
+      ...(options || {}),
+    },
+  );
 }
 
 /** deleteItem DELETE /api/v1/salary-accounts/items/{itemId} */
@@ -113,10 +125,13 @@ export async function deleteItemUsingDelete(
   itemId: number,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseBoolean_>(`${BASE}/salary-accounts/items/${itemId}`, {
-    method: 'DELETE',
-    ...(options || {}),
-  });
+  return request<API.BaseResponseBoolean_>(
+    `${BASE}/salary-accounts/items/${itemId}`,
+    {
+      method: 'DELETE',
+      ...(options || {}),
+    },
+  );
 }
 
 /** sortItems PUT /api/v1/salary-accounts/{id}/items/sort */
@@ -127,7 +142,12 @@ export async function sortItemsUsingPut(
 ) {
   return request<API.BaseResponseBoolean_>(
     `${BASE}/salary-accounts/${accountId}/items/sort`,
-    { method: 'PUT', headers: { 'Content-Type': 'application/json' }, data: body, ...(options || {}) },
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      data: body,
+      ...(options || {}),
+    },
   );
 }
 
@@ -150,12 +170,15 @@ export async function updateEmployeeSalaryUsingPut(
   body: API.EmployeeSalaryUpdateRequest,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseBoolean_>(`${BASE}/employee-salaries/${employeeId}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    data: body,
-    ...(options || {}),
-  });
+  return request<API.BaseResponseBoolean_>(
+    `${BASE}/employee-salaries/${employeeId}`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      data: body,
+      ...(options || {}),
+    },
+  );
 }
 
 /** getSalaryHistory GET /api/v1/employee-salaries/{employeeId}/history */
@@ -201,10 +224,13 @@ export async function getBatchDetailUsingGet(
   id: number,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseSalaryBatchVO_>(`${BASE}/salary-batches/${id}`, {
-    method: 'GET',
-    ...(options || {}),
-  });
+  return request<API.BaseResponseSalaryBatchVO_>(
+    `${BASE}/salary-batches/${id}`,
+    {
+      method: 'GET',
+      ...(options || {}),
+    },
+  );
 }
 
 /** executeCalculate POST /api/v1/salary-batches/{id}/execute */
@@ -212,10 +238,13 @@ export async function executeCalculateUsingPost(
   id: number,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseBoolean_>(`${BASE}/salary-batches/${id}/execute`, {
-    method: 'POST',
-    ...(options || {}),
-  });
+  return request<API.BaseResponseBoolean_>(
+    `${BASE}/salary-batches/${id}/execute`,
+    {
+      method: 'POST',
+      ...(options || {}),
+    },
+  );
 }
 
 /** listDetails GET /api/v1/salary-batches/{id}/details */
@@ -238,7 +267,12 @@ export async function adjustDetailUsingPut(
 ) {
   return request<API.BaseResponseBoolean_>(
     `${BASE}/salary-batches/details/${detailId}/adjust`,
-    { method: 'PUT', headers: { 'Content-Type': 'application/json' }, data: body, ...(options || {}) },
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      data: body,
+      ...(options || {}),
+    },
   );
 }
 
@@ -247,10 +281,13 @@ export async function submitForApprovalUsingPut(
   id: number,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseBoolean_>(`${BASE}/salary-batches/${id}/submit`, {
-    method: 'PUT',
-    ...(options || {}),
-  });
+  return request<API.BaseResponseBoolean_>(
+    `${BASE}/salary-batches/${id}/submit`,
+    {
+      method: 'PUT',
+      ...(options || {}),
+    },
+  );
 }
 
 /** approve PUT /api/v1/salary-batches/{id}/approve */
@@ -258,10 +295,13 @@ export async function approveUsingPut(
   id: number,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseBoolean_>(`${BASE}/salary-batches/${id}/approve`, {
-    method: 'PUT',
-    ...(options || {}),
-  });
+  return request<API.BaseResponseBoolean_>(
+    `${BASE}/salary-batches/${id}/approve`,
+    {
+      method: 'PUT',
+      ...(options || {}),
+    },
+  );
 }
 
 /** reject PUT /api/v1/salary-batches/{id}/reject */
@@ -270,12 +310,15 @@ export async function rejectUsingPut(
   body: API.SalaryBatchRejectRequest,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseBoolean_>(`${BASE}/salary-batches/${id}/reject`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    data: body,
-    ...(options || {}),
-  });
+  return request<API.BaseResponseBoolean_>(
+    `${BASE}/salary-batches/${id}/reject`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      data: body,
+      ...(options || {}),
+    },
+  );
 }
 
 /** markAsPaid PUT /api/v1/salary-batches/{id}/paid */
@@ -283,10 +326,13 @@ export async function markAsPaidUsingPut(
   id: number,
   options?: { [key: string]: any },
 ) {
-  return request<API.BaseResponseBoolean_>(`${BASE}/salary-batches/${id}/paid`, {
-    method: 'PUT',
-    ...(options || {}),
-  });
+  return request<API.BaseResponseBoolean_>(
+    `${BASE}/salary-batches/${id}/paid`,
+    {
+      method: 'PUT',
+      ...(options || {}),
+    },
+  );
 }
 
 // ==================== 工资条（员工自助） ====================
@@ -327,7 +373,9 @@ export async function verifyPayslipUsingPost(
 // ==================== 薪资统计 ====================
 
 /** getMonthlyTrend GET /api/v1/salary-statistics/monthly-trend */
-export async function getMonthlyTrendUsingGet(options?: { [key: string]: any }) {
+export async function getMonthlyTrendUsingGet(options?: {
+  [key: string]: any;
+}) {
   return request<API.BaseResponseListMapStringObject_>(
     `${BASE}/salary-statistics/monthly-trend`,
     { method: 'GET', ...(options || {}) },
@@ -335,7 +383,9 @@ export async function getMonthlyTrendUsingGet(options?: { [key: string]: any }) 
 }
 
 /** getDepartmentDistribution GET /api/v1/salary-statistics/department-distribution */
-export async function getDepartmentDistributionUsingGet(options?: { [key: string]: any }) {
+export async function getDepartmentDistributionUsingGet(options?: {
+  [key: string]: any;
+}) {
   return request<API.BaseResponseListMapStringObject_>(
     `${BASE}/salary-statistics/department-distribution`,
     { method: 'GET', ...(options || {}) },
@@ -351,7 +401,9 @@ export async function getCompositionUsingGet(options?: { [key: string]: any }) {
 }
 
 /** getVariationDistribution GET /api/v1/salary-statistics/variation-distribution */
-export async function getVariationDistributionUsingGet(options?: { [key: string]: any }) {
+export async function getVariationDistributionUsingGet(options?: {
+  [key: string]: any;
+}) {
   return request<API.BaseResponseListMapStringObject_>(
     `${BASE}/salary-statistics/variation-distribution`,
     { method: 'GET', ...(options || {}) },

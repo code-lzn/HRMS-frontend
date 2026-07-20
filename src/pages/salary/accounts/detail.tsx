@@ -11,7 +11,9 @@ import {
   SCOPE_TYPE_MAP,
   TAXABLE_MAP,
 } from '@/constants/enums';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
+import { history, useParams } from '@umijs/max';
 import {
   Button,
   Card,
@@ -29,8 +31,6 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useState } from 'react';
-import { history, useParams } from '@umijs/max';
-import { ArrowLeftOutlined } from '@ant-design/icons';
 
 const AccountDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -53,7 +53,9 @@ const AccountDetailPage: React.FC = () => {
     setLoading(false);
   }, [accountId]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleAddItem = () => {
     setEditingItem(null);
@@ -70,7 +72,10 @@ const AccountDetailPage: React.FC = () => {
   const handleItemModalOk = async () => {
     const values = await itemForm.validateFields();
     if (editingItem) {
-      await updateItemUsingPut(editingItem.id!, { ...values, id: editingItem.id });
+      await updateItemUsingPut(editingItem.id!, {
+        ...values,
+        id: editingItem.id,
+      });
       message.success('更新成功');
     } else {
       await addItemUsingPost(accountId, values);
@@ -106,7 +111,10 @@ const AccountDetailPage: React.FC = () => {
             disabled={index === 0}
             onClick={() => {
               const newItems = [...items];
-              [newItems[index], newItems[index - 1]] = [newItems[index - 1], newItems[index]];
+              [newItems[index], newItems[index - 1]] = [
+                newItems[index - 1],
+                newItems[index],
+              ];
               handleSort(newItems.map((i) => i.id!));
             }}
           >
@@ -118,7 +126,10 @@ const AccountDetailPage: React.FC = () => {
             disabled={index === items.length - 1}
             onClick={() => {
               const newItems = [...items];
-              [newItems[index], newItems[index + 1]] = [newItems[index + 1], newItems[index]];
+              [newItems[index], newItems[index + 1]] = [
+                newItems[index + 1],
+                newItems[index],
+              ];
               handleSort(newItems.map((i) => i.id!));
             }}
           >
@@ -154,7 +165,10 @@ const AccountDetailPage: React.FC = () => {
       render: (_: any, record: API.SalaryItemVO) => (
         <Space>
           <a onClick={() => handleEditItem(record)}>编辑</a>
-          <Popconfirm title="确认删除？" onConfirm={() => handleDeleteItem(record.id!)}>
+          <Popconfirm
+            title="确认删除？"
+            onConfirm={() => handleDeleteItem(record.id!)}
+          >
             <a style={{ color: '#ff4d4f' }}>删除</a>
           </Popconfirm>
         </Space>
@@ -166,7 +180,10 @@ const AccountDetailPage: React.FC = () => {
     <PageContainer
       title="账套详情"
       extra={
-        <Button icon={<ArrowLeftOutlined />} onClick={() => history.push('/salary/accounts')}>
+        <Button
+          icon={<ArrowLeftOutlined />}
+          onClick={() => history.push('/salary/accounts')}
+        >
           返回列表
         </Button>
       }
@@ -176,7 +193,9 @@ const AccountDetailPage: React.FC = () => {
         <>
           <Card title="基本信息" style={{ marginBottom: 24 }}>
             <Descriptions column={3} bordered size="small">
-              <Descriptions.Item label="账套名称">{account.name}</Descriptions.Item>
+              <Descriptions.Item label="账套名称">
+                {account.name}
+              </Descriptions.Item>
               <Descriptions.Item label="适用范围">
                 <Tag>{SCOPE_TYPE_MAP[account.scopeType!] || '-'}</Tag>
               </Descriptions.Item>
@@ -185,12 +204,18 @@ const AccountDetailPage: React.FC = () => {
                   ? dayjs(account.effectiveDate).format('YYYY-MM-DD')
                   : '-'}
               </Descriptions.Item>
-              <Descriptions.Item label="适用范围ID">{account.scopeIds}</Descriptions.Item>
+              <Descriptions.Item label="适用范围ID">
+                {account.scopeIds}
+              </Descriptions.Item>
               <Descriptions.Item label="创建时间">
-                {account.createTime ? dayjs(account.createTime).format('YYYY-MM-DD HH:mm') : '-'}
+                {account.createTime
+                  ? dayjs(account.createTime).format('YYYY-MM-DD HH:mm')
+                  : '-'}
               </Descriptions.Item>
               <Descriptions.Item label="更新时间">
-                {account.updateTime ? dayjs(account.updateTime).format('YYYY-MM-DD HH:mm') : '-'}
+                {account.updateTime
+                  ? dayjs(account.updateTime).format('YYYY-MM-DD HH:mm')
+                  : '-'}
               </Descriptions.Item>
             </Descriptions>
           </Card>

@@ -2,8 +2,9 @@ import {
   getEmployeeSalaryUsingGet,
   getSalaryHistoryUsingGet,
 } from '@/api/salaryController';
-import { SALARY_CHANGE_TYPE_MAP } from '@/constants/enums';
+import { EditOutlined } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
+import { history, useParams } from '@umijs/max';
 import {
   Button,
   Card,
@@ -16,8 +17,6 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useState } from 'react';
-import { history, useParams } from '@umijs/max';
-import { EditOutlined } from '@ant-design/icons';
 
 const EmployeeSalaryDetail: React.FC = () => {
   const { employeeId } = useParams<{ employeeId: string }>();
@@ -43,22 +42,32 @@ const EmployeeSalaryDetail: React.FC = () => {
     })();
   }, [empId]);
 
-  if (loading) return <Spin style={{ display: 'block', margin: '120px auto' }} />;
+  if (loading)
+    return <Spin style={{ display: 'block', margin: '120px auto' }} />;
 
   const historyColumns = [
-    { title: '变更类型', dataIndex: 'changeTypeLabel', width: 100,
+    {
+      title: '变更类型',
+      dataIndex: 'changeTypeLabel',
+      width: 100,
       render: (_: any, r: API.SalaryChangeHistoryVO) => (
         <Tag color="blue">{r.changeTypeLabel}</Tag>
       ),
     },
     { title: '变更前', dataIndex: 'oldValue', width: 200, ellipsis: true },
     { title: '变更后', dataIndex: 'newValue', width: 200, ellipsis: true },
-    { title: '生效日期', dataIndex: 'effectiveDate', width: 110,
+    {
+      title: '生效日期',
+      dataIndex: 'effectiveDate',
+      width: 110,
       render: (_: any, r: API.SalaryChangeHistoryVO) =>
         r.effectiveDate ? dayjs(r.effectiveDate).format('YYYY-MM-DD') : '-',
     },
     { title: '备注', dataIndex: 'remark', width: 200, ellipsis: true },
-    { title: '记录时间', dataIndex: 'createTime', width: 160,
+    {
+      title: '记录时间',
+      dataIndex: 'createTime',
+      width: 160,
       render: (_: any, r: API.SalaryChangeHistoryVO) =>
         r.createTime ? dayjs(r.createTime).format('YYYY-MM-DD HH:mm') : '-',
     },
@@ -80,7 +89,9 @@ const EmployeeSalaryDetail: React.FC = () => {
       <Card title="当前薪资档案" style={{ marginBottom: 24 }}>
         {salary ? (
           <Descriptions column={3} bordered size="small">
-            <Descriptions.Item label="适用账套">{salary.accountName || '-'}</Descriptions.Item>
+            <Descriptions.Item label="适用账套">
+              {salary.accountName || '-'}
+            </Descriptions.Item>
             <Descriptions.Item label="基本工资">
               ¥{salary.baseSalary?.toLocaleString() ?? '-'}
             </Descriptions.Item>
@@ -102,7 +113,9 @@ const EmployeeSalaryDetail: React.FC = () => {
                 : '-'}
             </Descriptions.Item>
             <Descriptions.Item label="更新时间" span={2}>
-              {salary.updateTime ? dayjs(salary.updateTime).format('YYYY-MM-DD HH:mm') : '-'}
+              {salary.updateTime
+                ? dayjs(salary.updateTime).format('YYYY-MM-DD HH:mm')
+                : '-'}
             </Descriptions.Item>
           </Descriptions>
         ) : (

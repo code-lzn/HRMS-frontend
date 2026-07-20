@@ -2,17 +2,14 @@ import {
   getLoginUserUsingGet,
   userLogoutUsingPost,
 } from '@/api/userController';
+import HRMSAssistant from '@/components/HRMSAssistant';
 import { clearCachedLoginUser, setCachedLoginUser } from '@/libs/loginCache';
 import { queryClient } from '@/libs/queryClient';
-import {
-  LogoutOutlined,
-  UserSwitchOutlined,
-} from '@ant-design/icons';
+import { LogoutOutlined, UserSwitchOutlined } from '@ant-design/icons';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useModel, useNavigate } from '@umijs/max';
 import { Dropdown, message } from 'antd';
 import { createElement } from 'react';
-import HRMSAssistant from '@/components/HRMSAssistant';
 
 const originalError = console.error;
 console.error = (...args: any[]) => {
