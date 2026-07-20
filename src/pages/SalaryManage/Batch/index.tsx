@@ -268,12 +268,17 @@ const BatchPage: React.FC = () => {
     if (!activeBatchId) return;
     try {
       const res: any = await exportBatchUsingGet({ id: activeBatchId });
-      const blob = new Blob([res], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      // 使用原始 axios，返回 AxiosResponse，data 是 Blob
+      const blob = res.data instanceof Blob ? res.data : new Blob([res.data ?? res], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = `${activeBatch?.batchNo ?? 'salary'}_${activeBatch?.salaryMonth ?? ''}.xlsx`;
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
       message.success('导出成功');
     } catch (e: any) {
