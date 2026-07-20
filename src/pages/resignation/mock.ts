@@ -5,7 +5,8 @@ export interface ResignationRecord {
   employeeName: string;
   employeeNo: string;
   departmentName: string;
-  positionName: string;
+  positionName?: string;
+  handoverToName?: string;
   resignationDate: string;
   resignationType: number;
   resignationTypeDesc: string;

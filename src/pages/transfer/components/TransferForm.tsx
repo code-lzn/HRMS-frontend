@@ -18,6 +18,7 @@ import { createUsingPost3 } from '@/api/transferController';
 import { getEmployeeListUsingGet } from '@/api/employeeController';
 import { getDepartmentTreeUsingGet } from '@/api/departmentController';
 import { getPositionListUsingGet } from '@/api/positionController';
+import EmployeeTreeSelect from '@/components/EmployeeTreeSelect';
 
 const { TextArea } = Input;
 
@@ -62,7 +63,7 @@ const TransferFormModal: React.FC<TransferFormProps> = ({ open, onClose }) => {
               department: e.departmentName || '',
               position: e.positionName || '',
               jobLevel: e.jobLevel || '',
-              reportTo: '',
+              reportTo: (e as any).directReportName || '',
             })),
           );
         }
@@ -325,12 +326,11 @@ const TransferFormModal: React.FC<TransferFormProps> = ({ open, onClose }) => {
                   </div>
                   <div>
                     <Form.Item name="toDirectReportId" noStyle>
-                      <Select
+                      <EmployeeTreeSelect
                         placeholder="选择新汇报人（可选）"
                         size="large"
-                        allowClear
                         style={{ width: '100%' }}
-                        options={employeeOptions.map((e) => ({ value: e.value, label: e.label.split('(')[0].trim() }))}
+                        excludeIds={selectedEmp ? [selectedEmp.value] : undefined}
                       />
                     </Form.Item>
                   </div>

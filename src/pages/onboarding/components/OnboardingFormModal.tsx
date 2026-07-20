@@ -25,6 +25,7 @@ import {
 } from '@/api/onboardingController';
 import { getDepartmentTreeUsingGet } from '@/api/departmentController';
 import { getPositionListUsingGet } from '@/api/positionController';
+import EmployeeTreeSelect from '@/components/EmployeeTreeSelect';
 import { getEmployeeListUsingGet } from '@/api/employeeController';
 import { buildTree } from '@/hooks/useDepartmentTree';
 
@@ -95,20 +96,6 @@ const OnboardingFormModal: React.FC<OnboardingFormProps> = ({
               label: p.name || '',
               departmentId: p.departmentId,
               probationMonths: p.defaultProbationMonths,
-            })),
-          );
-        }
-      })
-      .catch(() => {});
-    // 加载员工(汇报人)
-    getEmployeeListUsingGet({ current: 1, pageSize: 500 })
-      .then((res) => {
-        if (res.code === 0 && res.data?.records) {
-          setEmployeeOptions(
-            res.data.records.map((e) => ({
-              value: e.id || 0,
-              label: e.name || '',
-              departmentId: (e as any).departmentId,
             })),
           );
         }
@@ -432,15 +419,9 @@ const OnboardingFormModal: React.FC<OnboardingFormProps> = ({
             </Row>
 
             <Form.Item name="directReportId" label="直接汇报人">
-              <Select
-                showSearch
+              <EmployeeTreeSelect
                 placeholder="默认部门负责人"
                 size="large"
-                options={getEmployeesByDept(selectedDeptId)}
-                allowClear
-                filterOption={(input, option) =>
-                  (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
-                }
               />
             </Form.Item>
           </div>

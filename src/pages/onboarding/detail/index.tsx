@@ -254,8 +254,8 @@ const OnboardingDetailPage: React.FC = () => {
             <Tag>{detail.hireTypeDesc}</Tag>
           </Descriptions.Item>
           <Descriptions.Item label="预计入职日期">{detail.expectedHireDate}</Descriptions.Item>
-          <Descriptions.Item label="试用期">{`${detail.probationMonths}个月`}</Descriptions.Item>
-          <Descriptions.Item label="试用期薪资比例">{`${(detail.probationRatio * 100).toFixed(0)}%`}</Descriptions.Item>
+          <Descriptions.Item label="试用期">{`${detail.defaultProbationMonths ?? detail.probationMonths ?? '-'}个月`}</Descriptions.Item>
+          <Descriptions.Item label="试用期薪资比例">{`${((detail.probationRatio ?? 0) * 100).toFixed(0)}%`}</Descriptions.Item>
           <Descriptions.Item label="直接汇报人" span={2}>
             {detail.directReportName || '-'}
           </Descriptions.Item>
