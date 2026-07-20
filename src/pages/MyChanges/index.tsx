@@ -11,6 +11,7 @@ const BUSINESS_TYPE_TEXT: Record<string, string> = {
   REGULARIZATION: '转正审批',
   TRANSFER: '调岗审批',
   RESIGNATION: '离职审批',
+  PROBATION_REMINDER: '转正提醒',
 };
 
 const ACTION_CONFIG: Record<string, { color: string; icon: React.ReactNode; text: string }> = {
@@ -89,9 +90,12 @@ const MyChanges: React.FC = () => {
 
                 {/* 基本信息 */}
                 <Descriptions size="small" column={3} style={{ marginBottom: 12 }}>
+                  {log.employeeName && (
+                    <Descriptions.Item label="涉及员工">{log.employeeName}</Descriptions.Item>
+                  )}
                   <Descriptions.Item label="提交人">{submitter}</Descriptions.Item>
                   <Descriptions.Item label="提交时间">{submitTime}</Descriptions.Item>
-                  <Descriptions.Item label="入职日期">
+                  <Descriptions.Item label="生效日期">
                     {log.effectDate ? dayjs(log.effectDate).format('YYYY-MM-DD') : '—'}
                   </Descriptions.Item>
                 </Descriptions>

@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card, Button, Tag, Table, Space, Spin, message, Select, Alert, Modal, Form, DatePicker, TimePicker, Input, Radio } from 'antd';
-import { ClockCircleOutlined, CalendarOutlined, PlusOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { ClockCircleOutlined, CalendarOutlined, FieldTimeOutlined, PlusOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import dayjs, { Dayjs } from 'dayjs';
 import usePermission from '@/hooks/usePermission';
 import request from '@/libs/request';
 import { getDepartmentTreeUsingGet } from '@/api/departmentController';
 import { getCalendarUsingGet } from '@/api/attendanceController';
 import { applyUsingPost1 as applyMakeupPunch } from '@/api/makeupPunchController';
+import { applyUsingPost2 as applyOvertime } from '@/api/overtimeController';
 
 const STATUS_COLOR_MAP: Record<string, string> = {
   NORMAL: '#52c41a',
@@ -136,6 +137,9 @@ const Attendance: React.FC = () => {
   const [makeupForm] = Form.useForm();
   const [makeupLoading, setMakeupLoading] = useState(false);
   const [makeupAvailableDates, setMakeupAvailableDates] = useState<string[]>([]);
+  const [overtimeModalOpen, setOvertimeModalOpen] = useState(false);
+  const [overtimeForm] = Form.useForm();
+  const [overtimeLoading, setOvertimeLoading] = useState(false);
 
   const loadCalendarData = useCallback(async (month: string) => {
     try {
@@ -385,6 +389,9 @@ const Attendance: React.FC = () => {
               }}>
                 申请补卡
               </Button>
+              <Button icon={<FieldTimeOutlined />} onClick={() => setOvertimeModalOpen(true)}>
+                申请加班
+              </Button>
             </Space>
           </div>
 
@@ -485,6 +492,87 @@ const Attendance: React.FC = () => {
               rules={[{ required: true, message: '请输入补卡原因' }]}
             >
               <Input.TextArea rows={3} placeholder="请输入补卡原因" />
+            </Form.Item>
+          </Form>
+        </Modal>
+
+        {/* 申请加班 Modal */}
+        <Modal
+          title="申请加班"
+          open={overtimeModalOpen}
+          onOk={async () => {
+            try {
+              const values = await overtimeForm.validateFields();
+              setOvertimeLoading(true);
+              const hours = values.endTime.diff(values.startTime, 'hour', true);
+              await applyOvertime({
+                overtimeDate: values.overtimeDate.format('YYYY-MM-DD'),
+                startTime: values.startTime.format('HH:mm'),
+                endTime: values.endTime.format('HH:mm'),
+                overtimeHours: Math.round(hours * 10) / 10,
+                overtimeType: values.overtimeType,
+                reason: values.reason,
+              });
+              message.success('加班申请已提交');
+              setOvertimeModalOpen(false);
+              overtimeForm.resetFields();
+            } catch (e: any) {
+              if (e.message) message.error(e.message);
+            } finally {
+              setOvertimeLoading(false);
+            }
+          }}
+          onCancel={() => {
+            setOvertimeModalOpen(false);
+            overtimeForm.resetFields();
+          }}
+          confirmLoading={overtimeLoading}
+          destroyOnClose
+        >
+          <Form form={overtimeForm} layout="vertical" style={{ marginTop: 16 }}>
+            <Form.Item
+              name="overtimeDate"
+              label="加班日期"
+              rules={[{ required: true, message: '请选择加班日期' }]}
+            >
+              <DatePicker style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item label="起止时间" required>
+              <Space style={{ display: 'flex' }}>
+                <Form.Item
+                  name="startTime"
+                  noStyle
+                  rules={[{ required: true, message: '请选择开始时间' }]}
+                >
+                  <TimePicker style={{ width: '100%' }} format="HH:mm" placeholder="开始时间" />
+                </Form.Item>
+                <Form.Item
+                  name="endTime"
+                  noStyle
+                  rules={[{ required: true, message: '请选择结束时间' }]}
+                >
+                  <TimePicker style={{ width: '100%' }} format="HH:mm" placeholder="结束时间" />
+                </Form.Item>
+              </Space>
+            </Form.Item>
+            <Form.Item
+              name="overtimeType"
+              label="加班类型"
+              rules={[{ required: true, message: '请选择加班类型' }]}
+              initialValue={0}
+            >
+              <Radio.Group>
+                <Radio value={0}>工作日加班</Radio>
+                <Radio value={1}>休息日加班</Radio>
+                <Radio value={2}>节假日加班</Radio>
+              </Radio.Group>
+            </Form.Item>
+            <Form.Item
+              name="reason"
+              label="加班原因"
+              rules={[{ required: true, message: '请输入加班原因' }]}
+            >
+              <Input.TextArea rows={3} placeholder="请输入加班原因" />
             </Form.Item>
           </Form>
         </Modal>

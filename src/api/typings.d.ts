@@ -570,6 +570,12 @@ declare namespace API {
     message?: string;
   };
 
+  type BaseResponseOvertimeProgressVO_ = {
+    code?: number;
+    data?: OvertimeProgressVO;
+    message?: string;
+  };
+
   type BaseResponsePageEmployeeChangeLogVO_ = {
     code?: number;
     data?: PageEmployeeChangeLogVO_;
@@ -1132,6 +1138,11 @@ declare namespace API {
     id: number;
   };
 
+  type getApprovalProgressUsingGET2Params = {
+    /** id */
+    id: number;
+  };
+
   type getApprovalProgressUsingGETParams = {
     /** id */
     id: number;
@@ -1579,6 +1590,11 @@ declare namespace API {
 
   type MakeupPunchProgressVO = {
     makeupPunch?: MakeupPunchVO;
+    progressNodes?: ProgressNode1[];
+  };
+
+  type OvertimeProgressVO = {
+    overtime?: OvertimeVO;
     progressNodes?: ProgressNode1[];
   };
 

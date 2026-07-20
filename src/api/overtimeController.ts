@@ -20,6 +20,23 @@ export async function applyUsingPost2(
   );
 }
 
+/** getApprovalProgress GET /api/attendance/overtime/${param0}/progress */
+export async function getApprovalProgressUsingGet2(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getApprovalProgressUsingGET2Params,
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseOvertimeProgressVO_>(
+    `/api/attendance/overtime/${param0}/progress`,
+    {
+      method: 'GET',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}
+
 /** cancel POST /api/attendance/overtime/cancel/${param0} */
 export async function cancelUsingPost2(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -37,6 +54,7 @@ export async function cancelUsingPost2(
   );
 }
 
+export const getOvertimeProgressUsingGet = getApprovalProgressUsingGet2;
 export const cancelOvertimeUsingPost = cancelUsingPost2;
 
 /** getMyOvertimes GET /api/attendance/overtime/my */

@@ -1,7 +1,7 @@
 import { applyUsingPost, cancelUsingPost, getBalanceUsingGet, getMyLeavesUsingGet } from '@/api/leaveController';
 import { getApprovalProgressUsingGet } from '@/api/leaveController';
 import { getMyMakeupPunchesUsingGet, getApprovalProgressUsingGet1, cancelUsingPost1 } from '@/api/makeupPunchController';
-import { getMyOvertimesUsingGet, cancelUsingPost2 } from '@/api/overtimeController';
+import { getMyOvertimesUsingGet, cancelUsingPost2, getOvertimeProgressUsingGet } from '@/api/overtimeController';
 import { CalendarOutlined, CoffeeOutlined, MedicineBoxOutlined, ScheduleOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
@@ -139,7 +139,11 @@ const MyLeave: React.FC = () => {
     setProgressModalOpen(true);
     try {
       if (record._recordType === 'overtime') {
-        setProgressData({ leave: record, progressNodes: [] });
+        const res = await getOvertimeProgressUsingGet({ id: record._rawId ?? record.id! });
+        const data = res?.data;
+        setProgressData(data
+          ? { leave: { ...record, leaveTypeText: record.leaveTypeText }, progressNodes: data.progressNodes }
+          : null);
       } else if (record._recordType === 'makeup') {
         const res = await getApprovalProgressUsingGet1({ id: record._rawId ?? record.id! });
         const data = res?.data;
