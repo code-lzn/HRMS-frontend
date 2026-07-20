@@ -263,7 +263,7 @@ const OvertimeManagement: React.FC = () => {
       width: 90,
       align: 'center',
       render: (v: string, record) => (
-        <Tag color={record.isUsed === 1 ? 'default' : 'green'}>
+        <Tag color={record.isUsed === 1 ? 'orange' : 'blue'}>
           {v || (record.isUsed === 1 ? '已使用' : '未使用')}
         </Tag>
       ),

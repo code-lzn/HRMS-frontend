@@ -1,6 +1,15 @@
 import { deleteDepartmentUsingDelete } from '@/api/departmentController';
 import { queryKeys } from '@/hooks/queryKeys';
 import { useDepartmentDetail } from '@/hooks/useDepartmentDetail';
+import {
+  ApartmentOutlined,
+  ArrowUpOutlined,
+  FileTextOutlined,
+  IdcardOutlined,
+  OrderedListOutlined,
+  TeamOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAccess } from '@umijs/max';
 import {
@@ -17,21 +26,28 @@ import {
 } from 'antd';
 import React from 'react';
 
-/** 字段行：左 label + 右 value（带底部分隔线） */
+/** 字段行：左图标 + label + 右 value（带底部分隔线） */
 const Field: React.FC<{
+  icon: React.ReactNode;
   label: string;
   value: React.ReactNode;
   last?: boolean;
-}> = ({ label, value, last }) => (
+}> = ({ icon, label, value, last }) => (
   <div
     style={{
       display: 'flex',
       alignItems: 'flex-start',
-      padding: '14px 0',
+      padding: '12px 0',
       borderBottom: last ? 'none' : '1px solid #f5f5f5',
+      gap: 12,
     }}
   >
-    <div style={{ width: 100, flexShrink: 0, color: '#8c8c8c', fontSize: 14 }}>
+    <div
+      style={{ color: '#bfbfbf', fontSize: 15, marginTop: 1, flexShrink: 0 }}
+    >
+      {icon}
+    </div>
+    <div style={{ width: 80, flexShrink: 0, color: '#8c8c8c', fontSize: 13 }}>
       {label}
     </div>
     <div style={{ flex: 1, fontSize: 14, color: '#262626' }}>{value}</div>
@@ -76,7 +92,6 @@ const DepartmentDetailPanel: React.FC<DepartmentDetailPanelProps> = ({
       await deleteDepartmentUsingDelete({ id: deptId });
       message.success('删除成功');
       queryClient.invalidateQueries({ queryKey: queryKeys.departments.tree() });
-      // 删除后跳转到父部门（根部门则清空选中）
       if (parentId) {
         onSelectChild(parentId);
       } else {
@@ -102,22 +117,71 @@ const DepartmentDetailPanel: React.FC<DepartmentDetailPanelProps> = ({
   return (
     <div
       style={{
-        padding: '24px 32px',
+        padding: '24px 28px',
         height: '100%',
         overflow: 'auto',
         backgroundColor: '#fff',
       }}
     >
-      {/* 顶部操作栏 */}
+      {/* 头部信息卡片 */}
       <div
         style={{
           display: 'flex',
-          justifyContent: 'flex-end',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: 16,
           marginBottom: 24,
+          padding: '20px 24px',
+          background: 'linear-gradient(135deg, #f8faff 0%, #f0f5ff 100%)',
+          borderRadius: 12,
+          border: '1px solid #e6f0ff',
         }}
       >
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              marginBottom: 8,
+            }}
+          >
+            <ApartmentOutlined style={{ fontSize: 18, color: '#1677ff' }} />
+            <Typography.Text strong style={{ fontSize: 18, color: '#262626' }}>
+              {dept.name}
+            </Typography.Text>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 16,
+              marginBottom: 4,
+            }}
+          >
+            <Typography.Text style={{ fontSize: 13, color: '#8c8c8c' }}>
+              编码：{dept.code || '-'}
+            </Typography.Text>
+            <Typography.Text style={{ fontSize: 13, color: '#8c8c8c' }}>
+              负责人：{dept.managerName || '-'}
+            </Typography.Text>
+          </div>
+          <Tag
+            color="blue"
+            style={{
+              borderRadius: 10,
+              padding: '0 12px',
+              marginTop: 4,
+              fontSize: 13,
+              fontWeight: 500,
+            }}
+          >
+            <TeamOutlined style={{ marginRight: 4 }} />
+            {dept.employeeCount ?? 0} 人在职
+          </Tag>
+        </div>
         {canManage && (
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
             <Button
               type="primary"
               shape="round"
@@ -147,33 +211,63 @@ const DepartmentDetailPanel: React.FC<DepartmentDetailPanelProps> = ({
         )}
       </div>
 
-      {/* 编码标题 */}
-      <div style={{ marginBottom: 24 }}>
-        <Typography.Text style={{ fontSize: 14, color: '#8c8c8c' }}>
-          编码：
-        </Typography.Text>
-        <Typography.Text strong style={{ fontSize: 14, color: '#262626' }}>
-          {dept.code || '-'}
-        </Typography.Text>
-      </div>
-
-      {/* 基本信息列表 */}
+      {/* 基本信息 */}
       <div style={{ marginBottom: 32 }}>
-        <Field label="部门名称" value={dept.name || '-'} />
-        <Field label="部门编码" value={dept.code || '-'} />
-        <Field label="上级部门" value={dept.parentName || '-'} />
-        <Field label="部门负责人" value={dept.managerName || '-'} />
-        <Field label="排序序号" value={dept.sortOrder ?? '-'} />
-        <Field label="部门描述" value={dept.description || '-'} />
-        <Field
-          label="在职人数"
-          value={
-            <span style={{ color: '#1677ff', fontWeight: 500 }}>
-              {dept.employeeCount ?? 0} 人
-            </span>
-          }
-          last
-        />
+        <Typography.Text
+          strong
+          style={{ fontSize: 15, display: 'block', marginBottom: 12 }}
+        >
+          基本信息
+        </Typography.Text>
+        <div
+          style={{
+            background: '#fff',
+            borderRadius: 10,
+            border: '1px solid #f0f0f0',
+            padding: '4px 20px',
+          }}
+        >
+          <Field
+            icon={<ApartmentOutlined />}
+            label="部门名称"
+            value={dept.name || '-'}
+          />
+          <Field
+            icon={<IdcardOutlined />}
+            label="部门编码"
+            value={dept.code || '-'}
+          />
+          <Field
+            icon={<ArrowUpOutlined />}
+            label="上级部门"
+            value={dept.parentName || '-'}
+          />
+          <Field
+            icon={<UserOutlined />}
+            label="部门负责人"
+            value={dept.managerName || '-'}
+          />
+          <Field
+            icon={<OrderedListOutlined />}
+            label="排序序号"
+            value={dept.sortOrder ?? '-'}
+          />
+          <Field
+            icon={<FileTextOutlined />}
+            label="部门描述"
+            value={dept.description || '-'}
+          />
+          <Field
+            icon={<TeamOutlined />}
+            label="在职人数"
+            value={
+              <span style={{ color: '#1677ff', fontWeight: 600, fontSize: 15 }}>
+                {dept.employeeCount ?? 0} 人
+              </span>
+            }
+            last
+          />
+        </div>
       </div>
 
       {/* 直属子部门 */}
@@ -183,25 +277,36 @@ const DepartmentDetailPanel: React.FC<DepartmentDetailPanelProps> = ({
             <Typography.Text strong style={{ fontSize: 15 }}>
               直属子部门
             </Typography.Text>
-            <span style={{ marginLeft: 8, color: '#8c8c8c', fontSize: 14 }}>
+            <Tag style={{ marginLeft: 8, borderRadius: 10, fontSize: 12 }}>
               {childCount} 个
-            </span>
+            </Tag>
           </div>
 
           {dept.children && dept.children.length > 0 ? (
-            <Row gutter={[16, 16]}>
-              {dept.children.map((child: API.DepartmentVO) => (
+            <Row gutter={[12, 12]}>
+              {dept.children.map((child: API.DepartmentVO, index: number) => (
                 <Col span={12} key={child.id}>
                   <Card
                     size="small"
                     hoverable
                     onClick={() => child.id && onSelectChild(child.id)}
                     style={{
-                      borderRadius: 6,
+                      borderRadius: 10,
                       cursor: 'pointer',
                       border: '1px solid #f0f0f0',
+                      overflow: 'hidden',
+                      transition: 'all 0.25s',
                     }}
-                    bodyStyle={{ padding: '16px 20px' }}
+                    styles={{ body: { padding: '16px 18px' } }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow =
+                        '0 4px 14px rgba(0,0,0,0.08)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
                   >
                     <div
                       style={{
@@ -211,25 +316,54 @@ const DepartmentDetailPanel: React.FC<DepartmentDetailPanelProps> = ({
                         gap: 12,
                       }}
                     >
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <Typography.Text
-                          strong
-                          style={{ fontSize: 14, color: '#262626' }}
-                          ellipsis
-                        >
-                          {child.name}
-                        </Typography.Text>
-                        {child.managerName && (
-                          <div style={{ marginTop: 4 }}>
-                            <Typography.Text
-                              type="secondary"
-                              style={{ fontSize: 12 }}
-                              ellipsis
-                            >
-                              {child.managerName}
-                            </Typography.Text>
-                          </div>
-                        )}
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 10,
+                          minWidth: 0,
+                          flex: 1,
+                        }}
+                      >
+                        {/* 左侧序列色条 */}
+                        <span
+                          style={{
+                            width: 4,
+                            height: 36,
+                            borderRadius: 2,
+                            background: [
+                              '#1677ff',
+                              '#52c41a',
+                              '#fa8c16',
+                              '#722ed1',
+                              '#0ea5e9',
+                            ][index % 5],
+                            flexShrink: 0,
+                          }}
+                        />
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <Typography.Text
+                            strong
+                            style={{ fontSize: 14, color: '#262626' }}
+                            ellipsis={{ tooltip: true }}
+                          >
+                            {child.name}
+                          </Typography.Text>
+                          {child.managerName && (
+                            <div style={{ marginTop: 4 }}>
+                              <Typography.Text
+                                type="secondary"
+                                style={{ fontSize: 12 }}
+                                ellipsis
+                              >
+                                <UserOutlined
+                                  style={{ marginRight: 4, fontSize: 11 }}
+                                />
+                                {child.managerName}
+                              </Typography.Text>
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <Tag
                         color="blue"
