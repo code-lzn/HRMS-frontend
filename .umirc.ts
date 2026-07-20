@@ -233,6 +233,11 @@ export default defineConfig({
           path: '/attendance/overtime',
           component: './attendance/overtime',
         },
+        {
+          name: '工作日设置',
+          path: '/attendance/workday-settings',
+          component: './attendance/workday-settings',
+        },
       ],
     },
     // ========== 原有页面 ==========

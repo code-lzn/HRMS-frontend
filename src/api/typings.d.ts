@@ -70,6 +70,19 @@ declare namespace API {
     year?: number;
   };
 
+  type WorkCalendarDayItem = {
+    date?: string;
+    dayType?: number;
+    dayTypeDesc?: string;
+    holidayName?: string;
+  };
+
+  type WorkCalendarVO = {
+    days?: WorkCalendarDayItem[];
+    month?: number;
+    year?: number;
+  };
+
   type AttendanceGroupCreateRequest = {
     coreEndTime?: string;
     coreStartTime?: string;
@@ -184,6 +197,12 @@ declare namespace API {
   type BaseResponseAttendanceCalendarVO_ = {
     code?: number;
     data?: AttendanceCalendarVO;
+    message?: string;
+  };
+
+  type BaseResponseWorkCalendarVO_ = {
+    code?: number;
+    data?: WorkCalendarVO;
     message?: string;
   };
 
@@ -555,6 +574,12 @@ declare namespace API {
 
   type BaseResponseVoid_ = {
     code?: number;
+    message?: string;
+  };
+
+  type BaseResponseInt_ = {
+    code?: number;
+    data?: number;
     message?: string;
   };
 
