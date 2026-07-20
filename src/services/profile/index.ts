@@ -7,7 +7,7 @@
 // ▼▼▼ 改这里 ▼▼▼
 export {
   getProfile, updateProfile,
-  getAttendanceCalendar, clock,
+  getAttendanceCalendar, clock, getMySupplementCards,
   getLeaves, cancelLeave,
   getSalaryList, sendSalaryVerifyCode, getSalaryDetail, getSalaryTrend,
   changePassword, changePhone, getLoginLogs, getPendingCount,

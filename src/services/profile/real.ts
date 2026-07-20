@@ -3,6 +3,7 @@
  * 提取 response.data 并适配为 mock 同款函数签名。
  * 切换到真实后端时，只需改 src/services/profile/index.ts 的 import 源。
  */
+import request from '@/libs/request';
 import {
   getProfileUsingGet,
   updateProfileUsingPut,
@@ -49,8 +50,16 @@ export async function getAttendanceCalendar(yearMonth: string): Promise<Attendan
 }
 
 export async function clock(type: 'IN' | 'OUT'): Promise<ClockResultVO> {
-  const res = await clockUsingPost1({ clockType: type === 'IN' ? 0 : 1 } as any);
+  const res = await clockUsingPost1({ clockType: type === 'IN' ? 1 : 2 } as any);
   return res?.data as any;
+}
+
+export async function getMySupplementCards(page = 1, size = 10): Promise<any> {
+  const res: any = await request('/api/profile/supplement-cards', {
+    method: 'GET',
+    params: { page, size },
+  });
+  return res?.data || { records: [] };
 }
 
 // ========== 我的请假 ==========

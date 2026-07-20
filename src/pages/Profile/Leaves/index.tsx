@@ -3,10 +3,11 @@ import { Card, Tag, Button, message, Modal } from 'antd';
 import dayjs from 'dayjs';
 import type { LeaveRecord } from '@/services/profile/typings';
 import { getLeaves, cancelLeave } from '@/services/profile';
-import { getBalancesUsingGet } from '@/api/leaveController';
+import { getBalancesUsingGet, submitDraftUsingPost, deleteDraftUsingDelete } from '@/api/leaveController';
 import { PageContainer } from '@ant-design/pro-components';
 import { PlusOutlined } from '@ant-design/icons';
 import { useNavigate } from '@umijs/max';
+import ApprovalTimeline from '@/components/ApprovalTimeline';
 
 const BALANCE_COLORS: Record<string, { bg: string; bar: string; text: string }> = {
   年假: { bg: '#eff6ff', bar: '#3b82f6', text: '#3b82f6' },
@@ -39,6 +40,7 @@ export default function LeavesPage() {
   const [data, setData] = useState<LeaveRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [balances, setBalances] = useState<any[]>([]);
+  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -64,14 +66,61 @@ export default function LeavesPage() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  const toggleExpand = (id: number) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   const handleCancel = (record: LeaveRecord) => {
     Modal.confirm({
       title: '确认取消申请',
       content: `确定要取消 ${record.leaveTypeDesc} 申请吗？`,
       onOk: async () => {
-        await cancelLeave(record.id);
-        message.success('已取消');
-        fetchData();
+        try {
+          await cancelLeave(record.id);
+          message.success('已撤回为草稿');
+          fetchData();
+        } catch (e: any) {
+          message.error(e?.message || '撤回失败');
+        }
+      },
+    });
+  };
+
+  const handleResubmit = (record: LeaveRecord) => {
+    Modal.confirm({
+      title: '确认重新提交',
+      content: `确定要重新提交 ${record.leaveTypeDesc} 申请吗？`,
+      onOk: async () => {
+        try {
+          await submitDraftUsingPost({ id: record.id });
+          message.success('已重新提交审批');
+          fetchData();
+        } catch (e: any) {
+          message.error(e?.message || '提交失败');
+        }
+      },
+    });
+  };
+
+  const handleDelete = (record: LeaveRecord) => {
+    Modal.confirm({
+      title: '确认删除',
+      content: `确定要删除 ${record.leaveTypeDesc} 草稿吗？此操作不可撤销。`,
+      okText: '确认删除',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          await deleteDraftUsingDelete({ id: record.id });
+          message.success('已删除');
+          fetchData();
+        } catch (e: any) {
+          message.error(e?.message || '删除失败');
+        }
       },
     });
   };
@@ -147,77 +196,120 @@ export default function LeavesPage() {
               const typeColor = LEAVE_TYPE_COLORS[record.leaveTypeDesc] || { bg: '#e5e7eb', color: '#6b7280' };
               const statusColor = STATUS_COLORS[record.statusDesc] || { bg: '#f3f4f6', color: '#6b7280' };
               const isPending = record.statusDesc === '审批中';
+              const isDraft = record.statusDesc === '草稿';
+              const isExpanded = expandedIds.has(record.id);
+              const hasProgress = record.approvalProgress?.nodes?.length > 0;
 
               return (
                 <div
                   key={record.id}
                   style={{
-                    padding: 16,
                     background: '#f9fafb',
                     borderRadius: 8,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
+                    overflow: 'hidden',
                   }}
                 >
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <Tag
-                        color="blue"
-                        style={{
-                          background: typeColor.bg,
-                          color: typeColor.color,
-                          borderRadius: 4,
-                          fontSize: 12,
-                          margin: 0,
-                        }}
-                      >
-                        {record.leaveTypeDesc}
-                      </Tag>
-                      <Tag
-                        style={{
-                          background: statusColor.bg,
-                          color: statusColor.color,
-                          borderRadius: 4,
-                          fontSize: 12,
-                          margin: 0,
-                          border: 'none',
-                        }}
-                      >
-                        {record.statusDesc}
-                      </Tag>
+                  {/* 基本信息行 */}
+                  <div
+                    style={{
+                      padding: '12px 16px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        <Tag
+                          style={{
+                            background: typeColor.bg,
+                            color: typeColor.color,
+                            borderRadius: 4,
+                            fontSize: 12,
+                            margin: 0,
+                          }}
+                        >
+                          {record.leaveTypeDesc}
+                        </Tag>
+                        <Tag
+                          style={{
+                            background: statusColor.bg,
+                            color: statusColor.color,
+                            borderRadius: 4,
+                            fontSize: 12,
+                            margin: 0,
+                            border: 'none',
+                          }}
+                        >
+                          {record.statusDesc}
+                        </Tag>
+                        <span style={{ fontSize: 13, color: '#374151' }}>
+                          {record.startTime?.slice(0, 10)} ~ {record.endTime?.slice(0, 10)}
+                        </span>
+                        <span style={{ fontSize: 13, fontWeight: 500 }}>
+                          共 {record.leaveDays} 天
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 13, color: '#6b7280' }}>
+                        {record.reason}
+                        {record.createTime && (
+                          <span style={{ marginLeft: 12, color: '#9ca3af', fontSize: 12 }}>
+                            {dayjs(record.createTime).format('YYYY-MM-DD')}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>
-                      {record.startTime?.slice(0, 10)} ~ {record.endTime?.slice(0, 10)} &nbsp; 共 {record.leaveDays} 天
-                    </div>
-                    <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 4 }}>
-                      {record.reason}
-                    </div>
-                    <div style={{ fontSize: 12, color: '#9ca3af' }}>
-                      {record.approvalProgress?.nodes?.[0]?.approverName
-                        ? `审批人：${record.approvalProgress.nodes[0].approverName}`
-                        : ''}
-                      {record.createTime
-                        ? ` · ${dayjs(record.createTime).format('YYYY-MM-DD')}`
-                        : ''}
+                    <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: 12 }}>
+                      {hasProgress && (
+                        <Button
+                          type="link"
+                          size="small"
+                          onClick={() => toggleExpand(record.id)}
+                        >
+                          {isExpanded ? '收起详情' : '查看详情'}
+                        </Button>
+                      )}
+                      {isPending && (
+                        <Button type="link" danger size="small" onClick={() => handleCancel(record)}>
+                          撤回
+                        </Button>
+                      )}
+                      {isDraft && (
+                        <>
+                          <Button type="link" size="small" style={{ color: '#3b82f6' }} onClick={() => handleResubmit(record)}>
+                            重新提交
+                          </Button>
+                          <Button type="link" danger size="small" onClick={() => handleDelete(record)}>
+                            删除
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <Button type="link" size="small" style={{ color: '#3b82f6' }}>
-                      查看进度
-                    </Button>
-                    {isPending && (
-                      <Button type="link" danger size="small" onClick={() => handleCancel(record)}>
-                        取消申请
-                      </Button>
-                    )}
-                  </div>
+
+                  {/* 展开：审批进度 */}
+                  {isExpanded && hasProgress && (
+                    <div style={{ padding: '0 16px 16px', borderTop: '1px solid #e5e7eb', marginTop: 0 }}>
+                      <div style={{ paddingTop: 12 }}>
+                        {record.approvalProgress?.nodes?.[0]?.approverName && (
+                          <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>
+                            审批人：{record.approvalProgress.nodes[0].approverName}
+                          </div>
+                        )}
+                        <ApprovalTimeline
+                          nodes={record.approvalProgress.nodes as any}
+                          currentNodeOrder={record.approvalProgress.currentNodeOrder}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })
           )}
         </div>
       </Card>
+
     </PageContainer>
   );
 }

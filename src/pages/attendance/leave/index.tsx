@@ -106,6 +106,7 @@ const LeaveManagement: React.FC = () => {
           leaveType: LEAVE_TYPE_MAP[values.type] ?? 3,
           startTime: start?.format('YYYY-MM-DDTHH:mm:ss'),
           endTime: end?.format('YYYY-MM-DDTHH:mm:ss'),
+          leaveDays: values.days,
           reason: values.reason,
           submitDirectly: true,
         },

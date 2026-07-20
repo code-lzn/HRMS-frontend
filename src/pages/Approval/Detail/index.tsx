@@ -145,6 +145,10 @@ const ApprovalDetail: React.FC = () => {
       ['employeeName', '员工姓名'], ['leaveTypeDesc', '请假类型'], ['startTime', '开始时间'],
       ['endTime', '结束时间'], ['leaveDays', '请假天数'], ['reason', '请假事由'],
     ];
+    const CARD_REPLENISH_FIELDS = [
+      ['employeeName', '员工姓名'], ['cardTypeDesc', '补卡类型'], ['attendanceDate', '补卡日期'],
+      ['reason', '补卡原因'],
+    ];
 
     let fields: [string, string][] = [];
     switch (bizType) {
@@ -153,6 +157,7 @@ const ApprovalDetail: React.FC = () => {
       case 'TRANSFER': fields = TRANSFER_FIELDS; break;
       case 'RESIGNATION': fields = RESIGNATION_FIELDS; break;
       case 'LEAVE': fields = LEAVE_FIELDS; break;
+      case 'CARD_REPLENISH': fields = CARD_REPLENISH_FIELDS; break;
       default: return <div style={{ fontSize: 13, color: '#999' }}>未知业务类型</div>;
     }
 

@@ -36,6 +36,8 @@ export default function ChangePasswordPage() {
       setPwdStrength(null);
       clearCachedLoginUser();
       navigate('/user/login', { replace: true });
+    } catch (e: any) {
+      message.error(e?.message || '修改失败');
     } finally {
       setLoading(false);
     }

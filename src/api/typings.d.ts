@@ -58,6 +58,7 @@ declare namespace API {
     originalApproverName?: string;
     status?: number;
     statusDesc?: string;
+    transferred?: boolean;
   };
 
   type approveUsingPOSTParams = {
@@ -1125,6 +1126,7 @@ declare namespace API {
     attachmentUrl?: string;
     endTime?: string;
     handoverEmployeeId?: number;
+    leaveDays?: number;
     leaveType?: number;
     reason?: string;
     startTime?: string;

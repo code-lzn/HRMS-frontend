@@ -226,8 +226,9 @@ const OnboardingFormModal: React.FC<OnboardingFormProps> = ({
       }
       form.resetFields();
       onClose();
-    } catch {
-      // 校验失败
+    } catch (e: any) {
+      if (e?.errorFields) return; // 表单校验失败，antd 自动提示
+      message.error(e?.message || '操作失败');
     } finally {
       setSubmitting(false);
     }

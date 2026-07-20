@@ -31,25 +31,30 @@ export interface ProfileUpdateDTO {
 
 // ========== 我的考勤 ==========
 export interface AttendanceCalendarVO {
-  yearMonth: string;
+  year: number;
+  month: number;
   summary: AttendanceSummary;
   days: DayItem[];
 }
 
 export interface AttendanceSummary {
-  shouldWorkDays: number;
-  actualWorkDays: number;
-  lateCount: number;
-  earlyCount: number;
-  absentCount: number;
+  normalDays: number;
+  lateDays: number;
+  earlyLeaveDays: number;
+  absentDays: number;
+  cardMissingDays: number;
   leaveDays: number;
 }
 
 export interface DayItem {
   date: string;
-  weekday: string;
-  status: AttendanceStatus;
-  statusDesc: string;
+  dayType?: number;
+  dayTypeDesc?: string;
+  startStatus?: number;
+  startStatusDesc?: string;
+  endStatus?: number;
+  endStatusDesc?: string;
+  hasLeave?: boolean;
   clockIn: string | null;
   clockOut: string | null;
 }
@@ -57,10 +62,13 @@ export interface DayItem {
 export type AttendanceStatus = 'NORMAL' | 'LATE' | 'EARLY' | 'ABSENT' | 'LEAVE' | 'MISSING' | 'WEEKEND';
 
 export interface ClockResultVO {
-  type: 'IN' | 'OUT';
-  clockTime: string;
-  status: string;
-  statusDesc: string;
+  attendanceDate?: string;
+  clockType?: number;
+  clockTypeDesc?: string;
+  actualTime?: string;
+  status?: number;
+  statusDesc?: string;
+  scheduledTime?: string;
 }
 
 // ========== 我的请假 ==========
