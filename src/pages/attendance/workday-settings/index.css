@@ -1,9 +1,86 @@
+/* ============================================
+   工作日设置 - 日历样式全覆盖
+   ============================================ */
+
 /* 隐藏日历内部滚动条 */
 .ant-picker-calendar-full .ant-picker-panel .ant-picker-body {
   overflow: hidden !important;
 }
 
-.ant-picker-calendar-full .ant-picker-calendar-date-content {
+/* 清除所有单元格的默认样式 */
+.ant-picker-calendar .ant-picker-cell .ant-picker-cell-inner,
+.ant-picker-calendar .ant-picker-calendar-date {
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* 隐藏默认的日期数字（用自定义渲染代替） */
+.ant-picker-calendar .ant-picker-calendar-date-value {
+  display: none !important;
+}
+
+/* 清除 today 的默认样式（蓝色边框、底部横线等） */
+.ant-picker-calendar .ant-picker-cell-today .ant-picker-cell-inner::before,
+.ant-picker-calendar .ant-picker-cell-today .ant-picker-cell-inner::after,
+.ant-picker-calendar .ant-picker-cell-today .ant-picker-calendar-date::before,
+.ant-picker-calendar .ant-picker-cell-today .ant-picker-calendar-date::after {
+  display: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.ant-picker-calendar .ant-picker-cell-today .ant-picker-calendar-date {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.ant-picker-calendar .ant-picker-cell-today .ant-picker-calendar-date-value {
+  color: inherit !important;
+  font-weight: inherit !important;
+}
+
+/* 清除选中、hover、active 的默认样式 */
+.ant-picker-calendar .ant-picker-cell-selected .ant-picker-calendar-date,
+.ant-picker-calendar .ant-picker-cell:hover .ant-picker-calendar-date,
+.ant-picker-calendar .ant-picker-cell-active .ant-picker-calendar-date,
+.ant-picker-calendar .ant-picker-cell-range-start .ant-picker-calendar-date,
+.ant-picker-calendar .ant-picker-cell-range-end .ant-picker-calendar-date,
+.ant-picker-calendar .ant-picker-cell-in-range .ant-picker-calendar-date {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* 自定义内容区域 */
+.ant-picker-calendar .ant-picker-calendar-date-content {
   height: auto !important;
+  padding: 4px !important;
+  margin: 0 !important;
+}
+
+/* 清除表头单元格的 hover 效果 */
+.ant-picker-calendar .ant-picker-cell-content:hover {
+  background: transparent !important;
+}
+
+/* 非当前月日期保持半透明 */
+.ant-picker-calendar
+  .ant-picker-cell-other-month
+  .ant-picker-calendar-date-value {
+  opacity: 0.3 !important;
+}
+
+/* 彻底隐藏日历内部所有滚动条 */
+.ant-picker-calendar-full .ant-picker-calendar-date-content {
+  overflow: hidden !important;
+}
+
+/* 日历行高度固定，避免选中/取消时布局抖动 */
+.ant-picker-calendar-full .ant-picker-cell {
   overflow: hidden !important;
 }

@@ -15,7 +15,7 @@ export const STATUS_COLOR_MAP: Record<number, string> = {
   1: 'blue',
   2: 'green',
   3: 'orange',
-  4: 'default',
+  4: 'red',
 };
 
 // ==================== 性别 ====================
@@ -77,7 +77,6 @@ export const LOCKED_FIELD_MESSAGES: Record<string, string> = {
   jobLevel: '修改职级需走调岗流程',
   directReportName: '修改汇报关系需走调岗流程',
   directReportId: '修改汇报关系需走调岗流程',
-  workLocation: '修改工作地点需走调岗流程',
 };
 
 // ==================== 工资项目类型 ====================

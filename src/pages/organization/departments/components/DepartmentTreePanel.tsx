@@ -1,6 +1,6 @@
 import { useDepartmentTree } from '@/hooks/useDepartmentTree';
-import { SearchOutlined } from '@ant-design/icons';
-import { Empty, Input, Spin } from 'antd';
+import { ApartmentOutlined, SearchOutlined } from '@ant-design/icons';
+import { Empty, Input, Result, Spin, Typography } from 'antd';
 import React, { useMemo, useState } from 'react';
 import styles from './TreePanel.less';
 
@@ -11,6 +11,7 @@ interface FlatNode {
   managerName?: string;
   employeeCount: number;
   level: number;
+  hasChildren: boolean;
 }
 
 function flatten(nodes: API.DepartmentTreeNode[], level = 0): FlatNode[] {
@@ -22,6 +23,7 @@ function flatten(nodes: API.DepartmentTreeNode[], level = 0): FlatNode[] {
       managerName: node.managerName,
       employeeCount: node.employeeCount ?? 0,
       level,
+      hasChildren: !!(node.children && node.children.length > 0),
     });
     if (node.children?.length) {
       acc.push(...flatten(node.children, level + 1));
@@ -39,7 +41,9 @@ const DepartmentTreePanel: React.FC<DepartmentTreeProps> = ({
   selectedId,
   onSelect,
 }) => {
-  const { data, isLoading } = useDepartmentTree();
+  const { data, isLoading, isError, error } = useDepartmentTree();
+  const httpError = error as any;
+  const isPermissionError = httpError?.code === 40101;
   const [keyword, setKeyword] = useState('');
 
   const flatList = useMemo(() => {
@@ -50,20 +54,46 @@ const DepartmentTreePanel: React.FC<DepartmentTreeProps> = ({
     );
   }, [data, keyword]);
 
+  const totalCount = useMemo(() => {
+    const list = flatten(data ?? []);
+    return list.length;
+  }, [data]);
+
   return (
     <div className={styles.panel}>
-      <Input
-        className={styles.search}
-        placeholder="搜索部门名称或编码"
-        prefix={<SearchOutlined />}
-        value={keyword}
-        onChange={(e) => setKeyword(e.target.value)}
-        allowClear
-      />
+      {/* 顶部统计 + 搜索 */}
+      <div className={styles.header}>
+        <div className={styles.headerTop}>
+          <Typography.Text strong style={{ fontSize: 15 }}>
+            部门列表
+          </Typography.Text>
+          <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+            共 {totalCount} 个
+          </Typography.Text>
+        </div>
+        <Input
+          className={styles.search}
+          placeholder="搜索部门名称或编码"
+          prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />}
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          allowClear
+        />
+      </div>
 
       <div className={styles.treeWrap}>
         {isLoading ? (
           <Spin className={styles.loading} />
+        ) : isError ? (
+          <Result
+            status={isPermissionError ? '403' : 'error'}
+            title={isPermissionError ? '无权限' : '加载失败'}
+            subTitle={
+              isPermissionError
+                ? '您没有权限查看部门数据，请联系管理员'
+                : '请检查后端服务是否运行'
+            }
+          />
         ) : flatList.length === 0 ? (
           <Empty description="暂无部门数据" />
         ) : (
@@ -75,24 +105,29 @@ const DepartmentTreePanel: React.FC<DepartmentTreeProps> = ({
                 className={`${styles.item} ${
                   isSelected ? styles.itemSelected : ''
                 }`}
-                style={{ paddingLeft: 16 + node.level * 24 }}
+                style={{ paddingLeft: 12 + node.level * 22 }}
                 onClick={() => onSelect(node.id)}
               >
+                {isSelected && <span className={styles.activeBar} />}
+                <ApartmentOutlined
+                  className={styles.itemIcon}
+                  style={{
+                    color: isSelected
+                      ? '#1677ff'
+                      : node.level === 0
+                      ? '#8c8c8c'
+                      : '#bfbfbf',
+                    fontSize: node.level === 0 ? 16 : 14,
+                  }}
+                />
                 <div className={styles.itemRow}>
-                  <div className={styles.itemLeft}>
-                    <span
-                      className={`${styles.bullet} ${
-                        node.level > 0 ? styles.bulletDot : ''
-                      }`}
-                    />
-                    <span className={styles.name}>{node.name}</span>
-                    {node.code && (
-                      <span className={styles.code}>{node.code}</span>
-                    )}
-                    {node.managerName && (
-                      <span className={styles.manager}>{node.managerName}</span>
-                    )}
-                  </div>
+                  <span
+                    className={`${styles.name} ${
+                      isSelected ? styles.nameSelected : ''
+                    }`}
+                  >
+                    {node.name}
+                  </span>
                   <span className={styles.count}>{node.employeeCount}人</span>
                 </div>
               </div>

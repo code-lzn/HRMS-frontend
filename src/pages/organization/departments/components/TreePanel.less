@@ -6,9 +6,29 @@
   flex-direction: column;
 }
 
+.header {
+  padding: 0 0 12px;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+
 .search {
-  margin-bottom: 12px;
-  border-radius: 6px;
+  border-radius: 8px;
+
+  :global(.ant-input) {
+    border-radius: 8px;
+  }
+
+  &:hover :global(.ant-input),
+  &:focus-within :global(.ant-input) {
+    border-color: #1677ff;
+  }
 }
 
 .loading {
@@ -21,34 +41,67 @@
   flex: 1;
   overflow-y: auto;
   min-height: 0;
-  background: #fff;
+  background: #fafbfc;
   border: 1px solid #f0f0f0;
-  border-radius: 8px;
-  padding: 8px 4px;
+  border-radius: 12px;
+  padding: 6px 4px;
+
+  /* 火狐瘦身滚动条 */
+  scrollbar-width: thin;
+  scrollbar-color: #d9d9d9 transparent;
+
+  /* Chrome/Edge 瘦身滚动条 */
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #d9d9d9;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }
 
 /* 每行 */
 .item {
   display: flex;
   align-items: center;
-  padding: 10px 12px;
-  border-radius: 6px;
+  padding: 9px 14px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.15s;
+  transition: all 0.15s;
   margin-bottom: 2px;
   position: relative;
+  overflow: hidden;
 
   &:hover {
-    background-color: #f5f5f5;
+    background-color: #f0f4ff;
   }
+}
 
-  &:hover .addIcon {
-    opacity: 1;
-  }
+/* 左边选中指示条 */
+.activeBar {
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  background: #1677ff;
+  border-radius: 0 3px 3px 0;
+}
+
+.itemIcon {
+  flex-shrink: 0;
+  margin-right: 10px;
+  transition: color 0.15s;
 }
 
 .itemSelected {
   background-color: #e6f4ff !important;
+  box-shadow: 0 1px 4px rgba(22, 119, 255, 12%);
 
   &:hover {
     background-color: #e6f4ff !important;
@@ -88,11 +141,16 @@
 
 .name {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   color: #262626;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.nameSelected {
+  font-weight: 600;
+  color: #1677ff;
 }
 
 .code {
@@ -117,4 +175,13 @@
   white-space: nowrap;
   font-weight: 500;
   flex-shrink: 0;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  min-width: 0;
+  gap: 8px;
 }

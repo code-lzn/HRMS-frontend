@@ -1,5 +1,6 @@
 import { LockOutlined } from '@ant-design/icons';
 import { Card, DatePicker, Form, Input, Select, Tooltip } from 'antd';
+import dayjs from 'dayjs';
 import React from 'react';
 
 interface PersonalInfoSectionProps {
@@ -7,6 +8,7 @@ interface PersonalInfoSectionProps {
   flowRequiredFields: string[];
   initialValues: Record<string, any>;
   form: any;
+  style?: React.CSSProperties;
 }
 
 const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
@@ -14,12 +16,13 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
   flowRequiredFields,
   initialValues,
   form,
+  style,
 }) => {
   const isEditable = (field: string) => editableFields.includes(field);
   const isLocked = (field: string) => flowRequiredFields.includes(field);
 
   return (
-    <Card title="个人信息" style={{ borderRadius: 12, marginBottom: 24 }}>
+    <Card title="个人信息" style={{ borderRadius: 12, ...style }}>
       <Form form={form} layout="vertical" initialValues={initialValues}>
         <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
           <Form.Item
@@ -97,8 +100,11 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
             isEditable('birthday')
               ? [
                   {
-                    validator: (_, value) => {
-                      if (value && value.isAfter(new Date())) {
+                    validator: (_: any, value: any) => {
+                      if (!value) return Promise.resolve();
+                      const d = dayjs.isDayjs(value) ? value : dayjs(value);
+                      if (!d.isValid()) return Promise.resolve();
+                      if (d.isAfter(dayjs(), 'day')) {
                         return Promise.reject(new Error('不能晚于今天'));
                       }
                       return Promise.resolve();
@@ -109,7 +115,16 @@ const PersonalInfoSection: React.FC<PersonalInfoSectionProps> = ({
           }
         >
           {isLocked('birthday') ? (
-            <Input value={initialValues.birthday || ''} disabled />
+            <Input
+              value={
+                initialValues.birthday
+                  ? dayjs.isDayjs(initialValues.birthday)
+                    ? initialValues.birthday.format('YYYY-MM-DD')
+                    : String(initialValues.birthday)
+                  : ''
+              }
+              disabled
+            />
           ) : (
             <DatePicker
               style={{ width: '100%' }}
