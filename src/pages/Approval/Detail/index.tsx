@@ -149,15 +149,20 @@ const ApprovalDetail: React.FC = () => {
       ['employeeName', '员工姓名'], ['cardTypeDesc', '补卡类型'], ['attendanceDate', '补卡日期'],
       ['reason', '补卡原因'],
     ];
+    const SALARY_BATCH_FIELDS = [
+      ['batchNo', '批次号'], ['salaryMonth', '薪资月份'], ['totalEmployees', '核算人数'],
+      ['totalGrossPay', '应发合计'], ['totalNetPay', '实发合计'], ['totalTax', '个税合计'],
+    ];
 
     let fields: [string, string][] = [];
     switch (bizType) {
-      case 'ONBOARDING': fields = ONBOARDING_FIELDS; break;
-      case 'PROBATION': fields = PROBATION_FIELDS; break;
-      case 'TRANSFER': fields = TRANSFER_FIELDS; break;
-      case 'RESIGNATION': fields = RESIGNATION_FIELDS; break;
-      case 'LEAVE': fields = LEAVE_FIELDS; break;
-      case 'CARD_REPLENISH': fields = CARD_REPLENISH_FIELDS; break;
+      case 'ONBOARDING': fields = ONBOARDING_FIELDS as [string, string][]; break;
+      case 'PROBATION': fields = PROBATION_FIELDS as [string, string][]; break;
+      case 'TRANSFER': fields = TRANSFER_FIELDS as [string, string][]; break;
+      case 'RESIGNATION': fields = RESIGNATION_FIELDS as [string, string][]; break;
+      case 'LEAVE': fields = LEAVE_FIELDS as [string, string][]; break;
+      case 'CARD_REPLENISH': fields = CARD_REPLENISH_FIELDS as [string, string][]; break;
+      case 'SALARY_BATCH': fields = SALARY_BATCH_FIELDS as [string, string][]; break;
       default: return <div style={{ fontSize: 13, color: '#999' }}>未知业务类型</div>;
     }
 

@@ -49,8 +49,10 @@ const PayslipDetail: React.FC = () => {
   const handleSendCode = async () => {
     setSendingCode(true);
     try {
-      await sendPayslipVerifyCodeUsingPost(pid);
-      message.success('验证码已发送');
+      const res = await sendPayslipVerifyCodeUsingPost(pid);
+      const code = (res as any)?.data || (res as any);
+      Modal.info({ title: '验证码', content: `您的验证码是：${code}`, okText: '知道了' });
+      setVerifyCode(code);
       setCountdown(60);
     } catch {
       message.error('发送失败，请稍后重试');

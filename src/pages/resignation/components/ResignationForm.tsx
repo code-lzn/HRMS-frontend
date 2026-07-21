@@ -48,7 +48,7 @@ const ResignationFormModal: React.FC<ResignationFormProps> = ({ open, onClose })
       .then((res) => {
         if (res.code === 0 && res.data?.records) {
           setEmployeeOptions(
-            res.data.records.map((e) => ({
+            res.data.records.filter((e: any) => e.status !== 4).map((e) => ({
               value: e.id || 0,
               label: `${e.name} (${e.employeeNo})`,
               department: e.departmentName || '',

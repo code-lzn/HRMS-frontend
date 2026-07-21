@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Descriptions, Button, Input, Tag, Card, message, Modal } from 'antd';
-import { EditOutlined, UserOutlined } from '@ant-design/icons';
+import { Descriptions, Button, Input, Tag, Card, message, Modal, Upload } from 'antd';
+import { EditOutlined, UserOutlined, CameraOutlined } from '@ant-design/icons';
+import { uploadFileUsingPost } from '@/api/fileController';
 import type { ProfileUpdateDTO } from '@/services/profile/typings';
 import { updateProfile } from '@/services/profile';
 import { useProfile } from '@/hooks/useProfile';
@@ -81,22 +82,65 @@ export default function ProfilePage() {
         style={{ borderRadius: 12, border: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', marginBottom: 24 }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <div
-            style={{
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 32,
-              fontWeight: 600,
-              color: '#fff',
+          <Upload
+            showUploadList={false}
+            accept="image/*"
+            customRequest={async ({ file, onSuccess, onError }) => {
+              try {
+                const res = await uploadFileUsingPost(
+                  { biz: 'user_avatar' } as any,
+                  {},
+                  file as File,
+                );
+                if ((res as any)?.code === 0) {
+                  onSuccess?.(res);
+                  message.success('头像更新成功');
+                  fetchProfile();
+                } else {
+                  onError?.({ message: '上传失败' } as any);
+                }
+              } catch (e: any) {
+                onError?.({ message: e?.message || '上传失败' } as any);
+                message.error(e?.message || '上传失败');
+              }
             }}
           >
-            {getInitial(profile.name)}
-          </div>
+            <div
+              style={{
+                width: 80,
+                height: 80,
+                borderRadius: '50%',
+                background: profile.userAvatar
+                  ? `url(${profile.userAvatar}) center/cover`
+                  : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 32,
+                fontWeight: 600,
+                color: '#fff',
+                cursor: 'pointer',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+              title="点击上传头像"
+            >
+              {!profile.userAvatar && getInitial(profile.name)}
+              <div style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 24,
+                background: 'rgba(0,0,0,0.45)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <CameraOutlined style={{ color: '#fff', fontSize: 12 }} />
+              </div>
+            </div>
+          </Upload>
           <div>
             <div style={{ fontSize: 20, fontWeight: 600 }}>{profile.name}</div>
             <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 12 }}>

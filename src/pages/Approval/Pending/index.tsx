@@ -2,7 +2,7 @@ import { getPendingList, approve, rejectApproval } from '@/api/approvalControlle
 import { BIZ_TYPE_TABS } from '@/constants';
 import { PageContainer } from '@ant-design/pro-components';
 import { history, useModel } from '@umijs/max';
-import { Button, Card, Input, Select, Tag, Avatar, message } from 'antd';
+import { Button, Card, Input, Select, Tag, Avatar, message, Pagination } from 'antd';
 import { SearchOutlined, UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
@@ -16,34 +16,40 @@ const ApprovalPending: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [onlyMine, setOnlyMine] = useState(true);
   const [actionLoading, setActionLoading] = useState<string>('');
+  const [current, setCurrent] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [total, setTotal] = useState(0);
 
-  const fetchList = async () => {
+  const fetchList = async (page?: number, size?: number) => {
+    const p = page ?? current;
+    const s = size ?? pageSize;
     setLoading(true);
     try {
-      const res = await getPendingList({ current: 1, pageSize: 100 });
+      const hasClientFilter = searchText || statusFilter;
+      const querySize = hasClientFilter ? 1000 : s;
+      const queryPage = hasClientFilter ? 1 : p;
+      const res = await getPendingList({ current: queryPage, pageSize: querySize, bizType: bizType || undefined } as any);
       let records = res?.data?.records || [];
       if (searchText) {
-        records = records.filter(
-          (item: any) =>
-            item.applicantName?.includes(searchText) ||
-            item.approvalNo?.includes(searchText) ||
-            item.title?.includes(searchText),
-        );
-      }
-      if (bizType) {
-        records = records.filter((item: any) => item.bizType === bizType);
+        records = records.filter((item: any) =>
+          item.applicantName?.includes(searchText) ||
+          item.approvalNo?.includes(searchText) ||
+          item.title?.includes(searchText));
       }
       if (onlyMine) {
         records = records.filter((item: any) => item.canAct !== false);
       }
-      if (statusFilter) {
-        if (statusFilter === 'overdue') {
-          records = records.filter(
-            (item: any) => item.deadLine && dayjs().isAfter(dayjs(item.deadLine)),
-          );
-        }
+      if (statusFilter === 'overdue') {
+        records = records.filter((item: any) => item.deadLine && dayjs().isAfter(dayjs(item.deadLine)));
+      }
+      const filteredTotal = records.length;
+      // 有本地筛选时，手动分页
+      if (hasClientFilter) {
+        const start = (p - 1) * s;
+        records = records.slice(start, start + s);
       }
       setList(records);
+      setTotal(hasClientFilter ? filteredTotal : (res?.data?.total || records.length));
       refreshPendingCount();
     } catch (e: any) {
       message.error(e?.message || '加载失败');
@@ -53,13 +59,29 @@ const ApprovalPending: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchList();
+    fetchList(1, pageSize);
+    setCurrent(1);
   }, [searchText, bizType, statusFilter, onlyMine]);
 
-  const pendingCount = list.length;
-  const overdueCount = list.filter(
-    (item) => item.deadLine && dayjs().isAfter(dayjs(item.deadLine)),
-  ).length;
+  useEffect(() => {
+    fetchList();
+  }, [current, pageSize]);
+
+  const [stats, setStats] = useState({ pending: 0, overdue: 0 });
+
+  const loadStats = () => {
+    getPendingList({ current: 1, pageSize: 1000 } as any).then(res => {
+      const all = res?.data?.records || [];
+      setStats({
+        pending: res?.data?.total || all.length,
+        overdue: all.filter((i: any) => i.deadLine && dayjs().isAfter(dayjs(i.deadLine))).length,
+      });
+    }).catch(() => {});
+  };
+  useEffect(() => { loadStats(); }, []);
+
+  const pendingCount = stats.pending;
+  const overdueCount = stats.overdue;
   const todayApprovedCount = 0;
 
   const handleApprove = async (nodeId: number) => {
@@ -67,7 +89,8 @@ const ApprovalPending: React.FC = () => {
     try {
       await approve(nodeId, {});
       message.success('审批通过');
-      fetchList();
+      fetchList(current, pageSize);
+      loadStats();
     } catch (e: any) {
       message.error(e?.message || '操作失败');
     } finally {
@@ -80,7 +103,8 @@ const ApprovalPending: React.FC = () => {
     try {
       await rejectApproval(nodeId, { comment: '拒绝审批' });
       message.success('已拒绝');
-      fetchList();
+      fetchList(current, pageSize);
+      loadStats();
     } catch (e: any) {
       message.error(e?.message || '操作失败');
     } finally {
@@ -264,6 +288,12 @@ const ApprovalPending: React.FC = () => {
             );
           })
         )}
+      </div>
+
+      <div style={{ textAlign: 'center', marginTop: 24 }}>
+        <Pagination current={current} pageSize={pageSize} total={total}
+          onChange={(p, s) => { setCurrent(p); setPageSize(s); }}
+          showSizeChanger showTotal={(t) => `共 ${t} 条`} />
       </div>
     </PageContainer>
   );

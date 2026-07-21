@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Card, Form, Input, Button, message } from 'antd';
+import { Card, Form, Input, Button, message, Modal } from 'antd';
 import { changePhone } from '@/services/profile';
+import { sendPhoneVerifyCodeUsingPost } from '@/api/profileController';
 import { PageContainer } from '@ant-design/pro-components';
 import { useNavigate } from '@umijs/max';
 
@@ -27,21 +28,17 @@ export default function ChangePhonePage() {
   const sendCode = async () => {
     try {
       const newPhone = form.getFieldValue('newPhone');
-      if (!newPhone) {
-        message.error('请先输入新手机号');
-        return;
-      }
-      if (!/^1[3-9]\d{9}$/.test(newPhone)) {
-        message.error('手机号格式不正确');
-        return;
-      }
+      if (!newPhone) { message.error('请先输入新手机号'); return; }
+      if (!/^1[3-9]\d{9}$/.test(newPhone)) { message.error('手机号格式不正确'); return; }
+      const res = await sendPhoneVerifyCodeUsingPost({ phone: newPhone });
+      const code = (res as any)?.data || (res as any);
+      Modal.info({ title: '验证码', content: `您的验证码是：${code}`, okText: '知道了' });
       setCountdown(60);
       timerRef.current = setInterval(() => {
         setCountdown((c) => { if (c <= 1) { if (timerRef.current) clearInterval(timerRef.current); return 0; } return c - 1; });
       }, 1000);
-      message.success('验证码已发送');
-    } catch {
-      message.error('发送失败，请重试');
+    } catch (e: any) {
+      message.error(e?.message || '发送失败，请重试');
     }
   };
 

@@ -2,7 +2,7 @@ import { getProcessedList } from '@/api/approvalController';
 import { BIZ_TYPE_TABS, NODE_STATUS } from '@/constants';
 import { PageContainer } from '@ant-design/pro-components';
 import { history } from '@umijs/max';
-import { Button, Card, Input, Select, Tag, Avatar, message } from 'antd';
+import { Button, Card, Input, Select, Tag, Avatar, message, Pagination } from 'antd';
 import { SearchOutlined, UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
@@ -12,21 +12,33 @@ const ApprovalProcessed: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [bizType, setBizType] = useState('');
+  const [stats, setStats] = useState({ today: 0, month: 0, rejected: 0 });
+  const [current, setCurrent] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [total, setTotal] = useState(0);
 
-  const fetchList = async () => {
+  const fetchList = async (page?: number, size?: number) => {
+    const p = page ?? current;
+    const s = size ?? pageSize;
     setLoading(true);
     try {
-      const res = await getProcessedList({ bizType: bizType || undefined, current: 1, pageSize: 100 });
+      const hasClientFilter = !!searchText;
+      const querySize = hasClientFilter ? 1000 : s;
+      const queryPage = hasClientFilter ? 1 : p;
+      const res = await getProcessedList({ bizType: bizType || undefined, current: queryPage, pageSize: querySize } as any);
       let records = res?.data?.records || [];
       if (searchText) {
-        records = records.filter(
-          (item: any) =>
-            item.applicantName?.includes(searchText) ||
-            item.approvalNo?.includes(searchText) ||
-            item.title?.includes(searchText),
-        );
+        records = records.filter((item: any) =>
+          item.applicantName?.includes(searchText) ||
+          item.title?.includes(searchText));
+      }
+      const filteredTotal = records.length;
+      if (hasClientFilter) {
+        const start = (p - 1) * s;
+        records = records.slice(start, start + s);
       }
       setList(records);
+      setTotal(hasClientFilter ? filteredTotal : (res?.data?.total || records.length));
     } catch (e: any) {
       message.error(e?.message || '加载失败');
     } finally {
@@ -34,17 +46,27 @@ const ApprovalProcessed: React.FC = () => {
     }
   };
 
+  useEffect(() => { fetchList(1, pageSize); setCurrent(1); }, [searchText, bizType]);
+  useEffect(() => { fetchList(); }, [current, pageSize]);
+
+  useEffect(() => {
+    getProcessedList({ current: 1, pageSize: 1000 } as any).then(res => {
+      const all = res?.data?.records || [];
+      setStats({
+        today: all.filter((i: any) => i.nodeStatus === 2 && dayjs(i.operateTime).isSame(dayjs(), 'day')).length,
+        month: all.filter((i: any) => i.nodeStatus === 2 && dayjs(i.operateTime).isSame(dayjs(), 'month')).length,
+        rejected: all.filter((i: any) => i.nodeStatus === 3).length,
+      });
+    }).catch(() => {});
+  }, []);
+
   useEffect(() => {
     fetchList();
-  }, [searchText, bizType]);
+  }, [current, pageSize]);
 
-  const todayApprovedCount = list.filter(
-    (item) => item.nodeStatus === NODE_STATUS.APPROVED && dayjs(item.operateTime).isSame(dayjs(), 'day'),
-  ).length;
-  const monthApprovedCount = list.filter(
-    (item) => item.nodeStatus === NODE_STATUS.APPROVED && dayjs(item.operateTime).isSame(dayjs(), 'month'),
-  ).length;
-  const rejectedCount = list.filter((item) => item.nodeStatus === NODE_STATUS.REJECTED).length;
+  const todayApprovedCount = stats.today;
+  const monthApprovedCount = stats.month;
+  const rejectedCount = stats.rejected;
 
   const resultColor: Record<number, string> = {
     [NODE_STATUS.APPROVED]: 'green',
@@ -187,6 +209,12 @@ const ApprovalProcessed: React.FC = () => {
             </Card>
           ))
         )}
+      </div>
+
+      <div style={{ textAlign: 'center', marginTop: 24 }}>
+        <Pagination current={current} pageSize={pageSize} total={total}
+          onChange={(p, s) => { setCurrent(p); setPageSize(s); }}
+          showSizeChanger showTotal={(t) => `共 ${t} 条`} />
       </div>
     </PageContainer>
   );

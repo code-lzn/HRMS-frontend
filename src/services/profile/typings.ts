@@ -3,6 +3,7 @@ export interface ProfileVO {
   employeeId: number;
   employeeNo: string;
   name: string;
+  userAvatar?: string;
   gender: number;
   genderDesc: string;
   phone: string;

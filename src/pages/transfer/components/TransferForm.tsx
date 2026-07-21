@@ -36,8 +36,6 @@ interface EmployeeOption {
   reportTo: string;
 }
 
-const jobLevels = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P9', 'P10', 'M1', 'M2', 'M3', 'M4', 'M5', 'S1', 'S2', 'S3', 'S4', 'S5'];
-
 const TransferFormModal: React.FC<TransferFormProps> = ({ open, onClose }) => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
@@ -45,7 +43,10 @@ const TransferFormModal: React.FC<TransferFormProps> = ({ open, onClose }) => {
 
   const [employeeOptions, setEmployeeOptions] = useState<EmployeeOption[]>([]);
   const [departmentOptions, setDepartmentOptions] = useState<{ value: number; label: string }[]>([]);
-  const [positionOptions, setPositionOptions] = useState<{ value: number; label: string }[]>([]);
+  const [positionOptions, setPositionOptions] = useState<{ value: number; label: string; departmentId?: number; levelMin?: number; levelMax?: number; levelPrefix?: string }[]>([]);
+  const [allPositions, setAllPositions] = useState<any[]>([]);
+  const [toDeptId, setToDeptId] = useState<number | undefined>();
+  const [toPosId, setToPosId] = useState<number | undefined>();
 
   useEffect(() => {
     if (!open) return;
@@ -57,7 +58,7 @@ const TransferFormModal: React.FC<TransferFormProps> = ({ open, onClose }) => {
       .then(([empRes, deptRes, posRes]) => {
         if (empRes.code === 0 && empRes.data?.records) {
           setEmployeeOptions(
-            empRes.data.records.map((e) => ({
+            empRes.data.records.filter((e: any) => e.status !== 4).map((e) => ({
               value: e.id || 0,
               label: `${e.name} (${e.employeeNo})`,
               department: e.departmentName || '',
@@ -79,10 +80,16 @@ const TransferFormModal: React.FC<TransferFormProps> = ({ open, onClose }) => {
           setDepartmentOptions(flatten(deptRes.data));
         }
         if (posRes.code === 0 && posRes.data?.records) {
+          const all = posRes.data.records;
+          setAllPositions(all);
           setPositionOptions(
-            posRes.data.records.map((p) => ({
+            all.map((p: any) => ({
               value: p.id || 0,
               label: p.name || '',
+              departmentId: p.departmentId,
+              levelMin: p.levelMin,
+              levelMax: p.levelMax,
+              levelPrefix: p.levelPrefix,
             })),
           );
         }
@@ -269,6 +276,12 @@ const TransferFormModal: React.FC<TransferFormProps> = ({ open, onClose }) => {
                         size="large"
                         options={departmentOptions.filter((d) => d.label !== selectedEmp.department)}
                         style={{ width: '100%' }}
+                        onChange={(v) => {
+                          setToDeptId(v);
+                          form.setFieldValue('toPositionId', undefined);
+                          form.setFieldValue('toJobLevel', undefined);
+                          setToPosId(undefined);
+                        }}
                       />
                     </Form.Item>
                   </div>
@@ -287,9 +300,13 @@ const TransferFormModal: React.FC<TransferFormProps> = ({ open, onClose }) => {
                       <Select
                         placeholder="选择新职位（可选）"
                         size="large"
-                        options={positionOptions}
+                        options={positionOptions.filter((p) => !toDeptId || !p.departmentId || p.departmentId === toDeptId)}
                         allowClear
                         style={{ width: '100%' }}
+                        onChange={(v) => {
+                          setToPosId(v);
+                          form.setFieldValue('toJobLevel', undefined);
+                        }}
                       />
                     </Form.Item>
                   </div>
@@ -308,7 +325,16 @@ const TransferFormModal: React.FC<TransferFormProps> = ({ open, onClose }) => {
                       <Select
                         placeholder="选择新职级（可选）"
                         size="large"
-                        options={jobLevels.map((l) => ({ value: l, label: l }))}
+                        options={(() => {
+                          const pos = allPositions.find((p: any) => p.id === toPosId);
+                          if (!pos || pos.levelMin == null || pos.levelMax == null) return [];
+                          const prefix = pos.levelPrefix || 'P';
+                          const levels: { value: string; label: string }[] = [];
+                          for (let i = pos.levelMin; i <= pos.levelMax; i++) {
+                            levels.push({ value: `${prefix}${i}`, label: `${prefix}${i}` });
+                          }
+                          return levels;
+                        })()}
                         allowClear
                         style={{ width: '100%' }}
                       />

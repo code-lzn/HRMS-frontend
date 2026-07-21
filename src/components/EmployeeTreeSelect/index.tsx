@@ -19,6 +19,7 @@ const EmployeeTreeSelect: React.FC<EmployeeTreeSelectProps> = ({ excludeIds, ...
         const deptMap: Record<string, { title: string; value: string; children: any[] }> = {};
         employees.forEach((emp) => {
           if (excludeIds?.includes(emp.id)) return;
+          if (emp.status === 4) return; // 排除已离职
           const deptName = emp.departmentName || '未分配部门';
           if (!deptMap[deptName]) {
             deptMap[deptName] = { title: deptName, value: `dept_${deptName}`, children: [], selectable: false };

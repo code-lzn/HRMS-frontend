@@ -139,6 +139,7 @@ export default defineConfig({
       name: '我的工资条',
       path: '/salary/payslips',
       component: './salary/payslips',
+      hideInMenu: true,
       access: 'canViewPayslip',
     },
     {

@@ -1,12 +1,11 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Card, Tag, Button, message, Modal } from 'antd';
+import { Card, Tag, Button, message, Modal, Form, Select, DatePicker, Input } from 'antd';
 import dayjs from 'dayjs';
 import type { LeaveRecord } from '@/services/profile/typings';
 import { getLeaves, cancelLeave } from '@/services/profile';
-import { getBalancesUsingGet, submitDraftUsingPost, deleteDraftUsingDelete } from '@/api/leaveController';
+import { getBalancesUsingGet, submitDraftUsingPost, deleteDraftUsingDelete, submitLeaveRequestUsingPost } from '@/api/leaveController';
 import { PageContainer } from '@ant-design/pro-components';
 import { PlusOutlined } from '@ant-design/icons';
-import { useNavigate } from '@umijs/max';
 import ApprovalTimeline from '@/components/ApprovalTimeline';
 
 const BALANCE_COLORS: Record<string, { bg: string; bar: string; text: string }> = {
@@ -36,11 +35,13 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
 };
 
 export default function LeavesPage() {
-  const navigate = useNavigate();
   const [data, setData] = useState<LeaveRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [balances, setBalances] = useState<any[]>([]);
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const [leaveForm] = Form.useForm();
+  const [leaveSubmitting, setLeaveSubmitting] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -64,6 +65,31 @@ export default function LeavesPage() {
   }, []);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  const handleLeaveSubmit = async () => {
+    try {
+      const values = await leaveForm.validateFields();
+      setLeaveSubmitting(true);
+      const [start, end] = values.dateRange ?? [];
+      await submitLeaveRequestUsingPost({
+        leaveType: values.leaveType,
+        startTime: start.format('YYYY-MM-DDTHH:mm:ss'),
+        endTime: end.format('YYYY-MM-DDTHH:mm:ss'),
+        leaveDays: values.leaveDays,
+        reason: values.reason,
+        submitDirectly: true,
+      } as any);
+      message.success('请假申请已提交');
+      setLeaveOpen(false);
+      leaveForm.resetFields();
+      fetchData();
+    } catch (e: any) {
+      if (e?.errorFields) return;
+      message.error(e?.message || '提交失败');
+    } finally {
+      setLeaveSubmitting(false);
+    }
+  };
 
   const toggleExpand = (id: number) => {
     setExpandedIds((prev) => {
@@ -138,7 +164,7 @@ export default function LeavesPage() {
             key="apply"
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => navigate('/attendance/leave')}
+            onClick={() => setLeaveOpen(true)}
             style={{ background: '#3b82f6', borderColor: '#3b82f6', borderRadius: 8, padding: '6px 16px' }}
           >
             申请请假
@@ -309,6 +335,35 @@ export default function LeavesPage() {
         </div>
       </Card>
 
+      <Modal
+        title="申请请假"
+        open={leaveOpen}
+        onCancel={() => { setLeaveOpen(false); leaveForm.resetFields(); }}
+        onOk={handleLeaveSubmit}
+        confirmLoading={leaveSubmitting}
+        okText="提交"
+        cancelText="取消"
+        centered
+        destroyOnClose
+      >
+        <Form form={leaveForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item name="leaveType" label="请假类型" rules={[{ required: true, message: '请选择' }]}>
+            <Select options={[
+              { value: 3, label: '事假' }, { value: 2, label: '病假' }, { value: 1, label: '年假' },
+              { value: 4, label: '婚假' }, { value: 5, label: '产假' }, { value: 6, label: '丧假' }, { value: 7, label: '调休' },
+            ]} />
+          </Form.Item>
+          <Form.Item name="dateRange" label="请假时间" rules={[{ required: true, message: '请选择' }]}>
+            <DatePicker.RangePicker style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item name="leaveDays" label="请假天数" rules={[{ required: true, message: '请输入' }]}>
+            <Input type="number" min={0.5} max={365} step={0.5} placeholder="可填 0.5" />
+          </Form.Item>
+          <Form.Item name="reason" label="请假原因" rules={[{ required: true, message: '请输入' }]}>
+            <Input.TextArea rows={3} placeholder="请说明原因" maxLength={200} />
+          </Form.Item>
+        </Form>
+      </Modal>
     </PageContainer>
   );
 }
