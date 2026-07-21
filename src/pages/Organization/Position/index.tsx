@@ -11,9 +11,8 @@ import { Button, Card, Col, message, Modal, Row, Space, Tabs, Tag } from 'antd';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useModel } from '@umijs/max';
 import { hasPermission } from '@/utils/permission';
-import { COLORS, SEQUENCE_COLORS, SEQUENCE_STATS } from '../styles';
+import { COLORS, SEQUENCE_COLORS, SEQUENCE_DATA, SEQUENCE_STATS } from '../styles';
 import PositionFormModal from './components/PositionFormModal';
-import SequenceComparison from './components/SequenceComparison';
 
 /** 序列数值 → 编码映射 */
 const SEQ_CODE_MAP: Record<number, string> = { 1: 'M', 2: 'P', 3: 'S' };
@@ -33,6 +32,7 @@ const PositionPage: React.FC = () => {
 
   const actionRef = useRef<any>();
   const [activeTab, setActiveTab] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
   const [positions, setPositions] = useState<API.PositionVO[]>([]);
   const [loading, setLoading] = useState(false);
   const [sequences, setSequences] = useState<API.SequenceLevelVO[]>([]);
@@ -60,6 +60,7 @@ const PositionPage: React.FC = () => {
   };
 
   useEffect(() => {
+    setCurrentPage(1);
     fetchData();
   }, [activeTab]);
 
@@ -100,6 +101,7 @@ const PositionPage: React.FC = () => {
         try {
           await deletePositionUsingPost({ id: record.id });
           message.success('删除成功');
+          setCurrentPage(1);
           fetchData();
         } catch (e: any) {
           message.error(e.message ?? '删除失败');
@@ -281,10 +283,30 @@ const PositionPage: React.FC = () => {
               <div style={{ fontSize: 14, color: COLORS.textPrimary, fontWeight: 500, marginTop: 8 }}>
                 {stat.name}
               </div>
-              <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <span style={{ fontSize: 12, color: COLORS.textMuted }}>
                   职级范围：{stat.levelRange}
                 </span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                  {(() => {
+                    const seqInfo = SEQUENCE_DATA[stat.code as keyof typeof SEQUENCE_DATA];
+                    return seqInfo?.levels.map((level) => (
+                      <Tag
+                        key={level}
+                        style={{
+                          fontSize: 10, lineHeight: '18px', padding: '0 6px',
+                          borderRadius: 4, margin: 0,
+                          background: stat.lightBg,
+                          color: stat.color,
+                          border: `1px solid ${stat.color}33`,
+                        }}
+                        title={seqInfo.levelLabels?.[level] ?? level}
+                      >
+                        {level}
+                      </Tag>
+                    ));
+                  })()}
+                </div>
                 <span style={{ fontSize: 12, color: COLORS.textMuted }}>
                   {({ M: '负责管理团队与业务决策', P: '负责专业技术与创新研发', S: '提供职能支持与后勤保障' })[stat.code] ?? ''}
                 </span>
@@ -321,8 +343,10 @@ const PositionPage: React.FC = () => {
           search={false}
           loading={loading}
           pagination={{
+            current: currentPage,
             pageSize: 10,
             showSizeChanger: false,
+            onChange: (page) => setCurrentPage(page),
             showTotal: (total) => `共 ${total} 条`,
           }}
           toolBarRender={false}
@@ -330,9 +354,6 @@ const PositionPage: React.FC = () => {
           style={{ padding: '0 4px' }}
         />
       </Card>
-
-      {/* ===== 序列职级对照表 ===== */}
-      <SequenceComparison />
 
       {/* ===== 新增/编辑职位弹窗 ===== */}
       <PositionFormModal
