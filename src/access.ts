@@ -23,10 +23,20 @@ export default (initialState?: {
     isEmployee: role === 'user',
 
     // ========== 页面/菜单可见性 ==========
-    /** 可查看员工档案模块（所有登录用户） */
-    canSeeEmployees: !!initialState?.currentUser,
+    /** 可查看员工档案模块（管理员/HR/部门主管） */
+    canSeeEmployees:
+      role === 'admin' || role === 'hr' || role === 'dept_head',
+    /** 可查看组织架构（管理员/HR/部门主管） */
+    canSeeOrganization:
+      role === 'admin' || role === 'hr' || role === 'dept_head',
     /** 可管理组织架构（仅 HR 和系统管理员） */
     canManageOrganization: role === 'admin' || role === 'hr',
+    /** 可查看入转调离管理（管理员/HR/部门主管） */
+    canSeeHRChange:
+      role === 'admin' || role === 'hr' || role === 'dept_head',
+    /** 可管理考勤设置（考勤组/统计/加班/工作日） */
+    canManageAttendance:
+      role === 'admin' || role === 'hr' || role === 'dept_head',
 
     // ========== 功能权限 ==========
     /** 可导出员工列表 */
