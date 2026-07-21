@@ -117,7 +117,7 @@ const OvertimeManagement: React.FC = () => {
   };
 
   // ---- 列表 ----
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ['overtime', 'records', filterEmployeeId, filterIsUsed],
     queryFn: async () =>
       queryRecordsUsingGet1({
@@ -129,6 +129,8 @@ const OvertimeManagement: React.FC = () => {
   });
   const raw = (data as any)?.data?.records;
   const list: OvertimeRow[] = Array.isArray(raw) ? raw : [];
+  const queryErr = error as any;
+  const isPermissionError = queryErr?.code === 40101;
 
   // 筛选搜索
   const handleSearch = useCallback(() => {
@@ -415,9 +417,13 @@ const OvertimeManagement: React.FC = () => {
           locale={{
             emptyText: isError ? (
               <Result
-                status="error"
-                title="加载失败"
-                subTitle="请检查后端服务"
+                status={isPermissionError ? '403' : 'error'}
+                title={isPermissionError ? '无权限' : '加载失败'}
+                subTitle={
+                  isPermissionError
+                    ? '您没有权限查看加班记录，请联系管理员'
+                    : '请检查后端服务'
+                }
               />
             ) : (
               <Empty description="暂无加班记录" />
