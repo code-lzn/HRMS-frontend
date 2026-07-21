@@ -16,6 +16,7 @@ interface SalaryContractSectionProps {
   flowRequiredFields: string[];
   initialValues: Record<string, any>;
   form: any;
+  style?: React.CSSProperties;
 }
 
 const SalaryContractSection: React.FC<SalaryContractSectionProps> = ({
@@ -23,6 +24,7 @@ const SalaryContractSection: React.FC<SalaryContractSectionProps> = ({
   flowRequiredFields,
   initialValues,
   form,
+  style,
 }) => {
   const isEditable = (field: string) => editableFields.includes(field);
   const isLocked = (field: string) => flowRequiredFields.includes(field);
@@ -36,8 +38,8 @@ const SalaryContractSection: React.FC<SalaryContractSectionProps> = ({
     : 80;
 
   return (
-    <Card title="薪资与合同（HR可见）" style={{ borderRadius: 12 }}>
-      <Form layout="vertical">
+    <Card title="薪资与合同（HR可见）" style={{ borderRadius: 12, ...style }}>
+      <Form form={form} layout="vertical" initialValues={initialValues}>
         <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
           <Form.Item
             name="contractType"

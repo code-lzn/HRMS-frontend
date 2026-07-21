@@ -10,6 +10,8 @@ import { queryKeys } from './queryKeys';
 export function buildTree(
   flatList: API.DepartmentTreeNode[],
 ): API.DepartmentTreeNode[] {
+  if (flatList.length === 0) return [];
+
   // parentId → 子节点列表
   const childrenMap = new Map<number | null, API.DepartmentTreeNode[]>();
   for (const node of flatList) {
@@ -24,7 +26,6 @@ export function buildTree(
   function assemble(pid: number | null): API.DepartmentTreeNode[] {
     const siblings = childrenMap.get(pid);
     if (!siblings || siblings.length === 0) return [];
-    // sortOrder 升序（后端已排，这里二次保险）
     siblings.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
     return siblings.map((n) => ({
       ...n,
@@ -32,7 +33,24 @@ export function buildTree(
     }));
   }
 
-  return assemble(null);
+  // 先尝试从根节点构建
+  const rootNodes = assemble(null);
+  if (rootNodes.length > 0) return rootNodes;
+
+  // 无根节点（如部门主管只看到子部门）：找出 parentId 不在列表中的节点，从其 parentId 开始组装
+  const idSet = new Set(flatList.map((n) => n.id!));
+  const virtualRoots = new Set<number | null>();
+  for (const n of flatList) {
+    if (n.parentId !== null && !idSet.has(n.parentId)) {
+      virtualRoots.add(n.parentId);
+    }
+  }
+  const result: API.DepartmentTreeNode[] = [];
+  for (const pid of virtualRoots) {
+    result.push(...assemble(pid));
+  }
+  result.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  return result;
 }
 
 /**

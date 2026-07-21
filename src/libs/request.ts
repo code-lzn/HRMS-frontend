@@ -1,24 +1,12 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { mockPositions, paginate } from './mockData';
 
-// 后端基础地址：dev 指向本地后端（需后端开启 CORS），prod 指向线上
-// 注意：utoopack 在 dev 模式下 process.env.NODE_ENV 也会是 'production'，
-// 所以这里不能用 NODE_ENV 区分，必须用显式的 REACT_APP_ENV
-const DEV_BASE_URL = 'http://localhost:8123';
-const PROD_BASE_URL = '';
-const BASE_URL =
-  process.env.REACT_APP_ENV === 'production' ? PROD_BASE_URL : DEV_BASE_URL;
-
-console.log(
-  '[request.ts] REACT_APP_ENV =',
-  process.env.REACT_APP_ENV,
-  'BASE_URL =',
-  BASE_URL,
-);
+// 后端基础地址
+const BASE_URL = 'http://localhost:8123';
 
 const myAxios = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000, // 10s 超时，便于快速发现错误
+  timeout: 25000, // 25s 超时
   withCredentials: true,
 });
 
@@ -131,7 +119,9 @@ myAxios.interceptors.response.use(
         } catch {}
         // 用 pathname+search 代替 href，避免登录后 navigate 误将完整 URL 当相对路径
         const redirectPath = window.location.pathname + window.location.search;
-        window.location.href = `/user/login?redirect=${encodeURIComponent(redirectPath)}`;
+        window.location.href = `/user/login?redirect=${encodeURIComponent(
+          redirectPath,
+        )}`;
       }
     } else if (data?.code !== 0) {
       const err: any = new Error(data?.message ?? '服务器错误');

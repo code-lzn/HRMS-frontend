@@ -393,30 +393,45 @@ export async function getMonthlyTrendUsingGet(options?: {
   );
 }
 
-/** getDepartmentDistribution GET /api/v1/salary-statistics/department-distribution */
-export async function getDepartmentDistributionUsingGet(options?: {
-  [key: string]: any;
-}) {
+/** getDepartmentDistribution GET /api/salary-statistics/department-distribution */
+export async function getDepartmentDistributionUsingGet(
+  params?: { salaryMonth?: string },
+  options?: { [key: string]: any },
+) {
   return request<API.BaseResponseListMapStringObject_>(
     `${BASE}/salary-statistics/department-distribution`,
-    { method: 'GET', ...(options || {}) },
+    { method: 'GET', params, ...(options || {}) },
   );
 }
 
-/** getComposition GET /api/v1/salary-statistics/composition */
-export async function getCompositionUsingGet(options?: { [key: string]: any }) {
+/** getComposition GET /api/salary-statistics/composition */
+export async function getCompositionUsingGet(
+  params?: { salaryMonth?: string },
+  options?: { [key: string]: any },
+) {
   return request<API.BaseResponseListMapStringObject_>(
     `${BASE}/salary-statistics/composition`,
-    { method: 'GET', ...(options || {}) },
+    { method: 'GET', params, ...(options || {}) },
   );
 }
 
-/** getVariationDistribution GET /api/v1/salary-statistics/variation-distribution */
-export async function getVariationDistributionUsingGet(options?: {
-  [key: string]: any;
-}) {
+/** getVariationDistribution GET /api/salary-statistics/variation-distribution */
+export async function getVariationDistributionUsingGet(
+  params?: { salaryMonth?: string },
+  options?: { [key: string]: any },
+) {
   return request<API.BaseResponseListMapStringObject_>(
     `${BASE}/salary-statistics/variation-distribution`,
+    { method: 'GET', params, ...(options || {}) },
+  );
+}
+
+/** getAvailableMonths GET /api/salary-statistics/available-months */
+export async function getAvailableMonthsUsingGet(options?: {
+  [key: string]: any;
+}) {
+  return request<{ code?: number; data?: string[]; message?: string }>(
+    `${BASE}/salary-statistics/available-months`,
     { method: 'GET', ...(options || {}) },
   );
 }

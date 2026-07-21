@@ -10,10 +10,8 @@ export default defineConfig({
     title: 'HRMS',
   },
   routes: [
-    { path: '/', redirect: '/employees' },
+    { path: '/', redirect: '/home' },
     { name: '首页', path: '/home', component: './Home' },
-    { name: '权限演示', path: '/access', component: './Access' },
-    { name: ' CRUD 示例', path: '/table', component: './Table' },
     // ========== 审批中心 ==========
     {
       name: '审批中心',
@@ -254,25 +252,6 @@ export default defineConfig({
         { name: '修改密码', path: '/profile/security/password', component: './Profile/Security/Password', hideInMenu: true },
         { name: '修改手机号', path: '/profile/security/phone', component: './Profile/Security/Phone', hideInMenu: true },
       ],
-    },
-    // ========== 原有页面 ==========
-    {
-      name: '首页',
-      path: '/home',
-      component: './Home',
-      access: 'canSeeEmployees',
-    },
-    {
-      name: '权限演示',
-      path: '/access',
-      component: './Access',
-      access: 'canSeeEmployees',
-    },
-    {
-      name: ' CRUD 示例',
-      path: '/table',
-      component: './Table',
-      access: 'canSeeEmployees',
     },
     {
       name: '用户登录',

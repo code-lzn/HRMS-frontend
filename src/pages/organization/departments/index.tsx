@@ -19,7 +19,6 @@ const DepartmentManagement: React.FC = () => {
   const [modalDeptId, setModalDeptId] = useState<number | undefined>();
   const [modalParentId, setModalParentId] = useState<number | undefined>();
   const [modalExcludeIds, setModalExcludeIds] = useState<number[]>([]);
-  const [siderCollapsed, setSiderCollapsed] = useState(false);
 
   const handleSelect = useCallback((id: number) => {
     setSelectedId(id);
@@ -66,10 +65,6 @@ const DepartmentManagement: React.FC = () => {
       >
         <Sider
           width={300}
-          collapsedWidth={0}
-          collapsible
-          collapsed={siderCollapsed}
-          onCollapse={setSiderCollapsed}
           theme="light"
           style={{
             borderRight: '1px solid #f0f0f0',

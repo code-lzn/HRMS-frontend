@@ -2,7 +2,6 @@ import { updateEmployeeUsingPut } from '@/api/employeeController';
 import { queryKeys } from '@/hooks/queryKeys';
 import { useEmployeeDetail } from '@/hooks/useEmployeeDetail';
 import { useFieldPermissions } from '@/hooks/useFieldPermissions';
-import { UserOutlined } from '@ant-design/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { history, useAccess, useParams } from '@umijs/max';
 import { Avatar, Button, Card, Form, message, Modal, Result, Spin } from 'antd';
@@ -22,6 +21,29 @@ const EmployeeEdit: React.FC = () => {
   const { data: employee, isLoading, isError } = useEmployeeDetail(employeeId);
   const { data: permissions } = useFieldPermissions();
 
+  // 将后端 LocalDate 序列化值转为字符串（兼容数组格式 [1990,6,15]、字符串格式、null）
+  const toDateStr = (v: any): string | undefined => {
+    if (!v) return undefined;
+    if (typeof v === 'string') return v;
+    if (Array.isArray(v) && v.length === 3) {
+      return `${v[0]}-${String(v[1]).padStart(2, '0')}-${String(v[2]).padStart(
+        2,
+        '0',
+      )}`;
+    }
+    const d = dayjs(v);
+    if (d.isValid()) return d.format('YYYY-MM-DD');
+    return undefined;
+  };
+
+  // 转为 dayjs 对象（DatePicker 需要 dayjs，字符串会报 date.isValid is not a function）
+  const toDayjs = (v: any): any | undefined => {
+    const s = toDateStr(v);
+    if (!s) return undefined;
+    const d = dayjs(s);
+    return d.isValid() ? d : undefined;
+  };
+
   const initialValues = useMemo(() => {
     if (!employee) return {};
     return {
@@ -30,7 +52,7 @@ const EmployeeEdit: React.FC = () => {
       phone: employee.personalInfo?.phone,
       email: employee.personalInfo?.email,
       idCard: employee.personalInfo?.idCard,
-      birthday: employee.personalInfo?.birthday,
+      birthday: toDayjs(employee.personalInfo?.birthday),
       registeredAddress: employee.personalInfo?.registeredAddress,
       currentAddress: employee.personalInfo?.currentAddress,
       emergencyContactName: employee.personalInfo?.emergencyContactName,
@@ -39,10 +61,9 @@ const EmployeeEdit: React.FC = () => {
       positionName: employee.workInfo?.positionName,
       jobLevel: employee.workInfo?.jobLevel,
       directReportName: employee.workInfo?.directReportName,
-      workLocation: employee.workInfo?.workLocation,
       hireType: employee.hireType,
       contractType: employee.salaryInfo?.contractType,
-      contractExpireDate: employee.salaryInfo?.contractExpireDate,
+      contractExpireDate: toDayjs(employee.salaryInfo?.contractExpireDate),
       probationRatio: employee.salaryInfo?.probationRatio,
       baseSalary: employee.salaryInfo?.baseSalary,
       bankAccount: employee.salaryInfo?.bankAccount,
@@ -93,7 +114,9 @@ const EmployeeEdit: React.FC = () => {
         // idCard 不在后端 EmployeeUpdateRequest DTO 中，跳过
         if (key === 'idCard') return;
         const normalized = normalizeValue(values[key]);
-        if (init[key] !== normalized) {
+        // init 中的日期是 dayjs 对象，也要归一化为字符串才能比较
+        const initNormalized = normalizeValue(init[key]);
+        if (initNormalized !== normalized) {
           dirtyFields[key] = normalized ?? null;
         }
       });
@@ -135,7 +158,6 @@ const EmployeeEdit: React.FC = () => {
                 'positionName',
                 'jobLevel',
                 'directReportName',
-                'workLocation',
                 'hireType',
               ].includes(key)
             ) {
@@ -173,10 +195,10 @@ const EmployeeEdit: React.FC = () => {
         content: '您有未保存的修改，确定要离开吗？',
         okText: '确定离开',
         cancelText: '继续编辑',
-        onOk: () => history.push(`/employees/${employeeId}`),
+        onOk: () => history.push('/employees'),
       });
     } else {
-      history.push(`/employees/${employeeId}`);
+      history.push('/employees');
     }
   };
 
@@ -193,9 +215,14 @@ const EmployeeEdit: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <Avatar
               size={64}
-              icon={<UserOutlined />}
-              style={{ backgroundColor: '#f0f0f0', color: '#999' }}
-            />
+              style={{
+                backgroundColor: '#1677ff',
+                fontSize: 28,
+                fontWeight: 700,
+              }}
+            >
+              {(employee.personalInfo?.name || '?').charAt(0)}
+            </Avatar>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <h1 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>
@@ -216,18 +243,19 @@ const EmployeeEdit: React.FC = () => {
         </div>
       </Card>
 
-      <div style={{ display: 'flex', gap: 24 }}>
-        <div style={{ flex: 1 }}>
+      <div style={{ display: 'flex', gap: 24, alignItems: 'stretch' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <PersonalInfoSection
             editableFields={editableFields}
             flowRequiredFields={flowRequiredFields}
             initialValues={initialValues}
             form={form}
+            style={{ flex: 1 }}
           />
         </div>
 
-        <div style={{ flex: 1 }}>
-          <WorkInfoSection initialValues={initialValues} />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <WorkInfoSection initialValues={initialValues} style={{ flex: 1 }} />
 
           {showSalarySection && (
             <SalaryContractSection
@@ -235,6 +263,7 @@ const EmployeeEdit: React.FC = () => {
               flowRequiredFields={flowRequiredFields}
               initialValues={initialValues}
               form={form}
+              style={{ flex: 1 }}
             />
           )}
         </div>

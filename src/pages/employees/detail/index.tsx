@@ -6,17 +6,11 @@ import {
   HIRE_TYPE_MAP,
 } from '@/constants/enums';
 import { useEmployeeDetail } from '@/hooks/useEmployeeDetail';
-import { ArrowLeftOutlined, UserOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 import { history, useAccess, useParams } from '@umijs/max';
 import { Button, Card, Descriptions, Result, Spin } from 'antd';
 import dayjs from 'dayjs';
 import React, { useState } from 'react';
-
-const LEVEL_COLORS: Record<string, { color: string; bg: string }> = {
-  M: { color: '#722ed1', bg: '#f9f0ff' },
-  P: { color: '#1677ff', bg: '#e6f4ff' },
-  S: { color: '#52c41a', bg: '#f6ffed' },
-};
 
 const EmployeeDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -48,7 +42,6 @@ const EmployeeDetail: React.FC = () => {
     );
   }
 
-  const canEdit = access.canEditAnyEmployee || access.isEmployee;
   const canViewSensitive = access.isAdmin || access.isHR;
 
   const getSeniority = (hireDate?: string) => {
@@ -69,27 +62,6 @@ const EmployeeDetail: React.FC = () => {
 
   const formatDate = (date?: string) => {
     return date ? dayjs(date).format('YYYY-MM-DD') : '-';
-  };
-
-  const renderJobLevelTag = (level?: string) => {
-    if (!level) return null;
-    const prefix = level.charAt(0).toUpperCase();
-    const c = LEVEL_COLORS[prefix] ?? { color: '#595959', bg: '#fafafa' };
-    return (
-      <span
-        style={{
-          marginLeft: 8,
-          padding: '1px 8px',
-          borderRadius: 4,
-          fontSize: 12,
-          fontWeight: 600,
-          color: c.color,
-          background: c.bg,
-        }}
-      >
-        {level}
-      </span>
-    );
   };
 
   return (
@@ -115,14 +87,16 @@ const EmployeeDetail: React.FC = () => {
                 width: 80,
                 height: 80,
                 borderRadius: 50,
-                backgroundColor: '#f0f0f0',
+                backgroundColor: '#1677ff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                overflow: 'hidden',
+                fontSize: 32,
+                fontWeight: 700,
+                color: '#fff',
               }}
             >
-              <UserOutlined style={{ fontSize: 36, color: '#999' }} />
+              {(employee.personalInfo?.name || '?').charAt(0)}
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -144,7 +118,6 @@ const EmployeeDetail: React.FC = () => {
                 <span>{employee.employeeNo}</span>
                 <span>{employee.workInfo?.departmentName}</span>
                 <span>{employee.workInfo?.positionName}</span>
-                {renderJobLevelTag(employee.workInfo?.jobLevel)}
               </div>
               <div
                 style={{
@@ -158,19 +131,8 @@ const EmployeeDetail: React.FC = () => {
               >
                 <span>入职 {formatDate(employee.hireDate)}</span>
                 <span>工龄 {getSeniority(employee.hireDate)}</span>
-                <span>工作地 {employee.workInfo?.workLocation || '-'}</span>
               </div>
             </div>
-          </div>
-          <div style={{ display: 'flex', gap: 12 }}>
-            {canEdit && (
-              <Button
-                onClick={() => history.push(`/employees/${employeeId}/edit`)}
-              >
-                编辑档案
-              </Button>
-            )}
-            <Button type="primary">发起调岗</Button>
           </div>
         </div>
 
@@ -389,9 +351,6 @@ const EmployeeDetail: React.FC = () => {
               ) : (
                 '-'
               )}
-            </Descriptions.Item>
-            <Descriptions.Item label="工作地点">
-              {employee.workInfo?.workLocation || '-'}
             </Descriptions.Item>
             <Descriptions.Item label="入职类型">
               {HIRE_TYPE_MAP[employee.hireType!] || '-'}

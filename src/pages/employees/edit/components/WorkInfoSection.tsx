@@ -5,11 +5,15 @@ import React from 'react';
 
 interface WorkInfoSectionProps {
   initialValues: Record<string, any>;
+  style?: React.CSSProperties;
 }
 
-const WorkInfoSection: React.FC<WorkInfoSectionProps> = ({ initialValues }) => {
+const WorkInfoSection: React.FC<WorkInfoSectionProps> = ({
+  initialValues,
+  style,
+}) => {
   return (
-    <Card title="工作信息" style={{ borderRadius: 12, marginBottom: 24 }}>
+    <Card title="工作信息" style={{ borderRadius: 12, ...style }}>
       <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
         <div style={{ flex: 1 }}>
           <div
@@ -70,25 +74,6 @@ const WorkInfoSection: React.FC<WorkInfoSectionProps> = ({ initialValues }) => {
           </div>
           <LockedField
             value={initialValues.directReportName || ''}
-            tooltip="修改需走调岗流程"
-          />
-        </div>
-        <div style={{ flex: 1 }}>
-          <div
-            style={{
-              marginBottom: 8,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            <span style={{ fontWeight: 500 }}>工作地点</span>
-            <Tag color="orange" style={{ fontSize: 10 }}>
-              需调岗流程
-            </Tag>
-          </div>
-          <LockedField
-            value={initialValues.workLocation || ''}
             tooltip="修改需走调岗流程"
           />
         </div>

@@ -52,7 +52,7 @@ const BatchDetailPage: React.FC = () => {
       switch (action) {
         case 'calculate':
           await executeCalculateUsingPost(bId);
-          message.info('计算任务已提交，请稍后刷新查看结果');
+          message.success('计算完成');
           break;
         case 'submit':
           await submitForApprovalUsingPut(bId);
