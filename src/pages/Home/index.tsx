@@ -1,9 +1,6 @@
 import { getPendingCount } from '@/api/approvalController';
 import { getEmployeeListUsingGet } from '@/api/employeeController';
-import {
-  getDepartmentDistributionUsingGet,
-  getMonthlyTrendUsingGet,
-} from '@/api/salaryController';
+import { getDepartmentDistributionUsingGet } from '@/api/salaryController';
 import {
   AuditOutlined,
   BarChartOutlined,
@@ -17,7 +14,7 @@ import {
 } from '@ant-design/icons';
 import { PageContainer } from '@ant-design/pro-components';
 import { history, useModel } from '@umijs/max';
-import { Card, Col, Row, Statistic, Table, Tag } from 'antd';
+import { Card, Col, Row, Tag } from 'antd';
 import dayjs from 'dayjs';
 import React, { useEffect, useState } from 'react';
 import './index.less';
@@ -26,7 +23,6 @@ interface DashboardStats {
   totalEmployees: number;
   pendingApprovals: number;
   departmentCount: number;
-  monthlyNewHires: number;
 }
 
 const greeting = () => {
@@ -45,14 +41,7 @@ const HomePage: React.FC = () => {
     totalEmployees: 0,
     pendingApprovals: 0,
     departmentCount: 0,
-    monthlyNewHires: 0,
   });
-  const [deptDist, setDeptDist] = useState<
-    { name: string; count: number }[]
-  >([]);
-  const [salaryTrend, setSalaryTrend] = useState<
-    { month: string; amount: number }[]
-  >([]);
 
   useEffect(() => {
     // 员工总数
@@ -73,25 +62,12 @@ const HomePage: React.FC = () => {
       })
       .catch(() => {});
 
-    // 部门分布
+    // 部门数
     getDepartmentDistributionUsingGet()
       .then((res) => {
         const data = res?.data as any;
         if (Array.isArray(data)) {
-          setDeptDist(data);
           setStats((s) => ({ ...s, departmentCount: data.length }));
-        }
-      })
-      .catch(() => {});
-
-    // 薪资趋势
-    getMonthlyTrendUsingGet()
-      .then((res) => {
-        const data = res?.data as any;
-        if (Array.isArray(data)) {
-          setSalaryTrend(data.slice(-6));
-        } else if (data?.records) {
-          setSalaryTrend(data.records.slice(-6));
         }
       })
       .catch(() => {});
@@ -204,20 +180,6 @@ const HomePage: React.FC = () => {
     },
   ];
 
-  const deptColumns = [
-    { title: '部门', dataIndex: 'name', key: 'name' },
-    {
-      title: '人数',
-      dataIndex: 'count',
-      key: 'count',
-      width: 80,
-      align: 'right' as const,
-      render: (v: number) => (
-        <span style={{ fontWeight: 600 }}>{v}</span>
-      ),
-    },
-  ];
-
   return (
     <PageContainer
       header={{
@@ -308,9 +270,9 @@ const HomePage: React.FC = () => {
         ))}
       </Row>
 
-      {/* 快捷操作 + 数据面板 */}
+      {/* 快捷操作 */}
       <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
-        <Col xs={24} lg={14}>
+        <Col xs={24}>
           <Card title="快捷功能" className="quick-actions-card">
             <Row gutter={[12, 12]}>
               {quickActions.map((action) => (
@@ -337,27 +299,6 @@ const HomePage: React.FC = () => {
                 </Col>
               ))}
             </Row>
-          </Card>
-        </Col>
-        <Col xs={24} lg={10}>
-          <Card title="部门人员分布" className="dept-card">
-            {deptDist.length > 0 ? (
-              <Table
-                rowKey="name"
-                dataSource={deptDist}
-                columns={deptColumns}
-                pagination={false}
-                size="small"
-                showHeader={false}
-              />
-            ) : (
-              <div className="empty-placeholder">
-                <BarChartOutlined
-                  style={{ fontSize: 32, color: '#d9d9d9', marginBottom: 12 }}
-                />
-                <p style={{ color: '#bbb' }}>暂无数据</p>
-              </div>
-            )}
           </Card>
         </Col>
       </Row>
