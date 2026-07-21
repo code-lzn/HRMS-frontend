@@ -34,9 +34,7 @@ const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
       try {
         const res = await getEmployeeSalaryHistoryUsingGet({ employeeId });
         setData((res as any)?.data ?? []);
-      } catch {
-        setData([]);
-      } finally {
+      } catch (e) { console.error('pages/SalaryManage/Employee/components/HistoryDrawer.tsx', e); setData([]); } finally {
         setLoading(false);
       }
     })();

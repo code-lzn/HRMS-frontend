@@ -69,9 +69,7 @@ const AccountDetailDrawer: React.FC<AccountDetailDrawerProps> = ({
       try {
         const res = await getAccountDetailUsingGet({ id: accountId });
         setAccount((res as any)?.data ?? null);
-      } catch {
-        // ignore
-      } finally {
+      } catch (e) { console.error('pages/SalaryManage/Account/components/AccountDetailDrawer.tsx', e); } finally {
         setLoading(false);
       }
     })();

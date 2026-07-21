@@ -70,9 +70,7 @@ const EmployeeAddPage: React.FC = () => {
         value: e.id!,
         label: `${e.employeeName}（${e.employeeNo}）`,
       })));
-    } catch {
-      setEmployeeOptions([]);
-    } finally {
+    } catch (e) { console.error('pages/Employee/Add/index.tsx', e); setEmployeeOptions([]); } finally {
       setEmployeeLoading(false);
     }
   }, []);
@@ -100,7 +98,7 @@ const EmployeeAddPage: React.FC = () => {
       }
       // 加载部门负责人候选
       fetchManagerCandidates();
-    } catch { /* silent */ } finally {
+    } catch (e) { console.error('pages/Employee/Add/index.tsx', e);  /* silent */ } finally {
       setLoading(false);
     }
   }, []);

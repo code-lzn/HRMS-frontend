@@ -15,9 +15,7 @@ const GlobalHeader: React.FC = () => {
   const handleLogout = async () => {
     try {
       await userLogoutUsingPost();
-    } catch {
-      // ignore
-    }
+    } catch (e) { console.error('components/GlobalHeader/index.tsx', e); }
     window.location.href = '/user/login';
   };
 

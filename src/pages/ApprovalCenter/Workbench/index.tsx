@@ -1,4 +1,4 @@
-import { getPendingListUsingGet } from '@/api/approvalController';
+import { getApprovedListUsingGet, getPendingListUsingGet } from '@/api/approvalController';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { useNavigate } from '@umijs/max';
@@ -16,7 +16,7 @@ const TYPE_COLOR: Record<string, string> = {
   SALARY_BATCH: 'gold',
 };
 
-const FILTER_OPTIONS = ['全部', '入职', '转正', '调岗', '离职', '请假', '补卡', '薪资'];
+const FILTER_OPTIONS = ['全部', '入职', '转正', '调岗', '离职', '请假', '补卡', '薪资','加班'];
 
 /** Segmented 值 → businessType */
 const FILTER_TYPE_MAP: Record<string, string | undefined> = {
@@ -27,11 +27,13 @@ const FILTER_TYPE_MAP: Record<string, string | undefined> = {
   '请假': 'LEAVE',
   '补卡': 'PATCH_CLOCK',
   '薪资': 'SALARY_BATCH',
+  '加班': 'OVERTIME'
 };
 
 const ApprovalWorkbench: React.FC = () => {
   const navigate = useNavigate();
   const actionRef = useRef<ActionType>();
+  const [tab, setTab] = useState<string>('待审批');
   const [typeFilter, setTypeFilter] = useState<string>('全部');
 
   const columns: ProColumns<API.ApprovalPendingVO>[] = [
@@ -55,16 +57,25 @@ const ApprovalWorkbench: React.FC = () => {
       dataIndex: 'currentNodeName',
       width: 180,
       ellipsis: true,
+      render: (_, r) => {
+        if (tab === '已审批') return (r as any).nodeName || '-';
+        return r.currentNodeName || '-';
+      },
     },
     {
-      title: '发起时间',
+      title: tab === '已审批' ? '审批时间' : '发起时间',
       dataIndex: 'applyTime',
       width: 180,
       defaultSortOrder: 'descend',
-      sorter: (a, b) =>
-        dayjs(a.applyTime).valueOf() - dayjs(b.applyTime).valueOf(),
-      render: (_, r) =>
-        r.applyTime ? dayjs(r.applyTime).format('YYYY-MM-DD HH:mm') : '-',
+      sorter: (a, b) => {
+        const ta = tab === '已审批' ? (a as any).operateTime : a.applyTime;
+        const tb = tab === '已审批' ? (b as any).operateTime : b.applyTime;
+        return dayjs(ta).valueOf() - dayjs(tb).valueOf();
+      },
+      render: (_, r) => {
+        const t = tab === '已审批' ? (r as any).operateTime : r.applyTime;
+        return t ? dayjs(t).format('YYYY-MM-DD HH:mm') : '-';
+      },
     },
     {
       title: '操作',
@@ -86,29 +97,38 @@ const ApprovalWorkbench: React.FC = () => {
 
   return (
     <ProTable<API.ApprovalPendingVO>
-      headerTitle="待审批"
+      headerTitle={
+        <Segmented
+          options={['待审批', '已审批']}
+          value={tab}
+          onChange={(val) => {
+            setTab(val as string);
+            actionRef.current?.reload();
+          }}
+        />
+      }
       actionRef={actionRef}
       columns={columns}
       request={async () => {
         try {
-          const res = await getPendingListUsingGet();
+          const isApproved = tab === '已审批';
+          const res = isApproved
+            ? await getApprovedListUsingGet()
+            : await getPendingListUsingGet();
           let data = res?.data ?? [];
-          // 按类型筛选
           if (typeFilter !== '全部') {
             const targetType = FILTER_TYPE_MAP[typeFilter];
             data = data.filter((item) => item.businessType === targetType);
           }
-          // 按申请时间倒序
           data.sort(
             (a, b) =>
               dayjs(b.applyTime).valueOf() - dayjs(a.applyTime).valueOf(),
           );
           return { data, success: true, total: data.length };
-        } catch {
-          return { data: [], success: false };
+        } catch (e) { console.error('pages/ApprovalCenter/Workbench/index.tsx', e); return { data: [], success: false };
         }
       }}
-      params={{ typeFilter }}
+      params={{ tab, typeFilter }}
       rowKey="recordId"
       search={false}
       toolbar={{

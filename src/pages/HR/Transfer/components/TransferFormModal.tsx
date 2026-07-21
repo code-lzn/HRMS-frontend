@@ -36,7 +36,7 @@ const TransferFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }) 
         label: `${e.employeeName} (${e.employeeNo || '-'})`,
         value: e.id,
       })));
-    } catch { setEmpList([]); }
+    } catch (e) { console.error('pages/HR/Transfer/components/TransferFormModal.tsx', e); setEmpList([]); }
   };
 
   const fetchDeptList = async () => {
@@ -52,7 +52,7 @@ const TransferFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }) 
         return result;
       };
       setDeptList(flatten(data));
-    } catch { setDeptList([]); }
+    } catch (e) { console.error('pages/HR/Transfer/components/TransferFormModal.tsx', e); setDeptList([]); }
   };
 
   const fetchPosList = async () => {
@@ -60,7 +60,7 @@ const TransferFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }) 
       const res = await listPositionsUsingGet({});
       const data = res?.data ?? [];
       setPosList(data.map((p: any) => ({ label: p.name, value: p.id })));
-    } catch { setPosList([]); }
+    } catch (e) { console.error('pages/HR/Transfer/components/TransferFormModal.tsx', e); setPosList([]); }
   };
 
   const handleEmpChange = async (empId: number) => {
@@ -70,7 +70,7 @@ const TransferFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }) 
       const detailRes = await getDetailUsingGet({ id: empId });
       const emp = detailRes?.data;
       setSelectedEmp(emp ?? null);
-    } catch { setSelectedEmp(null); }
+    } catch (e) { console.error('pages/HR/Transfer/components/TransferFormModal.tsx', e); setSelectedEmp(null); }
   };
 
   useEffect(() => {

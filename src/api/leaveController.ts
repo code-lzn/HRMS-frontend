@@ -34,21 +34,6 @@ export async function applyUsingPost(
   });
 }
 
-/** approve POST /api/attendance/leave/approve */
-export async function approveUsingPost1(
-  body: API.ApprovalRequest,
-  options?: { [key: string]: any },
-) {
-  return request<API.BaseResponseLeaveVO_>('/api/attendance/leave/approve', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    data: body,
-    ...(options || {}),
-  });
-}
-
 /** getBalance GET /api/attendance/leave/balance */
 export async function getBalanceUsingGet(options?: { [key: string]: any }) {
   return request<API.BaseResponseLeaveBalanceVO_>(

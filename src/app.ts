@@ -32,14 +32,14 @@ export async function getInitialState() {
     1: 'admin', 2: 'hr', 3: 'dept_head', 4: 'finance', 5: 'employee',
   };
   const ROLE_DEFAULT_PERMISSIONS: Record<number, string[]> = {
-    1: ['employee:list','employee:add','employee:edit','employee:delete','employee:detail',
-        'attendance:list','attendance:manage','approval:process',
-        'org:manage','role:manage','system:config','system:backup'],
-    2: ['employee:list','employee:add','employee:edit','employee:delete','employee:detail',
-        'salary:list','salary:view','salary:audit',
-        'attendance:list','attendance:manage','approval:process','org:manage'],
-    3: ['employee:list','employee:detail','attendance:list','attendance:manage','approval:process'],
-    4: ['salary:list','salary:view','salary:audit'],
+    1: ['employee:list', 'employee:add', 'employee:edit', 'employee:delete', 'employee:detail',
+      'attendance:list', 'attendance:manage', 'approval:process',
+      'org:manage', 'role:manage', 'system:config', 'system:backup'],
+    2: ['employee:list', 'employee:add', 'employee:edit', 'employee:delete', 'employee:detail',
+      'salary:list', 'salary:view', 'salary:audit',
+      'attendance:list', 'attendance:manage', 'approval:process', 'org:manage'],
+    3: ['employee:list', 'employee:detail', 'attendance:list', 'attendance:manage', 'approval:process'],
+    4: ['salary:list', 'salary:view', 'salary:audit'],
     5: [],
   };
 
@@ -98,6 +98,7 @@ export async function getInitialState() {
     }
   } catch (error) {
     // 未登录，保持默认
+    log.error('未登录', error);
   }
   return initialState;
 }
@@ -121,10 +122,12 @@ export const layout = () => {
     logout: async () => {
       try {
         await userLogoutUsingPost();
-      } catch {
+      } catch (e) {
+        console.error('app.ts', e);
         // 即使登出API失败也强制跳转登录页
       }
       window.location.href = '/user/login';
-    },
+      }
+    ,
+    }
   };
-};

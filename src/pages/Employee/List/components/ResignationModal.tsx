@@ -29,9 +29,7 @@ const ResignationModal: React.FC<Props> = ({ open, employee, onCancel, onOk }) =
             label: `${e.employeeName}（${e.employeeNo}）`,
             value: e.id!,
           })));
-        } catch {
-          setEmpList([]);
-        } finally {
+        } catch (e) { console.error('pages/Employee/List/components/ResignationModal.tsx', e); setEmpList([]); } finally {
           setEmployeeLoading(false);
         }
       })();

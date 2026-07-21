@@ -28,9 +28,9 @@ const AnalyticsPage: React.FC = () => {
   }, [range]);
 
   const loadAll = async () => {
-    try { const r = await getSummaryUsingGet({ range }); setSummary(r?.data ?? null); } catch {}
-    try { const r = await getGrowthTrendUsingGet({ range }); setTrend(r?.data ?? []); } catch {}
-    try { const r = await getSourceDistributionUsingGet({ range }); setSources(r?.data ?? []); } catch {}
+    try { const r = await getSummaryUsingGet({ range }); setSummary(r?.data ?? null); } catch (e) { console.error('pages/Admin/Analytics/index.tsx', e); }
+    try { const r = await getGrowthTrendUsingGet({ range }); setTrend(r?.data ?? []); } catch (e) { console.error('pages/Admin/Analytics/index.tsx', e); }
+    try { const r = await getSourceDistributionUsingGet({ range }); setSources(r?.data ?? []); } catch (e) { console.error('pages/Admin/Analytics/index.tsx', e); }
   };
 
   const trendConfig = {

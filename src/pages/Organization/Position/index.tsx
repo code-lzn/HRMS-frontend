@@ -52,9 +52,7 @@ const PositionPage: React.FC = () => {
       if (seqVal !== undefined) params.sequence = seqVal;
       const res = await listPositionsUsingGet(params);
       setPositions((res as any)?.data ?? []);
-    } catch {
-      // ignore
-    } finally {
+    } catch (e) { console.error('pages/Organization/Position/index.tsx', e); } finally {
       setLoading(false);
     }
   };
@@ -74,9 +72,7 @@ const PositionPage: React.FC = () => {
         ]);
         setTreeData((treeRes as any)?.data ?? []);
         setSequences((seqRes as any)?.data ?? []);
-      } catch {
-        // ignore
-      }
+      } catch (e) { console.error('pages/Organization/Position/index.tsx', e); }
     })();
   }, []);
 

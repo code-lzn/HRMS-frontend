@@ -46,9 +46,7 @@ const EmployeeSalaryPage: React.FC = () => {
       const res = await listEmployeesUsingGet({ keyword: kw || undefined });
       const data = (res as any)?.data?.records ?? [];
       setEmployees(data);
-    } catch {
-      // ignore
-    } finally {
+    } catch (e) { console.error('pages/SalaryManage/Employee/index.tsx', e); } finally {
       setSearchLoading(false);
     }
   };
@@ -64,9 +62,7 @@ const EmployeeSalaryPage: React.FC = () => {
     try {
       const res = await getEmployeeSalaryUsingGet({ employeeId: emp.id! });
       setSalary((res as any)?.data ?? null);
-    } catch {
-      // ignore
-    } finally {
+    } catch (e) { console.error('pages/SalaryManage/Employee/index.tsx', e); } finally {
       setSalaryLoading(false);
     }
   };

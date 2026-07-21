@@ -41,8 +41,7 @@ const ProbationPage: React.FC = () => {
           approved: res.data.approved || 0,
         });
       }
-    } catch {
-      setStats({ draft: 0, assessing: 0, approving: 0, approved: 0 });
+    } catch (e) { console.error('pages/HR/Probation/index.tsx', e); setStats({ draft: 0, assessing: 0, approving: 0, approved: 0 });
     }
   };
 

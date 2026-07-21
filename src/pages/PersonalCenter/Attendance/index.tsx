@@ -3,9 +3,9 @@ import { applyUsingPost1 as applyMakeupPunch } from '@/api/makeupPunchController
 import { applyUsingPost2 as applyOvertime } from '@/api/overtimeController';
 import { CalendarOutlined, ClockCircleOutlined, FieldTimeOutlined, SendOutlined } from '@ant-design/icons';
 import { useNavigate } from '@umijs/max';
-import { Badge, Button, Calendar, Card, Col, DatePicker, Form, Input, InputNumber, message, Modal, Popover, Radio, Row, Statistic, Tag, TimePicker, Typography } from 'antd';
+import { Badge, Button, Calendar, Card, Col, DatePicker, Form, Input, InputNumber, message, Modal, Popover, Radio, Row, Select, Statistic, Tag, TimePicker, Typography } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import './index.less';
 
 const { Text } = Typography;
@@ -22,6 +22,16 @@ const STATUS_MAP: Record<number, { color: string; text: string; bg: string }> = 
   7: { color: '#1890ff', text: '下班缺卡', bg: '#f0f5ff' },
   8: { color: '#87d068', text: '休息', bg: '#f6ffed' },
   9: { color: '#ff7a45', text: '迟到&早退', bg: '#fff2e8' },
+};
+
+/** 按文字匹配颜色（后端 dailyStatus 的 code 和前端定义可能不一致，用文字兜底） */
+const COLOR_BY_TEXT: Record<string, string> = {
+  '正常': '#52c41a', '迟到': '#faad14', '早退': '#faad14',
+  '旷工': '#ff4d4f', '请假': '#1677ff', '缺卡': '#8c8c8c',
+};
+const BG_BY_TEXT: Record<string, string> = {
+  '正常': '#f6ffed', '迟到': '#fffbe6', '早退': '#fffbe6',
+  '旷工': '#fff2f0', '请假': '#f0f5ff', '缺卡': '#fafafa',
 };
 
 const MyAttendance: React.FC = () => {
@@ -50,19 +60,16 @@ const MyAttendance: React.FC = () => {
     try {
       const res = await getTodayStatusUsingGet();
       setTodayStatus(res?.data ?? null);
-    } catch {
-      // 今日暂无记录
-    }
+    } catch (e) { console.error('pages/PersonalCenter/Attendance/index.tsx', e); }
   }, []);
 
   // 加载考勤日历
   const loadCalendar = useCallback(async (month: string) => {
+    setCalendarData(null);
     try {
       const res = await getCalendarUsingGet({ month });
       setCalendarData(res?.data ?? null);
-    } catch {
-      // ignore
-    }
+    } catch (e) { console.error('pages/PersonalCenter/Attendance/index.tsx', e); }
   }, []);
 
   useEffect(() => {
@@ -96,9 +103,7 @@ const MyAttendance: React.FC = () => {
         (r) => r.attendanceDate === date.format('YYYY-MM-DD'),
       );
       setSelectedDateRecords(records);
-    } catch {
-      setSelectedDateRecords([]);
-    }
+    } catch (e) { console.error('pages/PersonalCenter/Attendance/index.tsx', e); setSelectedDateRecords([]); }
   };
 
   // 日历日期格渲染
@@ -111,9 +116,9 @@ const MyAttendance: React.FC = () => {
     if (status === undefined) return null;
 
     const cfg = STATUS_MAP[status];
-    if (!cfg) return null;
-
-    const statusText = dailyStatusText[dateStr] || cfg.text;
+    const statusText = dailyStatusText[dateStr] || cfg?.text || String(status);
+    const color = COLOR_BY_TEXT[statusText] || cfg?.color || '#8c8c8c';
+    const bg = BG_BY_TEXT[statusText] || cfg?.bg || '#fafafa';
 
     return (
       <Popover
@@ -139,11 +144,11 @@ const MyAttendance: React.FC = () => {
       >
         <div
           style={{
-            background: cfg.bg,
+            background: bg,
             borderRadius: 4,
             padding: '2px 6px',
             fontSize: 12,
-            color: cfg.color,
+            color,
             cursor: 'pointer',
             textAlign: 'center',
           }}
@@ -158,6 +163,21 @@ const MyAttendance: React.FC = () => {
   const onPanelChange = (date: Dayjs) => {
     const month = date.format('YYYY-MM');
     setCurrentMonth(month);
+  };
+
+  // 旷工天数：优先取 API 字段，兜底从 dailyStatus 统计 status=3
+  const absentDays = useMemo(() => {
+    const apiVal = (calendarData as any)?.absentDays;
+    if (typeof apiVal === 'number') return apiVal;
+    const ds = calendarData?.dailyStatus ?? {};
+    return Object.values(ds).filter((v) => v === 3).length;
+  }, [calendarData]);
+
+  // 格式化打卡时间（后端可能返回完整 datetime，提取时间部分）
+  const fmtTime = (v?: string) => {
+    if (!v) return '-';
+    const d = dayjs(v);
+    return d.isValid() ? d.format('HH:mm:ss') : v;
   };
 
   // 判断是否已打上班/下班卡
@@ -182,7 +202,7 @@ const MyAttendance: React.FC = () => {
               </div>
               {todayStatus?.statusText && (
                 <Tag
-                  color={STATUS_MAP[todayStatus.status ?? 5]?.color}
+                  color={COLOR_BY_TEXT[todayStatus.statusText] || STATUS_MAP[todayStatus.status ?? 5]?.color}
                   style={{ marginTop: 4 }}
                 >
                   今日: {todayStatus.statusText}
@@ -266,30 +286,23 @@ const MyAttendance: React.FC = () => {
       </Card>
 
       {/* 月度统计 */}
-      <Row gutter={16} style={{ marginTop: 16 }}>
-        <Col span={6}>
-          <Card>
-            <Statistic title="正常出勤" value={calendarData?.normalDays ?? 0} suffix="天" valueStyle={{ color: '#52c41a' }} />
+      <div style={{ display: 'flex', gap: 16, marginTop: 16 }}>
+        {[
+          { title: '正常出勤', value: calendarData?.normalDays ?? 0, color: '#52c41a' },
+          { title: '迟到/早退', value: calendarData?.lateDays ?? 0, color: '#faad14' },
+          { title: '旷工', value: absentDays, color: '#ff4d4f' },
+          { title: '请假', value: calendarData?.leaveDays ?? 0, color: '#1677ff' },
+          { title: '缺卡', value: calendarData?.missingDays ?? 0, color: '#8c8c8c' },
+        ].map((item) => (
+          <Card key={item.title} style={{ flex: 1 }}>
+            <Statistic title={item.title} value={item.value} suffix="天" valueStyle={{ color: item.color }} />
           </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic title="迟到/早退" value={calendarData?.lateDays ?? 0} suffix="天" valueStyle={{ color: '#faad14' }} />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic title="请假" value={calendarData?.leaveDays ?? 0} suffix="天" valueStyle={{ color: '#1677ff' }} />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic title="缺卡" value={calendarData?.missingDays ?? 0} suffix="天" valueStyle={{ color: '#8c8c8c' }} />
-          </Card>
-        </Col>
-      </Row>
-
+        ))}
+      </div>
       {/* 考勤日历 */}
+      {/*  <div style={{ fontSize: 14, color: item.title === '旷工' ? '#ff4d4f' : 'rgba(0,0,0,0.45)', marginBottom: 8 }}>
+              {item.title}
+            </div>*/}
       <Card title="考勤日历" style={{ marginTop: 16 }} className="calendar-card">
         <Calendar
           fullscreen={false}

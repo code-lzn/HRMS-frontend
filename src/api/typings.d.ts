@@ -33,6 +33,20 @@ declare namespace API {
     targetUserId?: number;
   };
 
+  type ApprovalApprovedVO = {
+    action?: string;
+    actionText?: string;
+    applicantName?: string;
+    applyTime?: string;
+    businessId?: number;
+    businessType?: string;
+    businessTypeText?: string;
+    detailId?: number;
+    nodeName?: string;
+    operateTime?: string;
+    recordId?: number;
+  };
+
   type ApprovalDelegationVO = {
     businessTypes?: string;
     createTime?: string;
@@ -86,12 +100,6 @@ declare namespace API {
     recordId?: number;
   };
 
-  type ApprovalRequest = {
-    comment?: string;
-    id?: number;
-    result?: number;
-  };
-
   type approveBatchUsingPOSTParams = {
     /** id */
     id: number;
@@ -103,6 +111,7 @@ declare namespace API {
   };
 
   type AttendanceCalendarVO = {
+    absentDays?: number;
     dailyStatus?: Record<string, any>;
     dailyStatusText?: Record<string, any>;
     lateDays?: number;
@@ -333,6 +342,12 @@ declare namespace API {
   type BaseResponseLeaveVO_ = {
     code?: number;
     data?: LeaveVO;
+    message?: string;
+  };
+
+  type BaseResponseListApprovalApprovedVO_ = {
+    code?: number;
+    data?: ApprovalApprovedVO[];
     message?: string;
   };
 
@@ -600,15 +615,15 @@ declare namespace API {
     message?: string;
   };
 
-  type BaseResponseOvertimeVO_ = {
-    code?: number;
-    data?: OvertimeVO;
-    message?: string;
-  };
-
   type BaseResponseOvertimeProgressVO_ = {
     code?: number;
     data?: OvertimeProgressVO;
+    message?: string;
+  };
+
+  type BaseResponseOvertimeVO_ = {
+    code?: number;
+    data?: OvertimeVO;
     message?: string;
   };
 
@@ -1691,11 +1706,6 @@ declare namespace API {
     progressNodes?: ProgressNode1[];
   };
 
-  type OvertimeProgressVO = {
-    overtime?: OvertimeVO;
-    progressNodes?: ProgressNode1[];
-  };
-
   type MakeupPunchVO = {
     approveComment?: string;
     approveTime?: string;
@@ -1876,6 +1886,11 @@ declare namespace API {
     overtimeType?: number;
     reason?: string;
     startTime?: string;
+  };
+
+  type OvertimeProgressVO = {
+    overtime?: OvertimeVO;
+    progressNodes?: ProgressNode2[];
   };
 
   type OvertimeVO = {
@@ -2062,6 +2077,14 @@ declare namespace API {
   };
 
   type ProgressNode1 = {
+    comment?: string;
+    nodeName?: string;
+    operateTime?: string;
+    operatorName?: string;
+    status?: number;
+  };
+
+  type ProgressNode2 = {
     comment?: string;
     nodeName?: string;
     operateTime?: string;

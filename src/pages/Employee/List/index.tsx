@@ -66,7 +66,7 @@ const EmployeeListPage: React.FC = () => {
         ]);
         setDeptTreeData((deptRes as any)?.data ?? []);
         setPositionOptions((posRes as any)?.data ?? []);
-      } catch { /* ignore */ }
+      } catch (e) { console.error('pages/Employee/List/index.tsx', e);  /* ignore */ }
     })();
   }, []);
 

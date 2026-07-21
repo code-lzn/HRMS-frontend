@@ -3,7 +3,7 @@ import {
   createDelegationUsingPost,
   getMyDelegationsUsingGet,
 } from '@/api/approvalController';
-import { listUserVoByPageUsingPost } from '@/api/userController';
+import { listEmployeesUsingGet } from '@/api/employeeController';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, DatePicker, Form, message, Modal, Select, Tag } from 'antd';
@@ -31,22 +31,20 @@ const ApprovalDelegation: React.FC = () => {
   >([]);
   const [userSearchLoading, setUserSearchLoading] = useState(false);
 
-  /** 加载用户列表（可传 keyword 搜索） */
+  /** 加载员工列表（可传 keyword 搜索） */
   const loadUsers = async (keyword?: string) => {
     setUserSearchLoading(true);
     try {
-      const res = await listUserVoByPageUsingPost({
-        current: 1,
-        pageSize: 50,
-        userName: keyword || undefined,
+      const res = await listEmployeesUsingGet({
+        keyword: keyword || undefined,
+        page: 1,
+        size: 50,
       });
       const list = res?.data?.records ?? [];
       setUserOptions(
-        list.map((u) => ({ label: u.userName ?? '', value: u.id! })),
+        list.map((u) => ({ label: u.employeeName ?? '', value: u.id! })),
       );
-    } catch {
-      setUserOptions([]);
-    } finally {
+    } catch (e) { console.error('pages/ApprovalCenter/Delegation/index.tsx', e); setUserOptions([]); } finally {
       setUserSearchLoading(false);
     }
   };
@@ -76,11 +74,13 @@ const ApprovalDelegation: React.FC = () => {
       title: '开始日期',
       dataIndex: 'startDate',
       width: 120,
+      render: (v: string) => v ? dayjs(v).format('YYYY-MM-DD') : '-',
     },
     {
       title: '结束日期',
       dataIndex: 'endDate',
       width: 120,
+      render: (v: string) => v ? dayjs(v).format('YYYY-MM-DD') : '-',
     },
     {
       title: '状态',
@@ -168,8 +168,7 @@ const ApprovalDelegation: React.FC = () => {
               success: true,
               total: res?.data?.length ?? 0,
             };
-          } catch {
-            return { data: [], success: false };
+          } catch (e) { console.error('pages/ApprovalCenter/Delegation/index.tsx', e); return { data: [], success: false };
           }
         }}
         rowKey="id"

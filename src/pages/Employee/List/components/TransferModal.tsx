@@ -41,9 +41,7 @@ const TransferModal: React.FC<Props> = ({
             label: `${e.employeeName}（${e.employeeNo}）`,
             value: e.id!,
           })));
-        } catch {
-          setEmployeeOptions([]);
-        } finally {
+        } catch (e) { console.error('pages/Employee/List/components/TransferModal.tsx', e); setEmployeeOptions([]); } finally {
           setEmployeeLoading(false);
         }
       })();

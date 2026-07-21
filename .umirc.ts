@@ -130,12 +130,6 @@ export default defineConfig({
       component: '../app/user/login/page',
       layout: false,
     },
-    {
-      name: '用户注册',
-      path: '/user/register',
-      component: '../app/user/register/page',
-      layout: false,
-    },
   ],
   npmClient: 'pnpm',
   utoopack: {},

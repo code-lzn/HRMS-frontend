@@ -174,7 +174,7 @@ const Attendance: React.FC = () => {
       if (res?.code === 0 && res.data) {
         setMakeupAvailableDates(res.data.makeupAvailableDates || []);
       }
-    } catch { /* ignore */ }
+    } catch (e) { console.error('pages/Attendance/index.tsx', e);  /* ignore */ }
   }, []);
 
   // 获取考勤数据：根据用户角色调用不同接口

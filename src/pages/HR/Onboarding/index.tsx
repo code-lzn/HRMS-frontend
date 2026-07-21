@@ -54,8 +54,7 @@ const OnboardingPage: React.FC = () => {
           onboarded: res.data.onboarded || 0,
         });
       }
-    } catch {
-      setStats({ draft: 0, approving: 0, approved: 0, onboarded: 0 });
+    } catch (e) { console.error('pages/HR/Onboarding/index.tsx', e); setStats({ draft: 0, approving: 0, approved: 0, onboarded: 0 });
     }
   };
 

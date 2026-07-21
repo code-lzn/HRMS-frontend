@@ -37,24 +37,6 @@ export async function applyUsingPost1(
   );
 }
 
-/** approve POST /api/attendance/makeup/approve */
-export async function approveUsingPost2(
-  body: API.ApprovalRequest,
-  options?: { [key: string]: any },
-) {
-  return request<API.BaseResponseMakeupPunchVO_>(
-    '/api/attendance/makeup/approve',
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      data: body,
-      ...(options || {}),
-    },
-  );
-}
-
 /** cancel POST /api/attendance/makeup/cancel/${param0} */
 export async function cancelUsingPost1(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

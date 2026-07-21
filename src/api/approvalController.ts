@@ -17,6 +17,19 @@ export async function approveUsingPost(
   });
 }
 
+/** getApprovedList GET /api/approval/approved */
+export async function getApprovedListUsingGet(options?: {
+  [key: string]: any;
+}) {
+  return request<API.BaseResponseListApprovalApprovedVO_>(
+    '/api/approval/approved',
+    {
+      method: 'GET',
+      ...(options || {}),
+    },
+  );
+}
+
 /** createDelegation POST /api/approval/delegation */
 export async function createDelegationUsingPost(
   body: API.DelegationRequest,

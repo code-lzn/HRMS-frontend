@@ -72,9 +72,8 @@ const RightContent: React.FC<RightContentProps> = ({
       onClick: async () => {
         try {
           await userLogoutUsingPost();
-        } catch {
-          // 即使登出API失败也强制跳转登录页
-        }
+        } catch (e) { console.error('components/RightContent/index.tsx', e); }
+        // 即使登出API失败也强制跳转登录页
         window.location.href = '/user/login';
       },
     },

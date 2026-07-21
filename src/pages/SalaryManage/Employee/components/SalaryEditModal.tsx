@@ -38,9 +38,7 @@ const SalaryEditModal: React.FC<SalaryEditModalProps> = ({
       try {
         const res = await listAccountsUsingGet();
         setAccounts((res as any)?.data ?? []);
-      } catch {
-        // ignore
-      }
+      } catch (e) { console.error('pages/SalaryManage/Employee/components/SalaryEditModal.tsx', e); }
     })();
     if (editRecord) {
       form.setFieldsValue({

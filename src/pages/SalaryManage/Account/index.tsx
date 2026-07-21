@@ -72,9 +72,7 @@ const AccountPage: React.FC = () => {
     try {
       const res = await listAccountsUsingGet();
       setAccounts((res as any)?.data ?? []);
-    } catch {
-      // ignore
-    } finally {
+    } catch (e) { console.error('pages/SalaryManage/Account/index.tsx', e); } finally {
       setLoading(false);
     }
   }, []);

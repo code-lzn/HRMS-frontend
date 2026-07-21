@@ -48,8 +48,7 @@ const ResignationPage: React.FC = () => {
           resigned: res.data.resigned || 0,
         });
       }
-    } catch {
-      setStats({ draft: 0, approving: 0, pending: 0, resigned: 0 });
+    } catch (e) { console.error('pages/HR/Resignation/index.tsx', e); setStats({ draft: 0, approving: 0, pending: 0, resigned: 0 });
     }
   };
 

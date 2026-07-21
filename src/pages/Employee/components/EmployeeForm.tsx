@@ -74,9 +74,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
           }))];
         });
       }
-    } catch {
-      // ignore
-    } finally {
+    } catch (e) { console.error('pages/Employee/components/EmployeeForm.tsx', e); } finally {
       setEmployeeLoading(false);
     }
   }, []);

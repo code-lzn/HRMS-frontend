@@ -32,7 +32,7 @@ const ResignationFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk 
         label: `${e.employeeName} (${e.employeeNo || '-'})`,
         value: e.id,
       })));
-    } catch { setEmpList([]); }
+    } catch (e) { console.error('pages/HR/Resignation/components/ResignationFormModal.tsx', e); setEmpList([]); }
   };
 
   const handleEmpChange = async (empId: number) => {
@@ -42,7 +42,7 @@ const ResignationFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk 
       const detailRes = await getDetailUsingGet({ id: empId });
       const emp = detailRes?.data;
       setSelectedEmp(emp ?? null);
-    } catch { setSelectedEmp(null); }
+    } catch (e) { console.error('pages/HR/Resignation/components/ResignationFormModal.tsx', e); setSelectedEmp(null); }
   };
 
   useEffect(() => {

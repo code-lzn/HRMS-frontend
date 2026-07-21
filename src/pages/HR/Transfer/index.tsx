@@ -41,8 +41,7 @@ const TransferPage: React.FC = () => {
           effective: res.data.effective || 0,
         });
       }
-    } catch {
-      setStats({ draft: 0, approving: 0, approved: 0, effective: 0 });
+    } catch (e) { console.error('pages/HR/Transfer/index.tsx', e); setStats({ draft: 0, approving: 0, approved: 0, effective: 0 });
     }
   };
 
