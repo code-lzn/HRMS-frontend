@@ -11,7 +11,6 @@ import {
   getDepartmentStatsUsingGet,
   getLeaveTypeDistributionUsingGet,
   getAttendanceTrendUsingGet,
-  getLateEarlyRankingUsingGet,
   getPersonalTrendUsingGet,
   getPersonalLeaveDistributionUsingGet,
   getPersonalStatsUsingGet,
@@ -20,30 +19,39 @@ import { getMonthRecordsUsingGet } from '@/api/attendanceController';
 import { getDepartmentTreeUsingGet } from '@/api/departmentController';
 import usePermission from '@/hooks/usePermission';
 
+// 考勤状态颜色映射表：用于图表和日历中的状态颜色显示
 const STATUS_COLOR_MAP: Record<string, string> = {
   NORMAL: '#52c41a', LATE: '#faad14', EARLY: '#fa8c16',
   MISSING: '#bfbfbf', LEAVE: '#1890ff', ABSENT: '#ff4d4f',
   MISS_IN: '#722ed1', MISS_OUT: '#1890ff', REST: '#87d068',
 };
 
+// 考勤状态文本映射表：将状态枚举值转换为中文显示
 const STATUS_TEXT_MAP: Record<string, string> = {
   NORMAL: '正常', LATE: '迟到', EARLY: '早退', MISSING: '缺卡',
   LEAVE: '请假', ABSENT: '旷工', MISS_IN: '上班缺卡', MISS_OUT: '下班缺卡',
 };
 
+// 考勤状态数字映射表：将数字状态值转换为枚举字符串
 const STATUS_NUM_MAP: Record<number, string> = {
   0: 'NORMAL', 1: 'LATE', 2: 'EARLY', 3: 'MISSING', 4: 'LEAVE', 5: 'ABSENT',
+  6: 'MISS_IN', 7: 'MISS_OUT', 8: 'REST', 9: 'LATE_AND_EARLY',
 };
 
+// 部门选项接口定义
 interface DepartmentOption { value: string; label: string; }
+// 趋势数据接口定义
 interface TrendData { months: string[]; rates: number[]; }
+// 请假类型数据接口定义
 interface LeaveTypeData { leaveTypes: string[]; counts: number[]; percentages: number[]; }
+// 部门统计数据接口定义
 interface DepartmentStats {
   departmentId: number; departmentName: string; attendanceRate: number;
   lateRate: number; leaveRate: number; employeeCount: number;
   lateCount: number; earlyCount: number;
 }
 
+// 个人统计数据接口定义
 interface PersonalStats {
   totalDays: number; normalDays: number; lateDays: number;
   earlyDays: number; missingDays: number; leaveDays: number;
@@ -51,48 +59,59 @@ interface PersonalStats {
   annualLeaveBalance: number; totalLeaveDays: number;
 }
 
+// 日历数据接口定义
 interface CalendarData {
   month: string; normalDays: number; lateDays: number;
   leaveDays: number; missingDays: number;
   dailyStatus: Record<string, number>;
 }
 
+// 考勤统计组件：提供管理员/HR的部门统计视图和普通员工的个人统计视图
 const Statistics: React.FC = () => {
+  // 获取用户权限信息
   const { isAdmin, dataScope } = usePermission();
+  // 判断是否可以查看全部统计（管理员或部门主管）
   const canViewAllStats = isAdmin || dataScope <= 4;
-  const isPersonal = !canViewAllStats; // 普通员工(dataScope=5)
+  // 判断是否为个人视图（普通员工 dataScope=5）
+  const isPersonal = !canViewAllStats;
 
-  const [selectedDept, setSelectedDept] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState(dayjs().format('YYYY-MM'));
-  const [departments, setDepartments] = useState<DepartmentOption[]>([]);
-  const [loading, setLoading] = useState(true);
+  // ===== 筛选条件状态 =====
+  const [selectedDept, setSelectedDept] = useState(''); // 当前选中部门
+  const [selectedMonth, setSelectedMonth] = useState(dayjs().format('YYYY-MM')); // 当前选中月份
+  const [departments, setDepartments] = useState<DepartmentOption[]>([]); // 部门列表
+  const [loading, setLoading] = useState(true); // 数据加载状态
 
-  const [trendData, setTrendData] = useState<TrendData>({ months: [], rates: [] });
-  const [leaveData, setLeaveData] = useState<LeaveTypeData>({ leaveTypes: [], counts: [], percentages: [] });
-  const [lateEarlyData, setLateEarlyData] = useState<any[]>([]);
-  const [departmentStats, setDepartmentStats] = useState<DepartmentStats[]>([]);
+  // ===== 管理员视图数据状态 =====
+  const [trendData, setTrendData] = useState<TrendData>({ months: [], rates: [] }); // 出勤率趋势数据
+  const [leaveData, setLeaveData] = useState<LeaveTypeData>({ leaveTypes: [], counts: [], percentages: [] }); // 请假类型分布数据
+  const [lateEarlyData, setLateEarlyData] = useState<any[]>([]); // 迟到早退数据
+  const [departmentStats, setDepartmentStats] = useState<DepartmentStats[]>([]); // 部门统计数据
 
-  // Personal view states
-  const [personalStats, setPersonalStats] = useState<PersonalStats | null>(null);
-  const [calendarData, setCalendarData] = useState<CalendarData | null>(null);
-  const [dailyRecords, setDailyRecords] = useState<any[]>([]);
+  // ===== 个人视图数据状态 =====
+  const [personalStats, setPersonalStats] = useState<PersonalStats | null>(null); // 个人统计数据
+  const [calendarData, setCalendarData] = useState<CalendarData | null>(null); // 日历数据
+  const [dailyRecords, setDailyRecords] = useState<any[]>([]); // 每日打卡记录
 
-  const chartRef1 = useRef<HTMLDivElement>(null);
-  const chartRef2 = useRef<HTMLDivElement>(null);
-  const chartRef3 = useRef<HTMLDivElement>(null);
+  // ===== ECharts图表引用 =====
+  const chartRef1 = useRef<HTMLDivElement>(null); // 出勤率趋势图容器
+  const chartRef2 = useRef<HTMLDivElement>(null); // 每日状态柱状图/请假类型饼图容器
+  const chartRef3 = useRef<HTMLDivElement>(null); // 迟到早退柱状图容器
+  // ECharts实例引用
   const chartInstance1 = useRef<echarts.ECharts | null>(null);
   const chartInstance2 = useRef<echarts.ECharts | null>(null);
   const chartInstance3 = useRef<echarts.ECharts | null>(null);
 
+  // 初始化数据：根据用户角色加载不同的数据
   useEffect(() => {
     if (isPersonal) {
-      fetchPersonalData();
+      fetchPersonalData(); // 普通员工加载个人数据
     } else {
-      fetchDepartmentList();
+      fetchDepartmentList(); // 管理员/HR加载部门列表
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 管理员数据刷新：当月份、部门或部门列表变化时重新获取统计数据
   useEffect(() => {
     if (!isPersonal && departments.length > 0) {
       fetchAdminData();
@@ -100,6 +119,7 @@ const Statistics: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMonth, selectedDept, isPersonal, departments]);
 
+  // 个人数据刷新：当月份变化时重新获取个人统计数据
   useEffect(() => {
     if (isPersonal) {
       fetchPersonalData();
@@ -107,6 +127,7 @@ const Statistics: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMonth, isPersonal]);
 
+  // 获取部门列表：构建部门下拉框选项
   const fetchDepartmentList = async () => {
     try {
       const res = await getDepartmentTreeUsingGet();
@@ -124,13 +145,13 @@ const Statistics: React.FC = () => {
     } catch (e) { console.error('获取部门列表失败:', e); }
   };
 
+  // 获取管理员统计数据：同时获取趋势、请假分布、迟到早退和部门统计数据
   const fetchAdminData = async () => {
     setLoading(true);
     try {
-      const [trendRes, leaveRes, lateEarlyRes, deptStatsRes] = await Promise.all([
+      const [trendRes, leaveRes, deptStatsRes] = await Promise.all([
         getAttendanceTrendUsingGet({ departmentId: selectedDept ? Number(selectedDept) : 0, months: 6, endMonth: selectedMonth }),
         getLeaveTypeDistributionUsingGet({ month: selectedMonth, departmentId: selectedDept ? Number(selectedDept) : undefined }),
-        getLateEarlyRankingUsingGet({ month: selectedMonth, departmentId: selectedDept ? Number(selectedDept) : undefined }),
         getDepartmentStatsUsingGet({ month: selectedMonth }),
       ]);
       if (trendRes.code === 0 && trendRes.data) {
@@ -154,6 +175,7 @@ const Statistics: React.FC = () => {
     finally { setLoading(false); }
   };
 
+  // 获取个人统计数据：同时获取个人统计、月度记录和趋势数据
   const fetchPersonalData = async () => {
     setLoading(true);
     try {
@@ -167,7 +189,7 @@ const Statistics: React.FC = () => {
       if (recordsRes.code === 0 && recordsRes.data) {
         const records = Array.isArray(recordsRes.data) ? recordsRes.data : [];
         setDailyRecords(records);
-        // 从月记录派生日历数据
+        // 从月度记录派生日历数据
         const dailyStatus: Record<string, number> = {};
         records.forEach((r: any) => {
           const dateStr = dayjs(r.attendanceDate).format('YYYY-MM-DD');
@@ -189,7 +211,7 @@ const Statistics: React.FC = () => {
     finally { setLoading(false); }
   };
 
-  // 出勤率趋势图 — 管理员 & 个人通用
+  // 图表渲染：出勤率趋势图（管理员和个人视图通用）
   useEffect(() => {
     if (!chartRef1.current || trendData.months.length === 0) return;
     if (!chartInstance1.current) {
@@ -214,7 +236,7 @@ const Statistics: React.FC = () => {
     };
   }, [trendData]);
 
-  // 每日状态柱状图（个人视图）
+  // 图表渲染：个人视图的每日出勤状态柱状图
   useEffect(() => {
     if (!isPersonal || !chartRef2.current || dailyRecords.length === 0) return;
     if (!chartInstance2.current) {
@@ -242,7 +264,7 @@ const Statistics: React.FC = () => {
     };
   }, [dailyRecords, isPersonal, selectedMonth]);
 
-  // 管理员：请假类型饼图
+  // 图表渲染：管理员视图的请假类型占比饼图
   useEffect(() => {
     if (isPersonal || !chartRef2.current || leaveData.leaveTypes.length === 0) return;
     if (!chartInstance2.current) {
@@ -265,7 +287,7 @@ const Statistics: React.FC = () => {
     };
   }, [leaveData, isPersonal]);
 
-  // 管理员：迟到早退柱状图
+  // 图表渲染：管理员视图的各部门迟到早退柱状图
   useEffect(() => {
     if (isPersonal || !chartRef3.current || lateEarlyData.length === 0) return;
     const filtered = selectedDept

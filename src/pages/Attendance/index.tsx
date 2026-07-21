@@ -9,6 +9,7 @@ import { getCalendarUsingGet } from '@/api/attendanceController';
 import { applyUsingPost1 as applyMakeupPunch } from '@/api/makeupPunchController';
 import { applyUsingPost2 as applyOvertime } from '@/api/overtimeController';
 
+// 考勤状态颜色映射表：用于表格中状态标签的颜色显示
 const STATUS_COLOR_MAP: Record<string, string> = {
   NORMAL: '#52c41a',
   LATE: '#faad14',
@@ -22,6 +23,7 @@ const STATUS_COLOR_MAP: Record<string, string> = {
   LATE_AND_EARLY: '#ff7a45',
 };
 
+// 考勤状态文本映射表：将状态枚举值转换为中文显示
 const STATUS_TEXT_MAP: Record<string, string> = {
   NORMAL: '正常',
   LATE: '迟到',
@@ -35,6 +37,7 @@ const STATUS_TEXT_MAP: Record<string, string> = {
   LATE_AND_EARLY: '迟到&早退',
 };
 
+// 考勤状态描述映射表：用于页面下方状态说明区域的详细解释
 const STATUS_DESC_MAP: Record<string, string> = {
   NORMAL: '按时打卡，无异常',
   LATE: '超出规定时间15分钟内',
@@ -48,14 +51,23 @@ const STATUS_DESC_MAP: Record<string, string> = {
   LATE_AND_EARLY: '迟到且早退',
 };
 
+// 打卡中心组件：实现打卡操作、考勤记录查询、补卡/加班申请功能
 const Attendance: React.FC = () => {
+  // 获取用户权限信息（是否管理员、角色码、数据范围）
   const { isAdmin, roleCode, dataScope } = usePermission();
+  // 当前时间状态：用于页面右上角实时时钟显示
   const [currentTime, setCurrentTime] = useState(new Date());
+  // 当前选中月份：用于筛选考勤记录
   const [currentMonth, setCurrentMonth] = useState(dayjs().format('YYYY-MM'));
+  // 当前选中部门ID：管理员/HR用于筛选指定部门的考勤记录
   const [selectedDept, setSelectedDept] = useState<string>('');
+  // 部门列表：用于部门下拉框选项
   const [departments, setDepartments] = useState<{ value: string; label: string }[]>([]);
+  // 分页状态：当前页码
   const [pageNum, setPageNum] = useState(1);
+  // 分页状态：每页显示数量
   const [pageSize, setPageSize] = useState(20);
+  // 今日打卡状态：包含上班/下班是否已打卡及打卡时间
   const [todayStatus, setTodayStatus] = useState<{ inDone: boolean; inTime: string; outDone: boolean; outTime: string }>({
     inDone: false,
     inTime: '',
@@ -63,17 +75,20 @@ const Attendance: React.FC = () => {
     outTime: '',
   });
 
+  // 定时器：每秒更新当前时间，实现实时时钟效果
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
+    return () => clearInterval(timer); // 组件卸载时清除定时器
   }, []);
 
+  // 初始化数据：组件挂载时获取今日打卡状态、部门列表和日历数据
   useEffect(() => {
     fetchTodayStatus();
     fetchDepartmentList();
     loadCalendarData(currentMonth);
   }, []);
 
+  // 获取部门列表：递归遍历部门树，构建下拉框选项
   const fetchDepartmentList = async () => {
     try {
       const res = await getDepartmentTreeUsingGet();
@@ -83,7 +98,7 @@ const Attendance: React.FC = () => {
           nodes.forEach(node => {
             options.push({ value: node.id, label: node.name });
             if (node.children) {
-              traverse(node.children);
+              traverse(node.children); // 递归处理子部门
             }
           });
         };
@@ -95,6 +110,7 @@ const Attendance: React.FC = () => {
     }
   };
 
+  // 获取今日打卡状态：调用后端接口查询用户当天的上班/下班打卡记录
   const fetchTodayStatus = async () => {
     try {
       const data = await request.get('/api/attendance/today');
@@ -112,38 +128,46 @@ const Attendance: React.FC = () => {
     }
   };
 
+  // 打卡操作：提交上班/下班打卡请求，成功后刷新今日状态
   const handlePunch = async (type: 'in' | 'out') => {
     try {
       const data = await request.post('/api/attendance/punch', {
-        punchType: type === 'in' ? 0 : 1,
+        punchType: type === 'in' ? 0 : 1, // 0=上班打卡，1=下班打卡
       });
       if (data.code === 0) {
         message.success(type === 'in' ? '上班打卡成功' : '下班打卡成功');
-        fetchTodayStatus();
+        fetchTodayStatus(); // 刷新打卡状态
       }
     } catch (e: any) {
       message.error(e.message || '打卡失败');
     }
   };
 
-  // 部门筛选仅管理员可见
+  // 部门筛选可见性：管理员或部门主管(dataScope<=3)可以看到部门筛选
   const showDeptFilter = isAdmin || dataScope <= 3;
 
+  // 判断是否为管理员或部门主管：决定数据查询接口路径
   const isAdminOrManager = isAdmin || dataScope <= 3;
 
+  // 考勤数据状态：包含考勤记录列表和总数
   const [attendanceData, setAttendanceData] = useState<{ list: any[]; total: number }>({ list: [], total: 0 });
+  // 数据加载状态：控制页面加载动画
   const [loading, setLoading] = useState(false);
+  // 数据加载错误状态：用于显示错误提示
   const [fetchError, setFetchError] = useState<string | null>(null);
 
-  // 补卡申请
-  const [makeupModalOpen, setMakeupModalOpen] = useState(false);
-  const [makeupForm] = Form.useForm();
-  const [makeupLoading, setMakeupLoading] = useState(false);
-  const [makeupAvailableDates, setMakeupAvailableDates] = useState<string[]>([]);
-  const [overtimeModalOpen, setOvertimeModalOpen] = useState(false);
-  const [overtimeForm] = Form.useForm();
-  const [overtimeLoading, setOvertimeLoading] = useState(false);
+  // ===== 补卡申请相关状态 =====
+  const [makeupModalOpen, setMakeupModalOpen] = useState(false); // 补卡弹窗开关
+  const [makeupForm] = Form.useForm(); // 补卡表单实例
+  const [makeupLoading, setMakeupLoading] = useState(false); // 补卡提交加载状态
+  const [makeupAvailableDates, setMakeupAvailableDates] = useState<string[]>([]); // 可补卡日期列表
 
+  // ===== 加班申请相关状态 =====
+  const [overtimeModalOpen, setOvertimeModalOpen] = useState(false); // 加班弹窗开关
+  const [overtimeForm] = Form.useForm(); // 加班表单实例
+  const [overtimeLoading, setOvertimeLoading] = useState(false); // 加班提交加载状态
+
+  // 加载日历数据：获取指定月份可补卡日期列表
   const loadCalendarData = useCallback(async (month: string) => {
     try {
       const res = await getCalendarUsingGet({ month });
@@ -153,11 +177,12 @@ const Attendance: React.FC = () => {
     } catch { /* ignore */ }
   }, []);
 
+  // 获取考勤数据：根据用户角色调用不同接口
   const fetchAttendanceData = useCallback(async () => {
     setLoading(true);
     setFetchError(null);
     try {
-      // 兜底：确保当天考勤记录已生成
+      // 兜底操作：管理员/HR确保当天考勤记录已生成
       if (isAdminOrManager) {
         try {
           await request.post('/api/attendance/ensure-today');
@@ -167,18 +192,16 @@ const Attendance: React.FC = () => {
       }
 
       if (isAdminOrManager) {
+        // 管理员/HR路径：调用HR考勤列表接口，支持部门筛选和分页
         const queryParams: Record<string, any> = { month: currentMonth, pageNum, pageSize };
         if (selectedDept) {
           queryParams.departmentId = selectedDept;
         }
-        console.log('[Attendance] HR path, params:', queryParams);
         const result = await request.get('/api/hr/attendance/list', { params: queryParams });
-        console.log('[Attendance] HR response:', result);
         setAttendanceData({ list: result.data?.list || [], total: result.data?.total || 0 });
       } else {
-        console.log('[Attendance] Self-service path, month:', currentMonth);
+        // 普通员工路径：调用个人考勤记录接口
         const result = await request.get('/api/attendance/records', { params: { month: currentMonth } });
-        console.log('[Attendance] Self-service response:', result);
         setAttendanceData({ list: result.data || [], total: (result.data || []).length });
       }
     } catch (e: any) {
@@ -189,32 +212,37 @@ const Attendance: React.FC = () => {
     }
   }, [isAdminOrManager, currentMonth, selectedDept, pageNum, pageSize]);
 
+  // 监听数据刷新依赖：当查询条件变化时重新获取考勤数据
   useEffect(() => {
     fetchAttendanceData();
   }, [fetchAttendanceData]);
 
+  // 上一月切换：重置页码并切换到上一个月
   const handlePrevMonth = useCallback(() => {
     setPageNum(1);
     setCurrentMonth(dayjs(currentMonth).subtract(1, 'month').format('YYYY-MM'));
   }, [currentMonth]);
 
+  // 下一月切换：重置页码并切换到下一个月
   const handleNextMonth = useCallback(() => {
     setPageNum(1);
     setCurrentMonth(dayjs(currentMonth).add(1, 'month').format('YYYY-MM'));
   }, [currentMonth]);
 
+  // 部门切换：重置页码并设置选中部门
   const handleDeptChange = useCallback((value: string) => {
     setPageNum(1);
     setSelectedDept(value);
   }, []);
 
+  // 考勤表格列配置：定义表格显示的列及渲染方式
   const columns = [
     {
       title: '日期',
       dataIndex: 'attendanceDate',
       key: 'attendanceDate',
       width: 120,
-      render: (date: string) => date?.split(' ')[0] || '-',
+      render: (date: string) => date?.split(' ')[0] || '-', // 只显示日期部分
     },
     {
       title: '姓名',
@@ -233,14 +261,14 @@ const Attendance: React.FC = () => {
       dataIndex: 'punchInTime',
       key: 'punchInTime',
       width: 120,
-      render: (time: string) => time?.split(' ')[1] || '-',
+      render: (time: string) => time?.split(' ')[1] || '-', // 只显示时间部分
     },
     {
       title: '下班时间',
       dataIndex: 'punchOutTime',
       key: 'punchOutTime',
       width: 120,
-      render: (time: string) => time?.split(' ')[1] || '-',
+      render: (time: string) => time?.split(' ')[1] || '-', // 只显示时间部分
     },
     {
       title: '状态',
@@ -248,6 +276,7 @@ const Attendance: React.FC = () => {
       key: 'status',
       width: 100,
       render: (status: string | number) => {
+        // 状态可能是数字或字符串，统一转换为字符串key
         const statusKey = typeof status === 'number'
           ? ['NORMAL', 'LATE', 'EARLY', 'MISSING', 'LEAVE', 'ABSENT', 'MISS_IN', 'MISS_OUT', 'REST', 'LATE_AND_EARLY'][status] || 'NORMAL'
           : status;
@@ -256,6 +285,7 @@ const Attendance: React.FC = () => {
     },
   ];
 
+  // 打卡按钮可见性：非管理员或普通员工(dataScope=5)可以看到打卡按钮
   const showPunchButtons = !isAdmin || dataScope === 5;
 
   return (
