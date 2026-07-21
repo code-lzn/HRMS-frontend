@@ -14,13 +14,13 @@ const UserLoginPage: React.FC = () => {
   const { setInitialState } = useModel('@@initialState');
 
   const searchParams = new URLSearchParams(location.search);
-  let redirect = searchParams.get('redirect') || '/employees';
+  let redirect = searchParams.get('redirect') || '/home';
   if (redirect.startsWith('http://') || redirect.startsWith('https://')) {
     try {
       const u = new URL(redirect);
       redirect = u.pathname + u.search;
     } catch {
-      redirect = '/employees';
+      redirect = '/home';
     }
   }
 
