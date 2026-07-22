@@ -88,6 +88,52 @@ export function deleteRegularization(id: number) {
 }
 
 /**
+ * 撤回审批中的转正申请
+ * @param id - 转正申请ID
+ * @returns 撤回结果
+ */
+export function revokeRegularization(id: number) {
+  return request.post(`${BASE}/${id}/revoke`);
+}
+
+/**
+ * 放弃已批准的转正申请
+ * @param id - 转正申请ID
+ * @returns 放弃结果
+ */
+export function abandonRegularization(id: number) {
+  return request.post(`${BASE}/${id}/abandon`);
+}
+
+/**
+ * 确认转正（立即生效）
+ * @param id - 转正申请ID
+ * @returns 确认结果
+ */
+export function confirmRegularization(id: number) {
+  return request.post(`${BASE}/${id}/confirm`);
+}
+
+/**
+ * 修改转正日期（已批准待转正状态下）
+ * @param id - 转正申请ID
+ * @param regularizationDate - 新转正日期（yyyy-MM-dd）
+ * @returns 修改结果
+ */
+export function updateRegularizationDate(id: number, regularizationDate: string) {
+  return request.put(`${BASE}/${id}/regularization-date`, null, { params: { regularizationDate } });
+}
+
+/**
+ * 重新发起已拒绝的转正申请
+ * @param id - 转正申请ID
+ * @returns 重新发起结果
+ */
+export function resubmitRegularization(id: number) {
+  return request.post(`${BASE}/${id}/resubmit`);
+}
+
+/**
  * 获取转正统计数据（各状态数量）
  * @returns 统计数据
  */
