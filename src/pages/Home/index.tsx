@@ -1,4 +1,4 @@
-import { getPendingCount } from '@/api/approvalController';
+import { getPendingList } from '@/api/approvalController';
 import { getEmployeeListUsingGet } from '@/api/employeeController';
 import { getDepartmentDistributionUsingGet } from '@/api/salaryController';
 import {
@@ -52,12 +52,12 @@ const HomePage: React.FC = () => {
       })
       .catch(() => {});
 
-    // 待审批数量
-    getPendingCount()
+    // 待审批数量 — 与审批中心使用同一个接口和参数
+    getPendingList({ current: 1, pageSize: 1000 } as any)
       .then((res) => {
         setStats((s) => ({
           ...s,
-          pendingApprovals: (res?.data as any)?.count ?? (res?.data as any) ?? 0,
+          pendingApprovals: (res?.data as any)?.total ?? 0,
         }));
       })
       .catch(() => {});

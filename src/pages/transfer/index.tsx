@@ -200,30 +200,10 @@ const TransferPage: React.FC = () => {
   ];
 
   const statCards = [
-    {
-      label: '草稿',
-      count: stats.total - stats.pending - stats.effective - stats.rejected,
-      bgColor: STATUS_BG_COLORS[TRANSFER_STATUS.DRAFT],
-      textColor: STATUS_TEXT_COLORS[TRANSFER_STATUS.DRAFT],
-    },
-    {
-      label: '审批中',
-      count: stats.pending,
-      bgColor: STATUS_BG_COLORS[TRANSFER_STATUS.PENDING],
-      textColor: STATUS_TEXT_COLORS[TRANSFER_STATUS.PENDING],
-    },
-    {
-      label: '已生效',
-      count: stats.effective,
-      bgColor: STATUS_BG_COLORS[TRANSFER_STATUS.EFFECTIVE],
-      textColor: STATUS_TEXT_COLORS[TRANSFER_STATUS.EFFECTIVE],
-    },
-    {
-      label: '已拒绝',
-      count: stats.rejected,
-      bgColor: '#fee2e2',
-      textColor: '#dc2626',
-    },
+    { key: 'draft', label: '草稿', count: stats.total - stats.pending - stats.effective - stats.rejected, bgColor: STATUS_BG_COLORS[TRANSFER_STATUS.DRAFT], textColor: STATUS_TEXT_COLORS[TRANSFER_STATUS.DRAFT] },
+    { key: 'pending', label: '审批中', count: stats.pending, bgColor: STATUS_BG_COLORS[TRANSFER_STATUS.PENDING], textColor: STATUS_TEXT_COLORS[TRANSFER_STATUS.PENDING] },
+    { key: 'effective', label: '已生效', count: stats.effective, bgColor: STATUS_BG_COLORS[TRANSFER_STATUS.EFFECTIVE], textColor: STATUS_TEXT_COLORS[TRANSFER_STATUS.EFFECTIVE] },
+    { key: 'rejected', label: '已拒绝', count: stats.rejected, bgColor: '#fee2e2', textColor: '#dc2626' },
   ];
 
   useEffect(() => {
@@ -269,12 +249,14 @@ const TransferPage: React.FC = () => {
       }}
     >
       <Row gutter={16} style={{ marginBottom: 24 }}>
-        {statCards.map((card) => (
-          <Col span={6} key={card.label}>
-            <Card
+        {statCards.map((card) => {
+          const isActive = activeTab === card.key;
+          return (
+          <Col span={6} key={card.key}>
+            <Card hoverable onClick={() => { setActiveTab(isActive ? 'all' : card.key); loadStats(); actionRef.current?.reload(); }}
               style={{
                 background: card.bgColor,
-                border: 'none',
+                border: isActive ? '2px solid #0891b2' : 'none',
                 borderRadius: 12,
                 boxShadow: 'none',
               }}
@@ -297,7 +279,8 @@ const TransferPage: React.FC = () => {
               </div>
             </Card>
           </Col>
-        ))}
+          );
+        })}
       </Row>
 
       <div style={{ marginBottom: 12, background: '#fafafa', padding: '8px 12px', borderRadius: 8, display: 'flex', gap: 12, alignItems: 'center' }}>

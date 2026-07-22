@@ -110,8 +110,7 @@ const ApprovalDelegate: React.FC = () => {
           type="primary"
           icon={<PlusOutlined />}
           style={{ background: '#3b82f6', borderColor: '#3b82f6', borderRadius: 8, padding: '6px 16px' }}
-          onClick={() => form.submit()}
-          loading={submitting}
+          onClick={() => document.getElementById('delegate-form')?.scrollIntoView({ behavior: 'smooth' })}
         >
           新增委托
         </Button>,
@@ -144,6 +143,7 @@ const ApprovalDelegate: React.FC = () => {
       </Card>
 
       <Card
+        id="delegate-form"
         style={{ borderRadius: 12, border: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.04)', marginBottom: 24 }}
         title={
           <div style={{ fontSize: 16, fontWeight: 600 }}>新增委托</div>

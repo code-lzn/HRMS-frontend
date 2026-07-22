@@ -198,30 +198,10 @@ const ProbationPage: React.FC = () => {
   ];
 
   const statCards = [
-    {
-      label: '草稿',
-      count: stats.draft,
-      bgColor: STATUS_BG_COLORS[PROBATION_STATUS.DRAFT],
-      textColor: STATUS_TEXT_COLORS[PROBATION_STATUS.DRAFT],
-    },
-    {
-      label: '审批中',
-      count: stats.pending,
-      bgColor: STATUS_BG_COLORS[PROBATION_STATUS.PENDING],
-      textColor: STATUS_TEXT_COLORS[PROBATION_STATUS.PENDING],
-    },
-    {
-      label: '已完成',
-      count: stats.completed,
-      bgColor: STATUS_BG_COLORS[PROBATION_STATUS.COMPLETED],
-      textColor: STATUS_TEXT_COLORS[PROBATION_STATUS.COMPLETED],
-    },
-    {
-      label: '已拒绝',
-      count: stats.rejected,
-      bgColor: STATUS_BG_COLORS[PROBATION_STATUS.REJECTED],
-      textColor: STATUS_TEXT_COLORS[PROBATION_STATUS.REJECTED],
-    },
+    { key: 'draft', label: '草稿', count: stats.draft, bgColor: STATUS_BG_COLORS[PROBATION_STATUS.DRAFT], textColor: STATUS_TEXT_COLORS[PROBATION_STATUS.DRAFT] },
+    { key: 'pending', label: '审批中', count: stats.pending, bgColor: STATUS_BG_COLORS[PROBATION_STATUS.PENDING], textColor: STATUS_TEXT_COLORS[PROBATION_STATUS.PENDING] },
+    { key: 'completed', label: '已完成', count: stats.completed, bgColor: STATUS_BG_COLORS[PROBATION_STATUS.COMPLETED], textColor: STATUS_TEXT_COLORS[PROBATION_STATUS.COMPLETED] },
+    { key: 'rejected', label: '已拒绝', count: stats.rejected, bgColor: STATUS_BG_COLORS[PROBATION_STATUS.REJECTED], textColor: STATUS_TEXT_COLORS[PROBATION_STATUS.REJECTED] },
   ];
 
   return (
@@ -316,12 +296,14 @@ const ProbationPage: React.FC = () => {
       )}
 
       <Row gutter={16} style={{ marginBottom: 24 }}>
-        {statCards.map((card) => (
-          <Col span={6} key={card.label}>
-            <Card
+        {statCards.map((card) => {
+          const isActive = activeTab === card.key;
+          return (
+          <Col span={6} key={card.key}>
+            <Card hoverable onClick={() => { setActiveTab(isActive ? 'all' : card.key); loadStats(); actionRef.current?.reload(); }}
               style={{
                 background: card.bgColor,
-                border: 'none',
+                border: isActive ? '2px solid #22c55e' : 'none',
                 borderRadius: 12,
                 boxShadow: 'none',
               }}
@@ -344,7 +326,8 @@ const ProbationPage: React.FC = () => {
               </div>
             </Card>
           </Col>
-        ))}
+          );
+        })}
       </Row>
 
       <div style={{ marginBottom: 12, background: '#fafafa', padding: '8px 12px', borderRadius: 8, display: 'flex', gap: 12, alignItems: 'center' }}>
