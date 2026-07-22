@@ -9,6 +9,7 @@ import {
 } from './services/regularization';
 import type { RegularizationVO } from './types/regularization';
 
+// 转正申请状态映射表：将状态枚举值转换为显示文本和颜色
 const STATUS_MAP: Record<string, { color: string; text: string }> = {
   DRAFT:             { color: '#d9d9d9', text: '草稿' },
   PENDING_ASSESSMENT:{ color: '#faad14', text: '待评估' },
@@ -19,17 +20,27 @@ const STATUS_MAP: Record<string, { color: string; text: string }> = {
 
 const { Title, Text } = Typography;
 
+// 转正管理页面组件：管理员工转正申请的全生命周期
 const ProbationPage: React.FC = () => {
+  // ProTable表格引用：用于触发表格刷新
   const actionRef = useRef<ActionType>();
-  const [activeTab, setActiveTab] = useState('');
-  const [formOpen, setFormOpen] = useState(false);
-  const [editRecord, setEditRecord] = useState<RegularizationVO | null>(null);
-  const [stats, setStats] = useState({ draft: 0, assessing: 0, approving: 0, approved: 0 });
 
+  // ===== 筛选状态 =====
+  const [activeTab, setActiveTab] = useState(''); // 当前选中的状态标签
+
+  // ===== 表单弹窗状态 =====
+  const [formOpen, setFormOpen] = useState(false); // 转正申请表单弹窗开关
+  const [editRecord, setEditRecord] = useState<RegularizationVO | null>(null); // 当前编辑的转正记录
+
+  // ===== 统计数据状态 =====
+  const [stats, setStats] = useState({ draft: 0, assessing: 0, approving: 0, approved: 0 }); // 各状态数量统计
+
+  // 初始化：组件挂载时获取统计数据
   useEffect(() => {
     fetchStats();
   }, []);
 
+  // 获取统计数据：调用后端接口获取各状态的转正申请数量
   const fetchStats = async () => {
     try {
       const res = await getRegularizationStats();
@@ -46,11 +57,13 @@ const ProbationPage: React.FC = () => {
     }
   };
 
+  // 表格列配置：定义转正申请列表的显示列
   const columns: ProColumns<RegularizationVO>[] = [
     {
       title: '姓名', dataIndex: 'employeeName', width: 120, ellipsis: true,
       render: (name: string) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
+          {/* 姓名首字母头像 */}
           <div
             style={{
               width: 32,
@@ -113,6 +126,8 @@ const ProbationPage: React.FC = () => {
       title: '操作', key: 'action', width: 150, fixed: 'right', search: false,
       render: (_, r) => {
         const isDraft = !r.recordId;
+
+        // 草稿状态：编辑、提交审批、删除
         if (isDraft) return (
           <>
             <a onClick={() => { setEditRecord(r); setFormOpen(true); }} style={{ marginRight: 8 }}>编辑</a>
@@ -122,15 +137,22 @@ const ProbationPage: React.FC = () => {
             </Popconfirm>
           </>
         );
+
+        // 审批中状态：查看审批进度
         if (r.approvalStatus === 'APPROVING' || r.status === 'APPROVING') return (
           <a href={`/approval/detail/${r.recordId}`}>查看审批进度</a>
         );
+
+        // 已转正状态：显示完成提示
         if (r.approvalStatus === 'APPROVED' || r.status === 'APPROVED') return (
           <span style={{ color: '#999' }}>已转正</span>
         );
+
+        // 已拒绝状态：重新编辑
         if (r.approvalStatus === 'REJECTED' || r.status === 'REJECTED') return (
           <a onClick={() => { setEditRecord(r); setFormOpen(true); }}>重新编辑</a>
         );
+
         return null;
       },
     },

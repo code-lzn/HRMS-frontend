@@ -9,6 +9,7 @@ import {
 } from './services/transfer';
 import type { TransferVO } from './types/transfer';
 
+// 调岗申请状态映射表：将状态枚举值转换为显示文本和颜色
 const STATUS_MAP: Record<string, { color: string; text: string }> = {
   DRAFT:    { color: '#d9d9d9', text: '草稿' },
   APPROVING:{ color: '#1677ff', text: '审批中' },
@@ -19,17 +20,27 @@ const STATUS_MAP: Record<string, { color: string; text: string }> = {
 
 const { Title, Text } = Typography;
 
+// 调岗管理页面组件：管理员工调岗申请的全生命周期
 const TransferPage: React.FC = () => {
+  // ProTable表格引用：用于触发表格刷新
   const actionRef = useRef<ActionType>();
-  const [activeTab, setActiveTab] = useState('');
-  const [formOpen, setFormOpen] = useState(false);
-  const [editRecord, setEditRecord] = useState<TransferVO | null>(null);
-  const [stats, setStats] = useState({ draft: 0, approving: 0, approved: 0, effective: 0 });
 
+  // ===== 筛选状态 =====
+  const [activeTab, setActiveTab] = useState(''); // 当前选中的状态标签
+
+  // ===== 表单弹窗状态 =====
+  const [formOpen, setFormOpen] = useState(false); // 调岗申请表单弹窗开关
+  const [editRecord, setEditRecord] = useState<TransferVO | null>(null); // 当前编辑的调岗记录
+
+  // ===== 统计数据状态 =====
+  const [stats, setStats] = useState({ draft: 0, approving: 0, approved: 0, effective: 0 }); // 各状态数量统计
+
+  // 初始化：组件挂载时获取统计数据
   useEffect(() => {
     fetchStats();
   }, []);
 
+  // 获取统计数据：调用后端接口获取各状态的调岗申请数量
   const fetchStats = async () => {
     try {
       const res = await getTransferStats();
@@ -46,11 +57,13 @@ const TransferPage: React.FC = () => {
     }
   };
 
+  // 表格列配置：定义调岗申请列表的显示列
   const columns: ProColumns<TransferVO>[] = [
     {
       title: '姓名', dataIndex: 'employeeName', width: 120, ellipsis: true,
       render: (name: string) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
+          {/* 姓名首字母头像 */}
           <div
             style={{
               width: 32,
@@ -112,6 +125,8 @@ const TransferPage: React.FC = () => {
       title: '操作', key: 'action', width: 150, fixed: 'right', search: false,
       render: (_, r) => {
         const isDraft = !r.recordId;
+
+        // 草稿状态：编辑、提交审批、删除
         if (isDraft) return (
           <>
             <a onClick={() => { setEditRecord(r); setFormOpen(true); }} style={{ marginRight: 8 }}>编辑</a>
@@ -121,15 +136,22 @@ const TransferPage: React.FC = () => {
             </Popconfirm>
           </>
         );
+
+        // 审批中状态：查看审批进度
         if (r.approvalStatus === 'APPROVING' || r.status === 'APPROVING') return (
           <a href={`/approval/detail/${r.recordId}`}>查看审批进度</a>
         );
+
+        // 已通过/已生效状态：显示完成提示
         if (r.approvalStatus === 'APPROVED' || r.status === 'APPROVED') return (
           <span style={{ color: '#999' }}>已生效</span>
         );
+
+        // 已拒绝状态：重新编辑
         if (r.approvalStatus === 'REJECTED' || r.status === 'REJECTED') return (
           <a onClick={() => { setEditRecord(r); setFormOpen(true); }}>重新编辑</a>
         );
+
         return null;
       },
     },

@@ -9,6 +9,7 @@ import {
 } from './services/resignation';
 import type { ResignationVO } from './types/resignation';
 
+// 离职申请状态映射表：将状态枚举值转换为显示文本和颜色
 const STATUS_MAP: Record<string, { color: string; text: string }> = {
   DRAFT:        { color: '#d9d9d9', text: '草稿' },
   APPROVING:    { color: '#1677ff', text: '审批中' },
@@ -19,24 +20,36 @@ const STATUS_MAP: Record<string, { color: string; text: string }> = {
 
 const { Title, Text } = Typography;
 
+// 离职原因映射表：将原因枚举值转换为显示文本
 const REASON_MAP: Record<string, string> = {
   VOLUNTARY: '主动离职', INVOLUNTARY: '被动离职', NEGOTIATED: '协商离职',
 };
+// 离职类型映射表：将类型枚举值转换为显示文本
 const TYPE_MAP: Record<string, string> = {
   RESIGN: '辞职', DISMISS: '辞退', CONTRACT_EXPIRE: '合同到期不续签', OTHER: '其他',
 };
 
+// 离职管理页面组件：管理员工离职申请的全生命周期
 const ResignationPage: React.FC = () => {
+  // ProTable表格引用：用于触发表格刷新
   const actionRef = useRef<ActionType>();
-  const [activeTab, setActiveTab] = useState('');
-  const [formOpen, setFormOpen] = useState(false);
-  const [editRecord, setEditRecord] = useState<ResignationVO | null>(null);
-  const [stats, setStats] = useState({ draft: 0, approving: 0, pending: 0, resigned: 0 });
 
+  // ===== 筛选状态 =====
+  const [activeTab, setActiveTab] = useState(''); // 当前选中的状态标签
+
+  // ===== 表单弹窗状态 =====
+  const [formOpen, setFormOpen] = useState(false); // 离职申请表单弹窗开关
+  const [editRecord, setEditRecord] = useState<ResignationVO | null>(null); // 当前编辑的离职记录
+
+  // ===== 统计数据状态 =====
+  const [stats, setStats] = useState({ draft: 0, approving: 0, pending: 0, resigned: 0 }); // 各状态数量统计
+
+  // 初始化：组件挂载时获取统计数据
   useEffect(() => {
     fetchStats();
   }, []);
 
+  // 获取统计数据：调用后端接口获取各状态的离职申请数量
   const fetchStats = async () => {
     try {
       const res = await getResignationStats();
@@ -53,11 +66,13 @@ const ResignationPage: React.FC = () => {
     }
   };
 
+  // 表格列配置：定义离职申请列表的显示列
   const columns: ProColumns<ResignationVO>[] = [
     {
       title: '姓名', dataIndex: 'employeeName', width: 120, ellipsis: true,
       render: (name: string) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
+          {/* 姓名首字母头像 */}
           <div
             style={{
               width: 32,
@@ -115,6 +130,8 @@ const ResignationPage: React.FC = () => {
       title: '操作', key: 'action', width: 150, fixed: 'right', search: false,
       render: (_, r) => {
         const isDraft = !r.recordId;
+
+        // 草稿状态：编辑、提交审批、删除
         if (isDraft) return (
           <>
             <a onClick={() => { setEditRecord(r); setFormOpen(true); }} style={{ marginRight: 8 }}>编辑</a>
@@ -124,15 +141,22 @@ const ResignationPage: React.FC = () => {
             </Popconfirm>
           </>
         );
+
+        // 审批中状态：查看审批进度
         if (r.approvalStatus === 'APPROVING' || r.status === 'APPROVING') return (
           <a href={`/approval/detail/${r.recordId}`}>查看审批进度</a>
         );
+
+        // 待离职/已离职状态：显示状态提示
         if (r.status === 'PENDING_RESIGN' || r.status === 'RESIGNED') return (
           <span style={{ color: '#999' }}>{r.status === 'RESIGNED' ? '已离职' : '待离职'}</span>
         );
+
+        // 已拒绝状态：重新编辑
         if (r.approvalStatus === 'REJECTED' || r.status === 'REJECTED') return (
           <a onClick={() => { setEditRecord(r); setFormOpen(true); }}>重新编辑</a>
         );
+
         return null;
       },
     },

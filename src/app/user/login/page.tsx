@@ -1,7 +1,7 @@
 import { userLoginUsingPost } from '@/api/userController';
 import logo from '@/assets/logo.jpg';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { Link, useLocation, useModel, useNavigate } from '@umijs/max';
+import { useLocation, useModel, useNavigate } from '@umijs/max';
 import { Button, Form, Image, Input, message } from 'antd';
 import React, { useState } from 'react';
 import './index.css';
@@ -118,10 +118,6 @@ const UserLoginPage: React.FC = () => {
             </Form.Item>
           </Form>
 
-          <div className="login-form-footer">
-            <span>还没有账号？</span>
-            <Link to="/user/register">去注册</Link>
-          </div>
         </div>
       </div>
     </div>

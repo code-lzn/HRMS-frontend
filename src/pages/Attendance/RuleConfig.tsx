@@ -15,18 +15,21 @@ import { getDepartmentTreeUsingGet } from '@/api/departmentController';
 import usePermission from '@/hooks/usePermission';
 import dayjs from 'dayjs';
 
+// 考勤类型映射表：将考勤组类型转换为显示文本和颜色
 const SHIFT_TYPE_MAP: Record<string, { label: string; color: string }> = {
   '0': { label: '固定班', color: '#1890ff' },
   '1': { label: '弹性班', color: '#722ed1' },
   '2': { label: '排班制', color: '#fa8c16' },
 };
 
+// 节假日类型映射表：将节假日类型转换为显示文本和颜色
 const HOLIDAY_TYPE_MAP: Record<number, { label: string; color: string }> = {
   0: { label: '法定节假日', color: '#ff4d4f' },
   1: { label: '调休上班日', color: '#52c41a' },
   2: { label: '公司自定义假期', color: '#fa8c16' },
 };
 
+// 打卡规则配置：定义考勤判定规则（条件→结果→颜色）
 const RULES = [
   { condition: '上班打卡时间 ≤ 规定时间', result: '正常', color: '#52c41a' },
   { condition: '规定时间 < 上班打卡时间 ≤ 规定时间+阈值', result: '迟到', color: '#faad14' },
@@ -37,6 +40,7 @@ const RULES = [
   { condition: '当日无打卡记录', result: '缺勤', color: '#ff4d4f' },
 ];
 
+// 考勤组数据接口定义
 interface AttendanceGroup {
   id: number;
   groupName: string;
@@ -50,29 +54,35 @@ interface AttendanceGroup {
   departmentIds: number[];
 }
 
+// 考勤规则配置组件：管理考勤组、节假日和打卡规则
 const RuleConfig: React.FC = () => {
+  // 获取用户权限（是否管理员）
   const { isAdmin } = usePermission();
-  const [modalVisible, setModalVisible] = useState(false);
-  const [confirmLoading, setConfirmLoading] = useState(false);
-  const [form] = Form.useForm();
-  const [groups, setGroups] = useState<AttendanceGroup[]>([]);
-  const [departments, setDepartments] = useState<{ value: string; label: string }[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [editingId, setEditingId] = useState<number | null>(null);
 
-  // 节假日配置
-  const [holidays, setHolidays] = useState<any[]>([]);
-  const [holidayModalOpen, setHolidayModalOpen] = useState(false);
-  const [holidayForm] = Form.useForm();
-  const [editingHolidayId, setEditingHolidayId] = useState<number | null>(null);
-  const [holidayLoading, setHolidayLoading] = useState(false);
+  // ===== 考勤组相关状态 =====
+  const [modalVisible, setModalVisible] = useState(false); // 考勤组弹窗开关
+  const [confirmLoading, setConfirmLoading] = useState(false); // 考勤组提交加载状态
+  const [form] = Form.useForm(); // 考勤组表单实例
+  const [groups, setGroups] = useState<AttendanceGroup[]>([]); // 考勤组列表
+  const [departments, setDepartments] = useState<{ value: string; label: string }[]>([]); // 部门列表
+  const [loading, setLoading] = useState(true); // 考勤组加载状态
+  const [editingId, setEditingId] = useState<number | null>(null); // 当前编辑的考勤组ID
 
+  // ===== 节假日配置相关状态 =====
+  const [holidays, setHolidays] = useState<any[]>([]); // 节假日列表
+  const [holidayModalOpen, setHolidayModalOpen] = useState(false); // 节假日弹窗开关
+  const [holidayForm] = Form.useForm(); // 节假日表单实例
+  const [editingHolidayId, setEditingHolidayId] = useState<number | null>(null); // 当前编辑的节假日ID
+  const [holidayLoading, setHolidayLoading] = useState(false); // 节假日加载状态
+
+  // 初始化数据：组件挂载时获取考勤组、部门和节假日数据
   useEffect(() => {
     fetchGroups();
     fetchDepartments();
     fetchHolidays();
   }, []);
 
+  // 获取考勤组列表：调用后端接口获取所有考勤组数据
   const fetchGroups = async () => {
     setLoading(true);
     try {
@@ -98,6 +108,7 @@ const RuleConfig: React.FC = () => {
     }
   };
 
+  // 获取部门列表：递归遍历部门树，构建下拉框选项
   const fetchDepartments = async () => {
     try {
       const res = await getDepartmentTreeUsingGet();
@@ -119,12 +130,14 @@ const RuleConfig: React.FC = () => {
     }
   };
 
+  // 添加考勤组：清空表单并打开弹窗
   const handleAddGroup = () => {
     setEditingId(null);
     form.resetFields();
     setModalVisible(true);
   };
 
+  // 编辑考勤组：填充表单数据并打开弹窗
   const handleEditGroup = (group: AttendanceGroup) => {
     setEditingId(group.id);
     form.setFieldsValue({
@@ -139,18 +152,20 @@ const RuleConfig: React.FC = () => {
     setModalVisible(true);
   };
 
+  // 删除考勤组：调用后端接口删除指定考勤组
   const handleDeleteGroup = async (id: number) => {
     try {
       const res = await deleteGroupUsingDelete({ id });
       if (res.code === 0) {
         message.success('删除成功');
-        fetchGroups();
+        fetchGroups(); // 刷新列表
       }
     } catch (e) {
       message.error('删除失败');
     }
   };
 
+  // 提交考勤组：根据是否有editingId判断是新增还是更新
   const handleSubmit = async () => {
     setConfirmLoading(true);
     try {
@@ -166,19 +181,21 @@ const RuleConfig: React.FC = () => {
       };
 
       if (editingId) {
+        // 更新考勤组
         data.id = editingId;
         await updateGroupUsingPut(data);
         message.success('更新成功');
       } else {
+        // 新增考勤组
         await createGroupUsingPost(data);
         message.success('创建成功');
       }
 
       setModalVisible(false);
-      fetchGroups();
+      fetchGroups(); // 刷新列表
     } catch (e: any) {
       if (e?.errorFields) {
-        // form validation error, don't show message, fields will highlight
+        // 表单校验失败，字段会自动高亮，不显示额外提示
         return;
       }
       console.error('提交失败:', e);
@@ -188,8 +205,9 @@ const RuleConfig: React.FC = () => {
     }
   };
 
-  // ========== 节假日配置 ==========
+  // ========== 节假日配置相关方法 ==========
 
+  // 获取节假日列表：调用后端接口获取所有节假日配置
   const fetchHolidays = async () => {
     setHolidayLoading(true);
     try {
@@ -204,12 +222,14 @@ const RuleConfig: React.FC = () => {
     }
   };
 
+  // 添加节假日：清空表单并打开弹窗
   const handleAddHoliday = () => {
     setEditingHolidayId(null);
     holidayForm.resetFields();
     setHolidayModalOpen(true);
   };
 
+  // 编辑节假日：填充表单数据并打开弹窗
   const handleEditHoliday = (record: any) => {
     setEditingHolidayId(record.id);
     holidayForm.setFieldsValue({
@@ -221,18 +241,20 @@ const RuleConfig: React.FC = () => {
     setHolidayModalOpen(true);
   };
 
+  // 删除节假日：调用后端接口删除指定节假日
   const handleDeleteHoliday = async (id: number) => {
     try {
       const res = await deleteHolidayUsingDelete({ id });
       if (res.code === 0) {
         message.success('删除成功');
-        fetchHolidays();
+        fetchHolidays(); // 刷新列表
       }
     } catch (e) {
       message.error('删除失败');
     }
   };
 
+  // 提交节假日：根据是否有editingHolidayId判断是新增还是更新
   const handleHolidaySubmit = async () => {
     try {
       const values = await holidayForm.validateFields();
@@ -244,18 +266,20 @@ const RuleConfig: React.FC = () => {
       };
 
       if (editingHolidayId) {
+        // 更新节假日
         data.id = editingHolidayId;
         await updateHolidayUsingPut(data);
         message.success('更新成功');
       } else {
+        // 新增节假日
         await createHolidayUsingPost(data);
         message.success('添加成功');
       }
 
       setHolidayModalOpen(false);
-      fetchHolidays();
+      fetchHolidays(); // 刷新列表
     } catch (e: any) {
-      if (e?.errorFields) return;
+      if (e?.errorFields) return; // 表单校验失败
       message.error(e?.message || '操作失败');
     }
   };

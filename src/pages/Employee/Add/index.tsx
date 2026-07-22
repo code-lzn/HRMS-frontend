@@ -2,6 +2,7 @@ import {
   getDepartmentTreeUsingGet,
 } from '@/api/departmentController';
 import { addEmployeeUsingPost, listEmployeesUsingGet, listManagerCandidatesUsingGet } from '@/api/employeeController';
+import { saveDraft } from '../../HR/Onboarding/services/onboarding';
 import {
   listPositionsUsingGet,
 } from '@/api/positionController';
@@ -156,6 +157,40 @@ const EmployeeAddPage: React.FC = () => {
     }
   };
 
+  const handleDraft = async () => {
+    try {
+      setSubmitting(true);
+      const values = form.getFieldsValue();
+      await saveDraft({
+        candidateName: values.employeeName,
+        gender: values.gender != null ? String(values.gender) : undefined,
+        phone: values.phone,
+        idCard: values.idCard,
+        email: values.email,
+        deptId: values.departmentId,
+        positionId: values.positionId,
+        hireDate: values.hireDate?.format('YYYY-MM-DD'),
+        probationSalaryRatio: values.probationRatio ?? 0.8,
+        employmentType: values.employmentType,
+        directReportId: values.directReportId,
+        contractType: values.contractType,
+        contractExpireDate: values.contractExpireDate?.format('YYYY-MM-DD'),
+        baseSalary: values.baseSalary,
+        bankAccount: values.bankAccount,
+        bankName: values.bankName,
+        emergencyContactName: values.emergencyContactName,
+        emergencyContactPhone: values.emergencyContactPhone,
+      });
+      setDirty(false);
+      message.success('草稿已保存');
+      history.push('/hr/onboarding');
+    } catch (e: any) {
+      if (e?.message) message.error(e.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleCancel = () => {
     if (dirty) {
       Modal.confirm({
@@ -184,6 +219,7 @@ const EmployeeAddPage: React.FC = () => {
           <Space>
             <Button style={{ borderRadius: 6, borderColor: '#d9d9d9' }} onClick={handleCancel}>取消</Button>
             <Button type="primary" loading={submitting} style={{ borderRadius: 6, background: '#1677ff' }} onClick={handleSubmit}>保存</Button>
+            <Button style={{ borderRadius: 6, borderColor: '#d9d9d9' }} loading={submitting} onClick={handleDraft}>草稿</Button>
           </Space>
         </div>
       </Card>
