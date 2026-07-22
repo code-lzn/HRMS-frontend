@@ -20,6 +20,12 @@ export default defineConfig({
       path: '/home',
       component: './Home',
     },
+    {
+      name: 'AI 智能助理',
+      path: '/ai-assistant',
+      component: './AIAssistant',
+      icon: 'RobotOutlined',
+    },
     // {
     //   name: '权限演示',
     //   path: '/access',

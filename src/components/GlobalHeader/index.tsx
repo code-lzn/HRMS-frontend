@@ -1,6 +1,6 @@
-import { LogoutOutlined, UserOutlined } from '@ant-design/icons';
+import { LogoutOutlined, RobotOutlined, UserOutlined } from '@ant-design/icons';
 import { history, useModel } from '@umijs/max';
-import { Avatar, Dropdown, Space } from 'antd';
+import { Avatar, Button, Dropdown, Space, Tooltip } from 'antd';
 import type { MenuProps } from 'antd';
 import React from 'react';
 import { userLogoutUsingPost } from '@/api/userController';
@@ -41,6 +41,14 @@ const GlobalHeader: React.FC = () => {
       <div className="global-header-right">
         {currentUser && (
           <Space size={10}>
+            <Tooltip title="AI 智能助理">
+              <Button
+                type="text"
+                icon={<RobotOutlined style={{ fontSize: 18, color: '#1677ff' }} />}
+                onClick={() => history.push('/ai-assistant')}
+                style={{ display: 'flex', alignItems: 'center' }}
+              />
+            </Tooltip>
             <Avatar
               size={32}
               style={{ backgroundColor: '#faad14', cursor: 'pointer' }}
