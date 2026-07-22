@@ -84,3 +84,8 @@
 .ant-picker-calendar-full .ant-picker-cell {
   overflow: hidden !important;
 }
+
+/* 隐藏日历头部右侧的月/年视图切换按钮 */
+.ant-picker-calendar-header .ant-radio-group {
+  display: none !important;
+}

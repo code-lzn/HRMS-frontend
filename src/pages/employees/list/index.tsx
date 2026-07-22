@@ -156,10 +156,14 @@ const EmployeeList: React.FC = () => {
     if (hireDateRange?.[1]) params.set('hireDateEnd', hireDateRange[1]);
 
     try {
+      const token = sessionStorage.getItem('hrms_token');
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
       const res = await fetch(
         `http://localhost:8123${getExportUrl()}?${params.toString()}`,
         {
           credentials: 'include',
+          headers,
         },
       );
       if (!res.ok) throw new Error('导出失败');
