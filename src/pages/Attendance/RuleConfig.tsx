@@ -24,8 +24,8 @@ const SHIFT_TYPE_MAP: Record<string, { label: string; color: string }> = {
 
 // 节假日类型映射表：将节假日类型转换为显示文本和颜色
 const HOLIDAY_TYPE_MAP: Record<number, { label: string; color: string }> = {
-  0: { label: '法定节假日', color: '#ff4d4f' },
-  1: { label: '调休上班日', color: '#52c41a' },
+  0: { label: '法定节假日', color: '#faad14' },
+  1: { label: '调休上班日', color: '#eb2f96' },
   2: { label: '公司自定义假期', color: '#fa8c16' },
 };
 
