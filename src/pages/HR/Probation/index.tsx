@@ -2,7 +2,7 @@ import { ProTable, type ProColumns, type ActionType } from '@ant-design/pro-comp
 import { Button, Tag, Popconfirm, Tabs, Card, Typography } from 'antd';
 import { PlusOutlined, FileTextOutlined, ClockCircleOutlined, AuditOutlined, LikeOutlined } from '@ant-design/icons';
 import { useRef, useState, useEffect } from 'react';
-import RegularizationFormModal from './components/RegularizationFormModal';
+import { useNavigate } from '@umijs/max';
 import {
   listRegularization, deleteRegularization, submitDraft,
   getRegularizationStats,
@@ -24,13 +24,10 @@ const { Title, Text } = Typography;
 const ProbationPage: React.FC = () => {
   // ProTable表格引用：用于触发表格刷新
   const actionRef = useRef<ActionType>();
+  const navigate = useNavigate();
 
   // ===== 筛选状态 =====
   const [activeTab, setActiveTab] = useState(''); // 当前选中的状态标签
-
-  // ===== 表单弹窗状态 =====
-  const [formOpen, setFormOpen] = useState(false); // 转正申请表单弹窗开关
-  const [editRecord, setEditRecord] = useState<RegularizationVO | null>(null); // 当前编辑的转正记录
 
   // ===== 统计数据状态 =====
   const [stats, setStats] = useState({ draft: 0, assessing: 0, approving: 0, approved: 0 }); // 各状态数量统计
@@ -130,7 +127,7 @@ const ProbationPage: React.FC = () => {
         // 草稿状态：编辑、提交审批、删除
         if (isDraft) return (
           <>
-            <a onClick={() => { setEditRecord(r); setFormOpen(true); }} style={{ marginRight: 8 }}>编辑</a>
+            <a onClick={() => navigate('/hr/probation/add', { state: { editData: r } })} style={{ marginRight: 8 }}>编辑</a>
             <a onClick={() => submitDraft(r.id).then(() => actionRef.current?.reload())} style={{ marginRight: 8 }}>提交审批</a>
             <Popconfirm title="确定删除？" onConfirm={() => deleteRegularization(r.id).then(() => actionRef.current?.reload())}>
               <a style={{ color: '#ff4d4f' }}>删除</a>
@@ -150,7 +147,7 @@ const ProbationPage: React.FC = () => {
 
         // 已拒绝状态：重新编辑
         if (r.approvalStatus === 'REJECTED' || r.status === 'REJECTED') return (
-          <a onClick={() => { setEditRecord(r); setFormOpen(true); }}>重新编辑</a>
+          <a onClick={() => navigate('/hr/probation/add', { state: { editData: r } })}>重新编辑</a>
         );
 
         return null;
@@ -180,7 +177,7 @@ const ProbationPage: React.FC = () => {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => { setEditRecord(null); setFormOpen(true); }}
+            onClick={() => navigate('/hr/probation/add')}
             style={{ borderRadius: 6, height: 36, padding: '0 20px' }}
           >
             新增转正申请
@@ -268,10 +265,6 @@ const ProbationPage: React.FC = () => {
         />
       </div>
 
-      <RegularizationFormModal open={formOpen} editData={editRecord}
-        onCancel={() => { setFormOpen(false); setEditRecord(null); }}
-        onOk={() => { setFormOpen(false); setEditRecord(null); actionRef.current?.reload(); }}
-      />
     </div>
   );
 };
