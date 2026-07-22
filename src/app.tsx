@@ -5,10 +5,14 @@ import {
 import HRMSAssistant from '@/components/HRMSAssistant';
 import { clearCachedLoginUser, setCachedLoginUser } from '@/libs/loginCache';
 import { queryClient } from '@/libs/queryClient';
-import { LogoutOutlined, UserSwitchOutlined } from '@ant-design/icons';
+import {
+  CaretDownOutlined,
+  LogoutOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useModel, useNavigate } from '@umijs/max';
-import { Dropdown, message } from 'antd';
+import { Avatar, Dropdown, message } from 'antd';
 import { createElement } from 'react';
 
 const originalError = console.error;
@@ -59,29 +63,57 @@ export async function getInitialState() {
   return initialState;
 }
 
+const ROLE_LABELS: Record<string, { label: string; color: string }> = {
+  admin: { label: '系统管理员', color: '#ff7875' },
+  hr: { label: 'HR专员', color: '#69b1ff' },
+  dept_head: { label: '部门主管', color: '#95de64' },
+  finance: { label: '财务专员', color: '#ffd666' },
+  user: { label: '普通员工', color: '#262626' },
+};
+
 const RightContent: React.FC = () => {
   const { initialState } = useModel('@@initialState');
   const navigate = useNavigate();
   const currentUser = initialState?.currentUser;
 
+  if (!currentUser) return null;
+
+  const roleInfo = ROLE_LABELS[currentUser.userRole || ''];
+
   const menuItems = [
     {
+      key: 'user-info',
+      disabled: true,
+      label: (
+        <div style={{ padding: '4px 0' }}>
+          <div style={{ fontWeight: 600, fontSize: 14, color: '#262626' }}>
+            {currentUser.userName}
+          </div>
+          <div style={{ fontSize: 12, color: roleInfo?.color || '#8c8c8c', marginTop: 2 }}>
+            {roleInfo?.label || currentUser.userRole}
+          </div>
+        </div>
+      ),
+    },
+    { type: 'divider' as const },
+    {
       key: 'profile',
-      icon: <UserSwitchOutlined />,
+      icon: <UserOutlined />,
       label: '个人中心',
       onClick: () => navigate('/profile'),
     },
+    { type: 'divider' as const },
     {
       key: 'logout',
       icon: <LogoutOutlined />,
       label: '退出登录',
+      danger: true,
       onClick: async () => {
         try {
           await userLogoutUsingPost();
         } catch {
           // 即使后端调用失败，也要清空本地状态
         }
-        // 清空本地缓存和 React Query 缓存
         clearCachedLoginUser();
         queryClient.clear();
         message.success('退出成功');
@@ -90,20 +122,66 @@ const RightContent: React.FC = () => {
     },
   ];
 
-  if (!currentUser) return null;
-
   return (
-    <Dropdown menu={{ items: menuItems }}>
+    <Dropdown menu={{ items: menuItems }} trigger={['click']} placement="bottomRight">
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 8,
+          gap: 10,
           cursor: 'pointer',
-          padding: '0 8px',
+          padding: '4px 12px 4px 4px',
+          borderRadius: 8,
+          transition: 'background 0.2s',
+        }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLElement).style.background =
+            'rgba(255,255,255,0.08)';
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLElement).style.background = 'transparent';
         }}
       >
-        <span style={{ fontSize: 14 }}>{currentUser.userName}</span>
+        <Avatar
+          size={36}
+          src={currentUser.userAvatar}
+          icon={!currentUser.userAvatar && <UserOutlined />}
+          style={{
+            backgroundColor: currentUser.userAvatar
+              ? undefined
+              : roleInfo?.color || '#1677ff',
+            flexShrink: 0,
+          }}
+        >
+          {!currentUser.userAvatar && (currentUser.userName?.charAt(0) || 'U')}
+        </Avatar>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            lineHeight: 1.3,
+            minWidth: 0,
+          }}
+        >
+          <span
+            style={{
+              fontSize: 14,
+              fontWeight: 600,
+              color: '#fff',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {currentUser.userName}
+          </span>
+          <span style={{ fontSize: 12, color: roleInfo?.color || '#d9d9d9' }}>
+            {roleInfo?.label || currentUser.userRole}
+          </span>
+        </div>
+        <CaretDownOutlined
+          style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12 }}
+        />
       </div>
     </Dropdown>
   );

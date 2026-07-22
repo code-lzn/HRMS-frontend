@@ -66,7 +66,7 @@ export default defineConfig({
     {
       name: '组织架构',
       path: '/organization',
-      access: 'canSeeEmployees',
+      access: 'canSeeOrganization',
       routes: [
         {
           name: '部门管理',
@@ -151,7 +151,7 @@ export default defineConfig({
     {
       name: '入转调离管理',
       path: '/hr-change',
-      access: 'canSeeEmployees',
+      access: 'canSeeHRChange',
       routes: [
         { path: '/hr-change', redirect: '/hr-change/onboarding' },
         {
@@ -216,11 +216,13 @@ export default defineConfig({
           name: '考勤组',
           path: '/attendance/groups',
           component: './attendance/groups',
+          access: 'canManageAttendance',
         },
         {
           name: '考勤统计',
           path: '/attendance/statistics',
           component: './attendance/statistics',
+          access: 'canManageAttendance',
         },
         {
           name: '请假管理',
@@ -231,11 +233,13 @@ export default defineConfig({
           name: '加班管理',
           path: '/attendance/overtime',
           component: './attendance/overtime',
+          access: 'canManageAttendance',
         },
         {
           name: '工作日设置',
           path: '/attendance/workday-settings',
           component: './attendance/workday-settings',
+          access: 'canManageAttendance',
         },
       ],
     },

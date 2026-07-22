@@ -6,9 +6,11 @@ import type { ProfileUpdateDTO } from '@/services/profile/typings';
 import { updateProfile } from '@/services/profile';
 import { useProfile } from '@/hooks/useProfile';
 import { PageContainer } from '@ant-design/pro-components';
+import { useModel } from '@umijs/max';
 
 export default function ProfilePage() {
-  const { profile, loading, fetchProfile } = useProfile();
+  const { profile, loading, fetchProfile, setProfile } = useProfile();
+  const { setInitialState } = useModel('@@initialState');
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState<Partial<ProfileUpdateDTO>>({});
   const [saving, setSaving] = useState(false);
@@ -95,6 +97,16 @@ export default function ProfilePage() {
                 if ((res as any)?.code === 0) {
                   onSuccess?.(res);
                   message.success('头像更新成功');
+                  // 同步更新全局 initialState 中的头像（侧边栏底部 + 顶部 header）
+                  const avatarUrl = (res as any)?.data;
+                  if (avatarUrl) {
+                    setInitialState((prev: any) => ({
+                      ...prev,
+                      currentUser: { ...prev?.currentUser, userAvatar: avatarUrl },
+                    }));
+                    // 同时立即更新 profile model 本地数据，不等接口刷新
+                    setProfile((prev) => prev ? { ...prev, userAvatar: avatarUrl } : prev);
+                  }
                   fetchProfile();
                 } else {
                   onError?.({ message: '上传失败' } as any);
