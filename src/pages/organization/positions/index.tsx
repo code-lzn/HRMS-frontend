@@ -20,6 +20,7 @@ import {
   Space,
   Table,
   Tag,
+  Tooltip,
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
@@ -110,7 +111,6 @@ const PositionManagement: React.FC = () => {
   >({});
 
   const [keyword, setKeyword] = useState('');
-  const [searchKeyword, setSearchKeyword] = useState('');
   const [searchSequence, setSearchSequence] = useState<number | undefined>();
 
   const {
@@ -132,12 +132,12 @@ const PositionManagement: React.FC = () => {
 
   const filtered = useMemo(() => {
     return allPositions.filter((p) => {
-      if (searchKeyword && !p.name?.includes(searchKeyword)) return false;
+      if (keyword && !p.name?.includes(keyword)) return false;
       if (searchSequence !== undefined && p.sequence !== searchSequence)
         return false;
       return true;
     });
-  }, [allPositions, searchKeyword, searchSequence]);
+  }, [allPositions, keyword, searchSequence]);
 
   const seqStats = useMemo(() => {
     const stats: Record<number, number> = { 1: 0, 2: 0, 3: 0 };
@@ -150,13 +150,8 @@ const PositionManagement: React.FC = () => {
     return stats;
   }, [allPositions]);
 
-  const handleSearch = () => {
-    setSearchKeyword(keyword);
-  };
-
   const handleReset = () => {
     setKeyword('');
-    setSearchKeyword('');
     setSearchSequence(undefined);
   };
 
@@ -258,6 +253,8 @@ const PositionManagement: React.FC = () => {
       align: 'center',
       render: (_, record) => {
         if (!access.canManageOrganization) return null;
+        const empCount = record.employeeCount ?? 0;
+        const canDeletePos = empCount === 0;
         return (
           <Space>
             <Button
@@ -268,17 +265,27 @@ const PositionManagement: React.FC = () => {
             >
               编辑
             </Button>
-            <Popconfirm
-              title="确认删除该职位？"
-              onConfirm={() => handleDelete(record.id!)}
-              okText="确认"
-              cancelText="取消"
-              okButtonProps={{ danger: true }}
-            >
-              <Button danger size="small" shape="round">
-                删除
-              </Button>
-            </Popconfirm>
+            <Tooltip title={canDeletePos ? '' : '该职位下有在职员工，无法删除'}>
+              <span>
+                <Popconfirm
+                  title="确认删除该职位？"
+                  onConfirm={() => handleDelete(record.id!)}
+                  okText="确认"
+                  cancelText="取消"
+                  okButtonProps={{ danger: true }}
+                  disabled={!canDeletePos}
+                >
+                  <Button
+                    danger
+                    size="small"
+                    shape="round"
+                    disabled={!canDeletePos}
+                  >
+                    删除
+                  </Button>
+                </Popconfirm>
+              </span>
+            </Tooltip>
           </Space>
         );
       },
@@ -397,7 +404,6 @@ const PositionManagement: React.FC = () => {
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               allowClear
-              onPressEnter={handleSearch}
             />
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
@@ -415,13 +421,6 @@ const PositionManagement: React.FC = () => {
           </Col>
           <Col xs={24} sm={12} md={8} lg={6}>
             <div style={{ display: 'flex', gap: 8 }}>
-              <Button
-                type="primary"
-                icon={<SearchOutlined />}
-                onClick={handleSearch}
-              >
-                查询
-              </Button>
               <Button onClick={handleReset}>重置</Button>
             </div>
           </Col>

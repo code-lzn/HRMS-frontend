@@ -519,14 +519,13 @@ const AttendanceClock: React.FC = () => {
           boxShadow: '0 4px 20px rgba(59,130,196,0.25)',
           overflow: 'hidden',
         }}
-        styles={{ body: { padding: '36px 32px' } }}
+        styles={{ body: { padding: '14px 24px' } }}
       >
         <div
           style={{
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
-            gap: 12,
+            gap: 16,
           }}
         >
           {/* 今日状态标签 */}
@@ -541,6 +540,7 @@ const AttendanceClock: React.FC = () => {
                 fontWeight: 500,
                 color: dayTypeCfg.color,
                 background: 'rgba(255,255,255,0.85)',
+                flexShrink: 0,
               }}
             >
               {dayTypeCfg.label === '节假日' ? (
@@ -556,19 +556,19 @@ const AttendanceClock: React.FC = () => {
           {/* 时间 */}
           <span
             style={{
-              fontSize: 56,
+              fontSize: 32,
               fontWeight: 700,
               fontFamily: "'SF Mono', 'Cascadia Code', 'Consolas', monospace",
               letterSpacing: 2,
-              lineHeight: 1.1,
+              lineHeight: 1.2,
             }}
           >
             {now.format('HH:mm:ss')}
           </span>
           {/* 日期 */}
-          <span style={{ fontSize: 15, opacity: 0.9, fontWeight: 400 }}>
+          <span style={{ fontSize: 14, opacity: 0.9, fontWeight: 400 }}>
             {now.format('YYYY年MM月DD日')}
-            <span style={{ marginLeft: 10, opacity: 0.75, fontSize: 14 }}>
+            <span style={{ marginLeft: 8, opacity: 0.75, fontSize: 13 }}>
               {now.format('dddd')}
             </span>
           </span>

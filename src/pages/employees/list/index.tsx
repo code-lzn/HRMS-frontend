@@ -7,7 +7,7 @@ import StatusTag from '@/components/StatusTag';
 import { useDepartmentTree } from '@/hooks/useDepartmentTree';
 import { usePositionList } from '@/hooks/usePosition';
 import { useStatuses } from '@/hooks/useStatuses';
-import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
+import { SearchOutlined } from '@ant-design/icons';
 import { history, useAccess } from '@umijs/max';
 import type { MenuProps } from 'antd';
 import {
@@ -62,6 +62,13 @@ const EmployeeList: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  // 关键词防抖：输入 300ms 后才发起请求
+  const [debouncedKeyword, setDebouncedKeyword] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedKeyword(keyword), 300);
+    return () => clearTimeout(timer);
+  }, [keyword]);
+
   // 部门树选项
   const deptTreeSelectData = useMemo(() => {
     const convert = (nodes: any[]): any[] =>
@@ -98,7 +105,7 @@ const EmployeeList: React.FC = () => {
     setLoading(true);
     try {
       const res = await getEmployeeListUsingGet({
-        keyword: keyword || undefined,
+        keyword: debouncedKeyword || undefined,
         departmentIds: departmentIds.length ? departmentIds : undefined,
         positionIds: positionIds.length ? positionIds : undefined,
         statuses: statuses.length ? statuses : undefined,
@@ -119,7 +126,7 @@ const EmployeeList: React.FC = () => {
       setLoading(false);
     }
   }, [
-    keyword,
+    debouncedKeyword,
     departmentIds,
     positionIds,
     statuses,
@@ -176,9 +183,8 @@ const EmployeeList: React.FC = () => {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-      message.success('导出成功');
     } catch {
-      message.error('导出失败');
+      throw new Error('导出失败');
     }
   };
 
@@ -289,12 +295,7 @@ const EmployeeList: React.FC = () => {
         <Typography.Title level={4} style={{ margin: 0 }}>
           员工列表
         </Typography.Title>
-        <Space>
-          <ExportButton onExport={handleExport} />
-          <Button icon={<ReloadOutlined />} onClick={fetchEmployees}>
-            刷新
-          </Button>
-        </Space>
+        <ExportButton onExport={handleExport} />
       </div>
 
       {/* 搜索区域 */}

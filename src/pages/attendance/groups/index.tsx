@@ -5,7 +5,10 @@ import {
   queryAttendanceGroupsUsingGet,
   updateAttendanceGroupUsingPut,
 } from '@/api/attendanceGroupController';
-import { getEmployeeListUsingGet } from '@/api/employeeController';
+import {
+  getEmployeeDetailUsingGet,
+  getEmployeeListUsingGet,
+} from '@/api/employeeController';
 import {
   ATTENDANCE_RULE_TYPE_OPTIONS,
   SHIFT_TYPE_MAP,
@@ -43,7 +46,7 @@ import {
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const { RangePicker } = DatePicker;
 
@@ -72,6 +75,7 @@ interface RuleTargetSelectProps {
   ruleType?: number;
   deptTreeData: any[];
   positionOptions: { label: string; value: number }[];
+  preloadEmployeeOptions?: { label: string; value: number }[];
   value?: number[];
   onChange?: (value: number[]) => void;
 }
@@ -80,6 +84,7 @@ const RuleTargetSelect: React.FC<RuleTargetSelectProps> = ({
   ruleType,
   deptTreeData,
   positionOptions,
+  preloadEmployeeOptions,
   value,
   onChange,
 }) => {
@@ -87,6 +92,13 @@ const RuleTargetSelect: React.FC<RuleTargetSelectProps> = ({
   const [employeeOptions, setEmployeeOptions] = useState<
     { label: string; value: number }[]
   >([]);
+
+  // 编辑时从预载选项中回填已选员工信息
+  useEffect(() => {
+    if (preloadEmployeeOptions && preloadEmployeeOptions.length > 0) {
+      setEmployeeOptions(preloadEmployeeOptions);
+    }
+  }, [preloadEmployeeOptions]);
 
   const handleSearchEmployee = async (keyword: string) => {
     if (!keyword) {
@@ -186,6 +198,9 @@ const AttendanceGroups: React.FC = () => {
     label: p.name,
     value: p.id,
   }));
+  const [preloadedEmployeeOptions, setPreloadedEmployeeOptions] = useState<
+    { label: string; value: number }[]
+  >([]);
 
   // 部门树选项
   const deptTreeSelectData = React.useMemo(() => {
@@ -267,6 +282,37 @@ const AttendanceGroups: React.FC = () => {
           earlyLeaveThreshold: detail.earlyLeaveThreshold,
           rules: rulesList.length > 0 ? rulesList : [],
         });
+
+        // 预载规则类型为"按个人"的已选员工信息，异步解析，不阻塞表单回填
+        const personRules = (detail.rules || []).filter(
+          (r: any) => r.ruleType === 3,
+        );
+        if (personRules.length > 0) {
+          const ids = personRules.map((r: any) => r.targetId);
+          setPreloadedEmployeeOptions(
+            ids.map((id: number) => ({ label: String(id), value: id })),
+          );
+          Promise.all(
+            ids.map((id: number) =>
+              getEmployeeDetailUsingGet({ id }).then(
+                (r: any) => {
+                  const emp = r?.data;
+                  return {
+                    label: emp?.personalInfo?.name
+                      ? `${emp.personalInfo.name} (${emp.employeeNo ?? ''})`
+                      : String(id),
+                    value: id,
+                  };
+                },
+                () => ({ label: String(id), value: id }),
+              ),
+            ),
+          )
+            .then(setPreloadedEmployeeOptions)
+            .catch(() => {});
+        } else {
+          setPreloadedEmployeeOptions([]);
+        }
       }
     } catch {
       form.setFieldsValue({
@@ -859,6 +905,7 @@ const AttendanceGroups: React.FC = () => {
                         ])}
                         deptTreeData={deptTreeSelectData}
                         positionOptions={positionOptions}
+                        preloadEmployeeOptions={preloadedEmployeeOptions}
                       />
                     </Form.Item>
 

@@ -23,6 +23,7 @@ import {
   Table,
   Tag,
   TimePicker,
+  Tooltip,
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
@@ -297,17 +298,29 @@ const OvertimeManagement: React.FC = () => {
           >
             编辑
           </Button>
-          <Popconfirm
-            title="确认删除该加班记录？"
-            onConfirm={() => handleDelete(record.id)}
-            okText="确认"
-            cancelText="取消"
-            okButtonProps={{ danger: true }}
+          <Tooltip
+            title={record.isUsed === 1 ? '该加班记录已使用，无法删除' : ''}
           >
-            <Button danger size="small" shape="round">
-              删除
-            </Button>
-          </Popconfirm>
+            <span>
+              <Popconfirm
+                title="确认删除该加班记录？"
+                onConfirm={() => handleDelete(record.id)}
+                okText="确认"
+                cancelText="取消"
+                okButtonProps={{ danger: true }}
+                disabled={record.isUsed === 1}
+              >
+                <Button
+                  danger
+                  size="small"
+                  shape="round"
+                  disabled={record.isUsed === 1}
+                >
+                  删除
+                </Button>
+              </Popconfirm>
+            </span>
+          </Tooltip>
         </Space>
       ),
     },

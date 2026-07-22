@@ -21,6 +21,7 @@ import {
   Row,
   Spin,
   Tag,
+  Tooltip,
   Typography,
   message,
 } from 'antd';
@@ -113,6 +114,14 @@ const DepartmentDetailPanel: React.FC<DepartmentDetailPanelProps> = ({
   };
 
   const childCount = dept.childCount ?? dept.children?.length ?? 0;
+  const empCount = dept.employeeCount ?? 0;
+  const canDelete = childCount === 0 && empCount === 0;
+  const deleteDisabledTip =
+    childCount > 0
+      ? '该部门下存在子部门，请先删除子部门'
+      : empCount > 0
+      ? '该部门下存在在职员工，请先转移员工'
+      : '';
 
   return (
     <div
@@ -196,17 +205,22 @@ const DepartmentDetailPanel: React.FC<DepartmentDetailPanelProps> = ({
             >
               编辑
             </Button>
-            <Popconfirm
-              title="确认删除该部门？"
-              onConfirm={handleDelete}
-              okText="确认"
-              cancelText="取消"
-              okButtonProps={{ danger: true }}
-            >
-              <Button danger shape="round">
-                删除
-              </Button>
-            </Popconfirm>
+            <Tooltip title={canDelete ? '' : deleteDisabledTip}>
+              <span>
+                <Popconfirm
+                  title="确认删除该部门？"
+                  onConfirm={handleDelete}
+                  okText="确认"
+                  cancelText="取消"
+                  okButtonProps={{ danger: true }}
+                  disabled={!canDelete}
+                >
+                  <Button danger shape="round" disabled={!canDelete}>
+                    删除
+                  </Button>
+                </Popconfirm>
+              </span>
+            </Tooltip>
           </div>
         )}
       </div>

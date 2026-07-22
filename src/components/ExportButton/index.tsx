@@ -1,4 +1,3 @@
-import { ExportOutlined } from '@ant-design/icons';
 import { useAccess } from '@umijs/max';
 import { Button, message } from 'antd';
 import React, { useState } from 'react';
@@ -36,7 +35,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({ onExport }) => {
   return (
     <Button
       type="primary"
-      icon={<ExportOutlined />}
+      shape="round"
       loading={loading}
       onClick={handleExport}
     >
