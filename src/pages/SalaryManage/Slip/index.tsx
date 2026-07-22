@@ -90,9 +90,13 @@ const SlipPage: React.FC = () => {
     setRecordsLoading(true);
     try {
       const res = await previewBatchUsingGet({ id: batchId, current: page, size: Math.min(size, 500) });
-      const data = (res as any)?.data;
-      setRecords(data?.records ?? []);
-      setTotal(data?.total ?? 0);
+      const raw: any = res;
+      const data = raw?.data ?? raw;
+      let list: any[] = [];
+      if (Array.isArray(data)) list = data;
+      else if (data && Array.isArray(data.records)) list = data.records;
+      setRecords(list);
+      setTotal(data?.total ?? list.length);
 
       // 加载批次信息
       const batch = await listBatchesUsingGet();

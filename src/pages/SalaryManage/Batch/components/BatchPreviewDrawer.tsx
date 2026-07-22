@@ -35,11 +35,15 @@ const BatchPreviewDrawer: React.FC<BatchPreviewDrawerProps> = ({
             current: 1,
             size: 500,
           });
-          const data = (res as any)?.data;
-          setRecords(data?.records ?? []);
+          const raw: any = res;
+          const data = raw?.data ?? raw;
+          let list: any[] = [];
+          if (Array.isArray(data)) list = data;
+          else if (data && Array.isArray(data.records)) list = data.records;
+          setRecords(list);
           setPagination((prev) => ({
             ...prev,
-            total: data?.total ?? (data?.records?.length ?? 0),
+            total: data?.total ?? list.length,
           }));
         } else {
           const res = await getAnomaliesUsingGet({ id: batchId });
