@@ -88,6 +88,52 @@ export function deleteResignation(id: number) {
 }
 
 /**
+ * 撤回审批中的离职申请
+ * @param id - 离职申请ID
+ * @returns 撤回结果
+ */
+export function revokeResignation(id: number) {
+  return request.post(`${BASE}/${id}/revoke`);
+}
+
+/**
+ * 放弃已批准的离职申请
+ * @param id - 离职申请ID
+ * @returns 放弃结果
+ */
+export function abandonResignation(id: number) {
+  return request.post(`${BASE}/${id}/abandon`);
+}
+
+/**
+ * 确认离职（立即生效）
+ * @param id - 离职申请ID
+ * @returns 确认结果
+ */
+export function confirmResignation(id: number) {
+  return request.post(`${BASE}/${id}/confirm`);
+}
+
+/**
+ * 修改离职日期（已批准待离职状态下）
+ * @param id - 离职申请ID
+ * @param resignDate - 新离职日期（yyyy-MM-dd）
+ * @returns 修改结果
+ */
+export function updateResignDate(id: number, resignDate: string) {
+  return request.put(`${BASE}/${id}/resign-date`, null, { params: { resignDate } });
+}
+
+/**
+ * 重新发起已拒绝的离职申请
+ * @param id - 离职申请ID
+ * @returns 重新发起结果
+ */
+export function resubmitResignation(id: number) {
+  return request.post(`${BASE}/${id}/resubmit`);
+}
+
+/**
  * 获取离职统计数据（各状态数量）
  * @returns 统计数据
  */
