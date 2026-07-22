@@ -139,6 +139,7 @@ const AttendanceStatistics: React.FC = () => {
     data: rateResp,
     isLoading: rateLoading,
     isError: rateError,
+    error: rateErr,
   } = useQuery({
     queryKey: ['attendance-stats', 'rate', months],
     queryFn: async () => getAttendanceRateUsingGet({ months }),
@@ -171,6 +172,7 @@ const AttendanceStatistics: React.FC = () => {
     data: rankResp,
     isLoading: rankLoading,
     isError: rankError,
+    error: rankErr,
   } = useQuery({
     queryKey: ['attendance-stats', 'ranking', year, currentMonth],
     queryFn: async () =>
@@ -205,6 +207,7 @@ const AttendanceStatistics: React.FC = () => {
     data: distResp,
     isLoading: distLoading,
     isError: distError,
+    error: distErr,
   } = useQuery({
     queryKey: ['attendance-stats', 'distribution', year, currentMonth],
     queryFn: async () =>
@@ -228,6 +231,21 @@ const AttendanceStatistics: React.FC = () => {
   useEffect(() => {
     if (!distLoading && pieData.length) pieInit(pieData);
   }, [distLoading, pieData, pieInit]);
+
+  // 权限判断
+  const isRatePermErr = (rateErr as any)?.code === 40101;
+  const isRankPermErr = (rankErr as any)?.code === 40101;
+  const isDistPermErr = (distErr as any)?.code === 40101;
+
+  const renderError = (isPerm: boolean) => (
+    <Result
+      status={isPerm ? '403' : 'error'}
+      title={isPerm ? '无权限' : '加载失败'}
+      subTitle={
+        isPerm ? '您没有权限查看该数据，请联系管理员' : '请检查后端服务'
+      }
+    />
+  );
 
   return (
     <PageContainer header={{ breadcrumb: {}, title: '考勤统计' }}>
@@ -270,7 +288,7 @@ const AttendanceStatistics: React.FC = () => {
             }
           >
             {rateError ? (
-              <Result status="error" title="加载失败" />
+              renderError(isRatePermErr)
             ) : rateLoading ? (
               <div
                 style={{ height: 350, background: '#fafafa', borderRadius: 8 }}
@@ -298,7 +316,7 @@ const AttendanceStatistics: React.FC = () => {
             }
           >
             {rankError ? (
-              <Result status="error" title="加载失败" />
+              renderError(isRankPermErr)
             ) : rankLoading ? (
               <div
                 style={{ height: 350, background: '#fafafa', borderRadius: 8 }}
@@ -326,7 +344,7 @@ const AttendanceStatistics: React.FC = () => {
             }
           >
             {distError ? (
-              <Result status="error" title="加载失败" />
+              renderError(isDistPermErr)
             ) : distLoading ? (
               <div
                 style={{ height: 350, background: '#fafafa', borderRadius: 8 }}

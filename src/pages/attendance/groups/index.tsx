@@ -199,7 +199,7 @@ const AttendanceGroups: React.FC = () => {
   }, [treeData]);
 
   // ---- 列表 ----
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ['attendance', 'groups', filterKeyword, filterShiftType],
     queryFn: async () =>
       queryAttendanceGroupsUsingGet({
@@ -209,6 +209,8 @@ const AttendanceGroups: React.FC = () => {
         size: 50,
       }),
   });
+  const queryErr = error as any;
+  const isPermissionError = queryErr?.code === 40101;
   const raw = (data as any)?.data?.records;
   const list: GroupRow[] = Array.isArray(raw) ? raw : [];
 
@@ -608,9 +610,13 @@ const AttendanceGroups: React.FC = () => {
           locale={{
             emptyText: isError ? (
               <Result
-                status="error"
-                title="加载失败"
-                subTitle="请检查后端服务是否运行"
+                status={isPermissionError ? '403' : 'error'}
+                title={isPermissionError ? '无权限' : '加载失败'}
+                subTitle={
+                  isPermissionError
+                    ? '您没有权限查看考勤规则配置，请联系管理员'
+                    : '请检查后端服务是否运行'
+                }
               />
             ) : (
               <Empty description="暂无考勤组" />

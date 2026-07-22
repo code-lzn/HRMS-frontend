@@ -274,42 +274,12 @@ const OnboardingPage: React.FC = () => {
   ];
 
   const statCards = [
-    {
-      label: '草稿',
-      count: stats.draft,
-      bgColor: STATUS_BG_COLORS[ONBOARDING_STATUS.DRAFT],
-      textColor: STATUS_TEXT_COLORS[ONBOARDING_STATUS.DRAFT],
-    },
-    {
-      label: '审批中',
-      count: stats.pending,
-      bgColor: STATUS_BG_COLORS[ONBOARDING_STATUS.PENDING],
-      textColor: STATUS_TEXT_COLORS[ONBOARDING_STATUS.PENDING],
-    },
-    {
-      label: '待入职',
-      count: stats.approved,
-      bgColor: STATUS_BG_COLORS[ONBOARDING_STATUS.APPROVED_PENDING_JOIN],
-      textColor: STATUS_TEXT_COLORS[ONBOARDING_STATUS.APPROVED_PENDING_JOIN],
-    },
-    {
-      label: '已入职',
-      count: stats.joined,
-      bgColor: STATUS_BG_COLORS[ONBOARDING_STATUS.JOINED],
-      textColor: STATUS_TEXT_COLORS[ONBOARDING_STATUS.JOINED],
-    },
-    {
-      label: '已拒绝',
-      count: stats.rejected,
-      bgColor: STATUS_BG_COLORS[ONBOARDING_STATUS.REJECTED],
-      textColor: STATUS_TEXT_COLORS[ONBOARDING_STATUS.REJECTED],
-    },
-    {
-      label: '已放弃',
-      count: stats.abandoned,
-      bgColor: STATUS_BG_COLORS[ONBOARDING_STATUS.ABANDONED],
-      textColor: STATUS_TEXT_COLORS[ONBOARDING_STATUS.ABANDONED],
-    },
+    { key: 'draft', label: '草稿', count: stats.draft, bgColor: STATUS_BG_COLORS[ONBOARDING_STATUS.DRAFT], textColor: STATUS_TEXT_COLORS[ONBOARDING_STATUS.DRAFT] },
+    { key: 'pending', label: '审批中', count: stats.pending, bgColor: STATUS_BG_COLORS[ONBOARDING_STATUS.PENDING], textColor: STATUS_TEXT_COLORS[ONBOARDING_STATUS.PENDING] },
+    { key: 'approved', label: '待入职', count: stats.approved, bgColor: STATUS_BG_COLORS[ONBOARDING_STATUS.APPROVED_PENDING_JOIN], textColor: STATUS_TEXT_COLORS[ONBOARDING_STATUS.APPROVED_PENDING_JOIN] },
+    { key: 'joined', label: '已入职', count: stats.joined, bgColor: STATUS_BG_COLORS[ONBOARDING_STATUS.JOINED], textColor: STATUS_TEXT_COLORS[ONBOARDING_STATUS.JOINED] },
+    { key: 'rejected', label: '已拒绝', count: stats.rejected, bgColor: STATUS_BG_COLORS[ONBOARDING_STATUS.REJECTED], textColor: STATUS_TEXT_COLORS[ONBOARDING_STATUS.REJECTED] },
+    { key: 'abandoned', label: '已放弃', count: stats.abandoned, bgColor: STATUS_BG_COLORS[ONBOARDING_STATUS.ABANDONED], textColor: STATUS_TEXT_COLORS[ONBOARDING_STATUS.ABANDONED] },
   ];
 
   return (
@@ -341,14 +311,19 @@ const OnboardingPage: React.FC = () => {
       }}
     >
       <Row gutter={16} style={{ marginBottom: 24 }}>
-        {statCards.map((card) => (
-          <Col flex="1" key={card.label}>
+        {statCards.map((card) => {
+          const isActive = activeTab === card.key;
+          return (
+          <Col flex="1" key={card.key}>
             <Card
+              hoverable
+              onClick={() => { setActiveTab(isActive ? 'all' : card.key); loadStats(); actionRef.current?.reload(); }}
               style={{
                 background: card.bgColor,
-                border: 'none',
+                border: isActive ? '2px solid #3b82f6' : 'none',
                 borderRadius: 12,
                 boxShadow: 'none',
+                cursor: 'pointer',
               }}
               styles={{ body: { padding: '20px 24px' } }}
             >
@@ -369,7 +344,8 @@ const OnboardingPage: React.FC = () => {
               </div>
             </Card>
           </Col>
-        ))}
+          );
+        })}
       </Row>
 
       <div style={{ marginBottom: 12, background: '#fafafa', padding: '8px 12px', borderRadius: 8, display: 'flex', gap: 12, alignItems: 'center' }}>

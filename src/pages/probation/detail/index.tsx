@@ -12,20 +12,29 @@ import { history, useParams } from '@umijs/max';
 import {
   Button,
   Card,
+  DatePicker,
   Descriptions,
+  Modal,
+  Radio,
   Result,
+  Space,
   Spin,
   Tag,
   message,
 } from 'antd';
+import dayjs from 'dayjs';
 import React, { useEffect, useState } from 'react';
 import { ProbationDetail } from '../mock';
-import { getDetailUsingGet2 } from '@/api/probationController';
+import { getDetailUsingGet2, handleResultUsingPost } from '@/api/probationController';
 
 const ProbationDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [detail, setDetail] = useState<ProbationDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [handleOpen, setHandleOpen] = useState(false);
+  const [handleResult, setHandleResult] = useState<number>(PROBATION_RESULT.PASS);
+  const [extendedDate, setExtendedDate] = useState<string>('');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!id) { setLoading(false); return; }
@@ -45,6 +54,45 @@ const ProbationDetailPage: React.FC = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
+  const refreshDetail = () => {
+    if (!id) return;
+    getDetailUsingGet2({ id: Number(id) })
+      .then((res) => {
+        if (res.code === 0 && res.data) {
+          setDetail(res.data as unknown as ProbationDetail);
+        }
+      })
+      .catch(() => message.error('刷新详情失败'));
+  };
+
+  const submitHandleResult = async () => {
+    if (handleResult === PROBATION_RESULT.EXTEND && !extendedDate) {
+      message.warning('请选择延长后的试用期截止日期');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await handleResultUsingPost(
+        { id: Number(id) },
+        {
+          result: handleResult,
+          extendedEndDate: handleResult === PROBATION_RESULT.EXTEND ? extendedDate : undefined,
+        },
+      );
+      if (res.code === 0) {
+        message.success('处理成功');
+        setHandleOpen(false);
+        refreshDetail();
+      } else {
+        message.error(res.message || '处理失败');
+      }
+    } catch {
+      message.error('处理失败');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
       <PageContainer><div style={{ textAlign: 'center', padding: 120 }}><Spin size="large" /></div></PageContainer>
@@ -63,7 +111,17 @@ const ProbationDetailPage: React.FC = () => {
   const hasResult = detail.result !== undefined && detail.result !== null;
 
   return (
-    <PageContainer onBack={() => history.push('/hr-change/probation')} title="转正详情">
+    <PageContainer
+      onBack={() => history.push('/hr-change/probation')}
+      title="转正详情"
+      extra={
+        detail.status === PROBATION_STATUS.REJECTED ? (
+          <Button type="primary" onClick={() => setHandleOpen(true)}>
+            处理结果
+          </Button>
+        ) : undefined
+      }
+    >
       {/* 员工信息 */}
       <Card title="员工信息" style={{ marginBottom: 16 }}>
         <Descriptions column={2} bordered size="small">
@@ -125,6 +183,55 @@ const ProbationDetailPage: React.FC = () => {
           />
         </Card>
       )}
+
+      {/* 处理结果弹窗 */}
+      <Modal
+        title="处理转正结果"
+        open={handleOpen}
+        onCancel={() => setHandleOpen(false)}
+        onOk={submitHandleResult}
+        confirmLoading={submitting}
+        destroyOnClose
+      >
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ marginBottom: 8, fontWeight: 500 }}>处理方式</div>
+          <Radio.Group
+            value={handleResult}
+            onChange={(e) => setHandleResult(e.target.value)}
+          >
+            <Space direction="vertical">
+              <Radio value={PROBATION_RESULT.PASS}>
+                <span style={{ color: '#16a34a', fontWeight: 500 }}>通过</span>
+                <span style={{ color: '#999', marginLeft: 8, fontSize: 12 }}>覆盖审批结果，员工转为正式</span>
+              </Radio>
+              <Radio value={PROBATION_RESULT.EXTEND}>
+                <span style={{ color: '#d97706', fontWeight: 500 }}>延长试用</span>
+                <span style={{ color: '#999', marginLeft: 8, fontSize: 12 }}>延长试用期后再评估</span>
+              </Radio>
+              <Radio value={PROBATION_RESULT.FAIL}>
+                <span style={{ color: '#dc2626', fontWeight: 500 }}>不通过</span>
+                <span style={{ color: '#999', marginLeft: 8, fontSize: 12 }}>转正失败，自动创建离职草稿</span>
+              </Radio>
+            </Space>
+          </Radio.Group>
+        </div>
+        {handleResult === PROBATION_RESULT.EXTEND && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ marginBottom: 8, fontWeight: 500 }}>延长后试用期截止日期</div>
+            <DatePicker
+              style={{ width: '100%' }}
+              value={extendedDate ? dayjs(extendedDate) : null}
+              onChange={(_, dateStr) => setExtendedDate(dateStr as string)}
+              placeholder="请选择新的试用期截止日期"
+            />
+          </div>
+        )}
+        {handleResult === PROBATION_RESULT.FAIL && (
+          <div style={{ background: '#fef2f2', padding: 12, borderRadius: 8, color: '#dc2626', fontSize: 13 }}>
+            确认不通过后，系统将自动为该员工创建一份"辞退"类型的离职草稿，请在离职管理中完善并提交。
+          </div>
+        )}
+      </Modal>
     </PageContainer>
   );
 };

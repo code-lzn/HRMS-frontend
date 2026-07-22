@@ -58,13 +58,15 @@ const WorkdaySettings: React.FC = () => {
   const year = currentDate.year();
   const month = currentDate.month() + 1;
 
-  const { data, isError, refetch } = useQuery({
+  const { data, isError, error, refetch } = useQuery({
     queryKey: ['work-calendar', year, month],
     queryFn: async () => getWorkCalendarUsingGet({ year, month }),
     staleTime: 0,
     retry: false,
   });
   const calendarData = data?.data;
+  const queryErr = error as any;
+  const isPermissionError = queryErr?.code === 40101;
 
   const dayMap = useMemo(() => {
     const map = new Map<string, { dayType: number; holidayName?: string }>();
@@ -541,10 +543,18 @@ const WorkdaySettings: React.FC = () => {
       <Card variant="borderless" styles={{ body: { padding: 16 } }}>
         {isError ? (
           <Result
-            status="error"
-            title="加载失败"
-            subTitle="无法获取工作日历数据"
-            extra={<Button onClick={() => refetch()}>重试</Button>}
+            status={isPermissionError ? '403' : 'error'}
+            title={isPermissionError ? '无权限' : '加载失败'}
+            subTitle={
+              isPermissionError
+                ? '您没有权限查看工作日历，请联系管理员'
+                : '无法获取工作日历数据'
+            }
+            extra={
+              !isPermissionError ? (
+                <Button onClick={() => refetch()}>重试</Button>
+              ) : undefined
+            }
           />
         ) : (
           <Calendar

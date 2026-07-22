@@ -51,7 +51,7 @@ const ProbationFormModal: React.FC<ProbationFormProps> = ({
       .then((res) => {
         if (res.code === 0 && res.data?.records) {
           setEmployeeOptions(
-            res.data.records.filter((e: any) => e.status !== 4).map((e) => ({
+            res.data.records.filter((e: any) => e.status === 1).map((e) => ({
               value: e.id || 0,
               label: `${e.name} (${e.employeeNo}) - ${e.departmentName}/${e.positionName}`,
               department: e.departmentName || '',
