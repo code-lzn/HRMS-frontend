@@ -33,18 +33,14 @@ const MySalary: React.FC = () => {
     try {
       const res = await getMySalarySlipsUsingGet();
       setSlips((res as any)?.data ?? []);
-    } catch {
-      // ignore
-    }
+    } catch (e) { console.error('pages/PersonalCenter/Salary/index.tsx', e); }
   };
 
   const loadTrend = async () => {
     try {
       const res = await getMySalaryTrendUsingGet();
       setTrend((res as any)?.data ?? []);
-    } catch {
-      // ignore
-    }
+    } catch (e) { console.error('pages/PersonalCenter/Salary/index.tsx', e); }
   };
 
   const handleViewDetail = (id: number) => {

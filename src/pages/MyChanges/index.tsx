@@ -36,9 +36,7 @@ const MyChanges: React.FC = () => {
       if (res?.data) {
         setLogs(res.data);
       }
-    } catch {
-      // ignore
-    } finally {
+    } catch (e) { console.error('pages/MyChanges/index.tsx', e); } finally {
       setLoading(false);
     }
   };

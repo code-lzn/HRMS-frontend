@@ -121,7 +121,7 @@ const EmployeeEditPage: React.FC = () => {
         const data = (res as any)?.data?.records ?? [];
         setEmployeeOptions(data.map((e: any) => ({ value: e.id, label: `${e.employeeName} (${e.employeeNo})` })));
       }
-    } catch { /* ignore */ }
+    } catch (e) { console.error('pages/Employee/Edit/index.tsx', e);  /* ignore */ }
   }, []);
 
   const debouncedSearch = useCallback((kw: string) => {

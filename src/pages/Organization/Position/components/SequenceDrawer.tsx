@@ -24,9 +24,7 @@ const SequenceDrawer: React.FC<SequenceDrawerProps> = ({ open, onClose }) => {
       try {
         const res = await getSequencesUsingGet();
         setSequences((res as any)?.data ?? []);
-      } catch {
-        // ignore
-      } finally {
+      } catch (e) { console.error('pages/Organization/Position/components/SequenceDrawer.tsx', e); } finally {
         setLoading(false);
       }
     })();

@@ -42,9 +42,7 @@ const OnboardingFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }
         return result;
       };
       setDeptList(flatten(data));
-    } catch {
-      setDeptList([]);
-    }
+    } catch (e) { console.error('pages/HR/Onboarding/components/OnboardingFormModal.tsx', e); setDeptList([]); }
   };
 
   const fetchPosList = async () => {
@@ -52,9 +50,7 @@ const OnboardingFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }
       const res = await listPositionsUsingGet({});
       const data = res?.data ?? [];
       setPosList(data.map((p: any) => ({ label: p.name, value: p.id })));
-    } catch {
-      setPosList([]);
-    }
+    } catch (e) { console.error('pages/HR/Onboarding/components/OnboardingFormModal.tsx', e); setPosList([]); }
   };
 
   const fetchEmployeeList = async (keyword?: string, deptId?: number) => {
@@ -67,9 +63,7 @@ const OnboardingFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }
       });
       const data = res?.data?.records ?? [];
       setEmployeeList(data.map((e: any) => ({ label: `${e.employeeName} (${e.employeeNo})`, value: e.id })));
-    } catch {
-      setEmployeeList([]);
-    }
+    } catch (e) { console.error('pages/HR/Onboarding/components/OnboardingFormModal.tsx', e); setEmployeeList([]); }
   };
 
   const handleDeptChange = async (deptId: number) => {
@@ -94,9 +88,7 @@ const OnboardingFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }
         setDefaultReportId(undefined);
       }
       fetchEmployeeList(undefined, deptId);
-    } catch {
-      setDefaultReportId(undefined);
-    }
+    } catch (e) { console.error('pages/HR/Onboarding/components/OnboardingFormModal.tsx', e); setDefaultReportId(undefined); }
   };
 
   useEffect(() => {

@@ -164,9 +164,7 @@ const LeaveManagement: React.FC = () => {
         const res = await getApprovalProgressUsingGet({ id: record.id });
         setProgressData(res?.data ?? null);
       }
-    } catch {
-      setProgressData(null);
-    }
+    } catch (e) { console.error('pages/Attendance/LeaveManagement.tsx', e); setProgressData(null); }
   };
 
   const handleCancel = async (record: LeaveRecord) => {

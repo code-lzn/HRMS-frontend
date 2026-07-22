@@ -142,7 +142,7 @@ const BatchPage: React.FC = () => {
       if (data.length > 0 && !activeBatchId) {
         setActiveBatchId(data[data.length - 1].id!);
       }
-    } catch { /* ignore */ } finally {
+    } catch (e) { console.error('pages/SalaryManage/Batch/index.tsx', e);  /* ignore */ } finally {
       setBatchesLoading(false);
     }
   }, []);
@@ -151,7 +151,7 @@ const BatchPage: React.FC = () => {
     try {
       const res = await getBatchDetailUsingGet({ id: batchId });
       setActiveBatch((res as any)?.data ?? null);
-    } catch { setActiveBatch(null); }
+    } catch (e) { console.error('pages/SalaryManage/Batch/index.tsx', e); setActiveBatch(null); }
 
     setPreviewLoading(true);
     try {
@@ -163,7 +163,7 @@ const BatchPage: React.FC = () => {
       setPreviewRecords(pData?.records ?? []);
       setPreviewTotal(pData?.total ?? 0);
       setAnomalyCount(((anomalyRes as any)?.data ?? []).length);
-    } catch { /* ignore */ } finally {
+    } catch (e) { console.error('pages/SalaryManage/Batch/index.tsx', e);  /* ignore */ } finally {
       setPreviewLoading(false);
     }
 
@@ -181,7 +181,7 @@ const BatchPage: React.FC = () => {
       setComposition((compRes as any)?.data ?? []);
       setSocialSecurity((secRes as any)?.data ?? []);
       setChangeDist((chgRes as any)?.data ?? []);
-    } catch { /* ignore */ } finally {
+    } catch (e) { console.error('pages/SalaryManage/Batch/index.tsx', e);  /* ignore */ } finally {
       setChartLoading(false);
     }
   }, []);
@@ -594,7 +594,7 @@ const BatchPage: React.FC = () => {
       {/* 核算预览表格 */}
       <Card
         title={<Space><EyeOutlined /><span>核算预览</span><Text type="secondary" style={{ fontSize: 12, fontWeight: 400 }}>{activeBatch && `批次 ${activeBatch.batchNo} · 共 ${previewTotal} 条`}</Text></Space>}
-        extra={<Button size="small" onClick={async () => { if (!activeBatchId) return; setPreviewLoading(true); try { const res = await previewBatchUsingGet({ id: activeBatchId, current: 1, size: 20 }); setPreviewRecords(((res as any)?.data?.records ?? [])); } catch { /* ignore */ } finally { setPreviewLoading(false); } }}>刷新数据</Button>}
+        extra={<Button size="small" onClick={async () => { if (!activeBatchId) return; setPreviewLoading(true); try { const res = await previewBatchUsingGet({ id: activeBatchId, current: 1, size: 20 }); setPreviewRecords(((res as any)?.data?.records ?? [])); } catch (e) { console.error('pages/SalaryManage/Batch/index.tsx', e);  /* ignore */ } finally { setPreviewLoading(false); } }}>刷新数据</Button>}
         style={{ marginBottom: 20, ...CARD_STYLE }}
       >
         <Spin spinning={previewLoading}>
@@ -606,7 +606,7 @@ const BatchPage: React.FC = () => {
               <Table<API.SalaryDetailVO> columns={previewColumns} dataSource={previewRecords} rowKey="id" size="middle" scroll={{ x: 1100 }}
                 rowClassName={(r) => { if (r.hasAnomaly === 2) return 'row-anomaly-block'; if (r.hasAnomaly === 1) return 'row-anomaly-warn'; return ''; }}
                 pagination={{ total: previewTotal, showSizeChanger: true, showTotal: (t) => `共 ${t} 条`, pageSizeOptions: ['20', '50', '100'],
-                  onChange: async (page, size) => { if (!activeBatchId) return; setPreviewLoading(true); try { const res = await previewBatchUsingGet({ id: activeBatchId, current: page, size }); setPreviewRecords(((res as any)?.data?.records ?? [])); } catch { /* ignore */ } finally { setPreviewLoading(false); } },
+                  onChange: async (page, size) => { if (!activeBatchId) return; setPreviewLoading(true); try { const res = await previewBatchUsingGet({ id: activeBatchId, current: page, size }); setPreviewRecords(((res as any)?.data?.records ?? [])); } catch (e) { console.error('pages/SalaryManage/Batch/index.tsx', e);  /* ignore */ } finally { setPreviewLoading(false); } },
                 }}
               />
             </>

@@ -191,8 +191,7 @@ const LoginLogs: React.FC = () => {
         try {
           const res = await getLoginLogsUsingGet();
           return { data: res?.data ?? [], success: true, total: res?.data?.length ?? 0 };
-        } catch {
-          return { data: [], success: false };
+        } catch (e) { console.error('pages/PersonalCenter/Security/index.tsx', e); return { data: [], success: false };
         }
       }}
       rowKey="id"

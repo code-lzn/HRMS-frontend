@@ -232,9 +232,7 @@ const DepartmentPage: React.FC = () => {
       const res = await getDepartmentTreeUsingGet();
       const data = (res as any)?.data ?? [];
       setTreeData(data);
-    } catch {
-      // ignore
-    } finally {
+    } catch (e) { console.error('pages/Organization/Department/index.tsx', e); } finally {
       setTreeLoading(false);
     }
   }, []);

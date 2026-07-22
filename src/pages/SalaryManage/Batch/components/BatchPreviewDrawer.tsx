@@ -47,9 +47,7 @@ const BatchPreviewDrawer: React.FC<BatchPreviewDrawerProps> = ({
           setRecords(data);
           setPagination((prev) => ({ ...prev, total: data.length }));
         }
-      } catch {
-        message.error('加载数据失败');
-      } finally {
+      } catch (e) { console.error('pages/SalaryManage/Batch/components/BatchPreviewDrawer.tsx', e); message.error('加载数据失败'); } finally {
         setLoading(false);
       }
     })();
@@ -297,9 +295,7 @@ const BatchPreviewDrawer: React.FC<BatchPreviewDrawerProps> = ({
                   const data = (res as any)?.data;
                   setRecords(data?.records ?? []);
                   setPagination({ current: page, pageSize: size, total: data?.total ?? 0 });
-                } catch {
-                  // ignore
-                } finally {
+                } catch (e) { console.error('pages/SalaryManage/Batch/components/BatchPreviewDrawer.tsx', e); } finally {
                   setLoading(false);
                 }
               },

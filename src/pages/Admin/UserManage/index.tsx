@@ -32,7 +32,7 @@ const UserManage: React.FC = () => {
       dataIndex: 'userAvatar',
       width: 60,
       search: false,
-      render: (_, r) => <Avatar size={32} src={r.userAvatar || undefined} icon={!r.userAvatar && <UserOutlined />} />,
+      render: (_, r) => <Avatar size={32} src={r.userAvatar || undefined} icon={<UserOutlined />} />,
     },
     { title: '用户名', dataIndex: 'userName', width: 120 },
     {
@@ -85,7 +85,7 @@ const UserManage: React.FC = () => {
   ];
 
   const loadRoles = async () => {
-    try { const r = await listAllRolesUsingGet(); setRoles(r?.data ?? []); } catch { setRoles([]); }
+    try { const r = await listAllRolesUsingGet(); setRoles(r?.data ?? []); } catch (e) { console.error('pages/Admin/UserManage/index.tsx', e); setRoles([]); }
   };
 
   const openCreate = async () => {
@@ -99,7 +99,7 @@ const UserManage: React.FC = () => {
     const file = options.file as File;
     setAvatarUploading(true);
     try {
-      const res = await uploadFileUsingPost({ biz: 'avatar' }, {}, file);
+      const res = await uploadFileUsingPost({ biz: 'user_avatar' }, {}, file);
       const url = res?.data ?? '';
       setEditAvatar(url);
       form.setFieldValue('userAvatar', url);
@@ -157,7 +157,7 @@ const UserManage: React.FC = () => {
       const values = await form.validateFields();
       setSubmitting(true);
       if (editing) {
-        await updateUserUsingPost({ id: editing.id!, userName: values.userName, userProfile: values.userProfile, userRole: values.userRole });
+        await updateUserUsingPost({ id: editing.id!, userName: values.userName, userProfile: values.userProfile, userRole: values.userRole, userAvatar: values.userAvatar });
         message.success('已更新');
       } else {
         await userRegisterUsingPost({
@@ -198,7 +198,7 @@ const UserManage: React.FC = () => {
               userName: params.userName,
             });
             return { data: res?.data?.records ?? [], success: true, total: res?.data?.total ?? 0 };
-          } catch { return { data: [], success: false }; }
+          } catch (e) { console.error('pages/Admin/UserManage/index.tsx', e); return { data: [], success: false }; }
         }}
         rowKey="id"
         toolBarRender={() => canSeeRoleMenu ? [<Button key="create" type="primary" icon={<PlusOutlined />} onClick={openCreate}>新建用户</Button>] : []}
@@ -211,7 +211,7 @@ const UserManage: React.FC = () => {
               <Form.Item name="userAvatar" label="头像" style={{ marginBottom: 16 }}>
                 <Upload customRequest={handleAvatarUpload} showUploadList={false} accept="image/*">
                   <Spin spinning={avatarUploading}>
-                    <Avatar size={64} src={editAvatar || undefined} icon={!editAvatar && <UserOutlined />} style={{ cursor: 'pointer' }} />
+                    <Avatar size={64} src={editAvatar || undefined} icon={<UserOutlined />} style={{ cursor: 'pointer' }} />
                     <Button size="small" icon={<CameraOutlined />} style={{ marginLeft: 12, verticalAlign: 'super' }}>上传头像</Button>
                   </Spin>
                 </Upload>

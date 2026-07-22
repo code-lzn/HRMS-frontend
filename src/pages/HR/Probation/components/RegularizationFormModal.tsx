@@ -33,9 +33,7 @@ const RegularizationFormModal: React.FC<Props> = ({ open, editData, onCancel, on
         label: `${e.employeeName} (${e.employeeNo || '-'})`,
         value: e.id,
       })));
-    } catch {
-      setEmpList([]);
-    }
+    } catch (e) { console.error('pages/HR/Probation/components/RegularizationFormModal.tsx', e); setEmpList([]); }
   };
 
   const handleEmpChange = (empId: number) => {
@@ -52,7 +50,7 @@ const RegularizationFormModal: React.FC<Props> = ({ open, editData, onCancel, on
           });
           setProbationMonths(emp.probationMonth ?? 3);
         }
-      } catch { setSelectedEmp(null); }
+      } catch (e) { console.error('pages/HR/Probation/components/RegularizationFormModal.tsx', e); setSelectedEmp(null); }
     };
     fetchEmp();
   };

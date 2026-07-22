@@ -116,9 +116,7 @@ const DeptFormModal: React.FC<DeptFormModalProps> = ({
         label: `${emp.employeeName}（${emp.employeeNo}）`,
         value: emp.id!,
       })));
-    } catch {
-      setEmployeeOptions([]);
-    } finally {
+    } catch (e) { console.error('pages/Organization/Department/components/DeptFormModal.tsx', e); setEmployeeOptions([]); } finally {
       setEmployeeLoading(false);
     }
   }, []);

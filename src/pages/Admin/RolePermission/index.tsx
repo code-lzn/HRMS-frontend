@@ -34,7 +34,7 @@ const RolePermission: React.FC = () => {
     try {
       const res = await getAllPermissionCodesUsingGet();
       setPermCodes(res?.data ?? []);
-    } catch {}
+    } catch (e) { console.error('pages/Admin/RolePermission/index.tsx', e); }
   };
 
   const columns: ProColumns<API.RoleVO>[] = [
@@ -175,8 +175,7 @@ const RolePermission: React.FC = () => {
               success: true,
               total: res?.data?.total ?? 0,
             };
-          } catch {
-            return { data: [], success: false };
+          } catch (e) { console.error('pages/Admin/RolePermission/index.tsx', e); return { data: [], success: false };
           }
         }}
         rowKey="id"

@@ -46,8 +46,7 @@ const OperationLogsTab: React.FC = () => {
         try {
           const res = await getRecentLogsUsingGet();
           return { data: res?.data ?? [], success: true, total: res?.data?.length ?? 0 };
-        } catch {
-          return { data: [], success: false };
+        } catch (e) { console.error('pages/Admin/OperationLog/index.tsx', e); return { data: [], success: false };
         }
       }}
       rowKey="operateTime"
@@ -107,8 +106,7 @@ const LoginLogsTab: React.FC = () => {
         try {
           const res = await getLoginLogsUsingGet();
           return { data: res?.data ?? [], success: true, total: res?.data?.length ?? 0 };
-        } catch {
-          return { data: [], success: false };
+        } catch (e) { console.error('pages/Admin/OperationLog/index.tsx', e); return { data: [], success: false };
         }
       }}
       rowKey="id"

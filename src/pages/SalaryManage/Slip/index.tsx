@@ -81,9 +81,7 @@ const SlipPage: React.FC = () => {
       if (visible.length > 0 && !selectedBatchId) {
         setSelectedBatchId(visible[visible.length - 1].id!);
       }
-    } catch {
-      // ignore
-    } finally {
+    } catch (e) { console.error('pages/SalaryManage/Slip/index.tsx', e); } finally {
       setBatchesLoading(false);
     }
   }, []);
@@ -100,9 +98,7 @@ const SlipPage: React.FC = () => {
       const batch = await listBatchesUsingGet();
       const allBatches = (batch as any)?.data ?? [];
       setSelectedBatch(allBatches.find((b: API.SalaryBatchVO) => b.id === batchId) ?? null);
-    } catch {
-      // ignore
-    } finally {
+    } catch (e) { console.error('pages/SalaryManage/Slip/index.tsx', e); } finally {
       setRecordsLoading(false);
     }
   }, []);

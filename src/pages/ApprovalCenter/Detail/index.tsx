@@ -67,9 +67,7 @@ const ApprovalDetail: React.FC = () => {
         recordId: Number(recordId),
       });
       setDetail(res?.data ?? null);
-    } catch {
-      message.error('加载审批详情失败');
-    } finally {
+    } catch (e) { console.error('pages/ApprovalCenter/Detail/index.tsx', e); message.error('加载审批详情失败'); } finally {
       setLoading(false);
     }
   }, [recordId]);
@@ -100,9 +98,7 @@ const ApprovalDetail: React.FC = () => {
           value: u.id!,
         })),
       );
-    } catch {
-      setUserOptions([]);
-    } finally {
+    } catch (e) { console.error('pages/ApprovalCenter/Detail/index.tsx', e); setUserOptions([]); } finally {
       setUserSearchLoading(false);
     }
   };

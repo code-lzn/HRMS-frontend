@@ -33,9 +33,7 @@ const MyProfile: React.FC = () => {
       ]);
       setProfile(profileRes?.data ?? null);
       setAvatar(userRes?.data?.userAvatar ?? '');
-    } catch {
-      // ignore
-    } finally {
+    } catch (e) { console.error('pages/PersonalCenter/Profile/index.tsx', e); } finally {
       setLoading(false);
     }
   };
@@ -105,7 +103,7 @@ const MyProfile: React.FC = () => {
           <Upload customRequest={handleAvatarUpload} showUploadList={false} accept="image/*">
             <div style={{ position: 'relative', display: 'inline-block', cursor: 'pointer' }}>
               <Spin spinning={avatarUploading}>
-                <Avatar size={80} src={avatar || undefined} icon={!avatar && <UserOutlined />} />
+                <Avatar size={80} src={avatar || undefined} icon={<UserOutlined />} />
                 <div style={{
                   position: 'absolute', bottom: 0, right: 0,
                   width: 26, height: 26, borderRadius: '50%',
