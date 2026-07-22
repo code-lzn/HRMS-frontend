@@ -41,3 +41,11 @@ export async function healthUsingPatch(options?: { [key: string]: any }) {
     ...(options || {}),
   });
 }
+
+/** testDingTalk GET /api/test/dingtalk */
+export async function testDingTalkUsingGet(options?: { [key: string]: any }) {
+  return request<API.BaseResponseString_>('/api/test/dingtalk', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}

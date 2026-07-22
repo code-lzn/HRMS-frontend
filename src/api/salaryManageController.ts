@@ -263,15 +263,15 @@ export async function calculateBatchUsingPost(
 
 /** exportBatch GET /api/salary-manage/batches/${param0}/export */
 export async function exportBatchUsingGet(
-  params: { id: number },
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.exportBatchUsingGETParams,
+  options?: { [key: string]: any },
 ) {
-  const axios = (await import('axios')).default;
-  const baseURL = process.env.NODE_ENV === 'production' ? 'http://localhost:8123' : '/';
-  return axios.get(`/api/salary-manage/batches/${params.id}/export`, {
-    baseURL,
-    responseType: 'blob',
-    withCredentials: true,
-    timeout: 60000,
+  const { id: param0, ...queryParams } = params;
+  return request<any>(`/api/salary-manage/batches/${param0}/export`, {
+    method: 'GET',
+    params: { ...queryParams },
+    ...(options || {}),
   });
 }
 
@@ -448,4 +448,3 @@ export async function deleteItemUsingDelete(
     },
   );
 }
-
