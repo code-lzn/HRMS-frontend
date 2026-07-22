@@ -46,9 +46,11 @@ interface TrendData { months: string[]; rates: number[]; }
 interface LeaveTypeData { leaveTypes: string[]; counts: number[]; percentages: number[]; }
 // 部门统计数据接口定义
 interface DepartmentStats {
-  departmentId: number; departmentName: string; attendanceRate: number;
-  lateRate: number; absentRate: number; leaveRate: number; employeeCount: number;
+  departmentId: number; departmentName: string;
+  actualAttendanceDays: number; absentDays: number; leaveDays: number;
+  totalWorkDays: number; employeeCount: number;
   lateCount: number; earlyCount: number;
+  attendanceRate: number; absentRate: number; leaveRate: number;
 }
 
 // 个人统计数据接口定义
@@ -291,8 +293,9 @@ const Statistics: React.FC = () => {
       chartInstance3.current = echarts.init(chartRef3.current);
     }
     chartInstance3.current.setOption({
-      title: { text: '各部门迟到早退人次', left: 'center', fontSize: 14 },
-      xAxis: { type: 'category', data: filtered.map((d: any) => d.departmentName) },
+      grid: { left: 50, right: 20, top: 20, bottom: 60 },
+      legend: { data: ['迟到', '早退'], top: 0 },
+      xAxis: { type: 'category', data: filtered.map((d: any) => d.departmentName), axisLabel: { rotate: 30 } },
       yAxis: { type: 'value' },
       series: [
         { name: '迟到', type: 'bar', data: filtered.map((d: any) => d.lateCount), itemStyle: { color: '#faad14' } },
@@ -306,16 +309,14 @@ const Statistics: React.FC = () => {
   }, [lateEarlyData, isPersonal, selectedDept]);
 
   const deptColumns = [
-    { title: '部门名称', dataIndex: 'departmentName', key: 'departmentName' },
-    { title: '部门人数', dataIndex: 'employeeCount', key: 'employeeCount' },
-    { title: '出勤率', dataIndex: 'attendanceRate', key: 'attendanceRate',
-      render: (rate: number) => `${(rate ?? 0).toFixed(1)}%` },
-    { title: '缺勤率', dataIndex: 'absentRate', key: 'absentRate',
-      render: (rate: number) => `${(rate ?? 0).toFixed(1)}%` },
-    { title: '请假率', dataIndex: 'leaveRate', key: 'leaveRate',
-      render: (rate: number) => `${(rate ?? 0).toFixed(1)}%` },
-    { title: '迟到人次', dataIndex: 'lateCount', key: 'lateCount' },
-    { title: '早退人次', dataIndex: 'earlyCount', key: 'earlyCount' },
+    { title: '部门名称', dataIndex: 'departmentName', key: 'departmentName', width: 140 },
+    { title: '部门人数', dataIndex: 'employeeCount', key: 'employeeCount', width: 90 },
+    { title: '出勤率', dataIndex: 'attendanceRate', key: 'attendanceRate', width: 120,
+      render: (v: number) => `${v ?? 0}%` },
+    { title: '缺勤率', dataIndex: 'absentRate', key: 'absentRate', width: 120,
+      render: (v: number) => `${v ?? 0}%` },
+    { title: '请假率', dataIndex: 'leaveRate', key: 'leaveRate', width: 120,
+      render: (v: number) => `${v ?? 0}%` },
   ];
 
   const dailyColumns = [
@@ -471,23 +472,25 @@ const Statistics: React.FC = () => {
 
         {/* ===== 管理员视图 ===== */}
         {!isPersonal && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 24 }}>
-            <Card style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-              <div ref={chartRef1} key={`trend-${isPersonal}`} style={{ height: 280 }} />
-            </Card>
-            <Card style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-              <div style={{ position: 'relative', height: 280 }}>
-                <div ref={chartRef2} key={`leave-${isPersonal}`} style={{ height: 280 }} />
-                {leaveData.leaveTypes.length === 0 && !loading && (
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: 16, pointerEvents: 'none' }}>
-                    暂无请假
-                  </div>
-                )}
-              </div>
-            </Card>
-            <Card style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-              <div style={{ position: 'relative', height: 280 }}>
-                <div ref={chartRef3} key={`lateEarly-${isPersonal}`} style={{ height: 280 }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24, marginBottom: 24 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+              <Card style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                <div ref={chartRef1} key={`trend-${isPersonal}`} style={{ height: 320 }} />
+              </Card>
+              <Card style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+                <div style={{ position: 'relative', height: 320 }}>
+                  <div ref={chartRef2} key={`leave-${isPersonal}`} style={{ height: 320 }} />
+                  {leaveData.leaveTypes.length === 0 && !loading && (
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: 16, pointerEvents: 'none' }}>
+                      暂无请假
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
+            <Card title="各部门迟到早退人次" style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+              <div style={{ position: 'relative', height: 400 }}>
+                <div ref={chartRef3} key={`lateEarly-${isPersonal}`} style={{ height: 400 }} />
                 {lateEarlyData.length === 0 && !loading && (
                   <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999', fontSize: 16, pointerEvents: 'none' }}>
                     暂无数据
@@ -498,7 +501,7 @@ const Statistics: React.FC = () => {
             <Card title="部门考勤概况" style={{ borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
               <Table columns={deptColumns}
                 dataSource={selectedDept ? departmentStats.filter(d => String(d.departmentId) === selectedDept) : departmentStats}
-                rowKey="departmentId" pagination={false} size="small" />
+                rowKey="departmentId" pagination={false} scroll={{ x: 680 }} />
             </Card>
           </div>
         )}
