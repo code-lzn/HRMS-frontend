@@ -500,7 +500,10 @@ const Attendance: React.FC = () => {
               label="补卡日期"
               rules={[{ required: true, message: '请选择补卡日期' }]}
             >
-              <DatePicker style={{ width: '100%' }} />
+              <DatePicker
+                style={{ width: '100%' }}
+                disabledDate={(current) => current && current >= dayjs().startOf('day')}
+              />
             </Form.Item>
             <Form.Item
               name="punchType"

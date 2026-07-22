@@ -97,13 +97,13 @@ const TransferPage: React.FC = () => {
         </span>
       ),
     },
-    { title: '新职位', dataIndex: 'toPositionName', width: 120, search: false },
+    { title: '新职位', dataIndex: 'toPositionName', width: 120, search: false, render: (name: string) => name || '无' },
     {
       title: '调岗原因', dataIndex: 'reason', width: 140, search: false, ellipsis: true,
     },
     {
       title: '调薪', dataIndex: 'salaryAdjustment', width: 100, search: false,
-      render: (_, r) => r.salaryAdjustment != null ? `¥${r.salaryAdjustment}` : '-',
+      render: (_, r) => r.salaryAdjustment != null ? `¥${r.salaryAdjustment}` : '无',
     },
     {
       title: '生效日期', dataIndex: 'effectiveDate', width: 130, search: false,

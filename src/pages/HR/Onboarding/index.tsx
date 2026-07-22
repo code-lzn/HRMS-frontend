@@ -114,11 +114,15 @@ const OnboardingPage: React.FC = () => {
     { title: '职位', dataIndex: 'positionName', width: 120, search: false },
     {
       title: '录用类型', dataIndex: 'employmentType', width: 90, search: false,
-      render: (_, r) => (
-        <Tag color={r.employmentType === 'FULL_TIME' ? '#1677ff' : '#faad14'}>
-          {r.employmentType === 'FULL_TIME' ? '全职' : '兼职'}
-        </Tag>
-      ),
+      render: (_, r) => {
+        const typeMap: Record<string, { color: string; text: string }> = {
+          FULL_TIME: { color: '#1677ff', text: '全职' },
+          PART_TIME: { color: '#faad14', text: '兼职' },
+          INTERN:    { color: '#52c41a', text: '实习' },
+        };
+        const cfg = typeMap[r.employmentType] || { color: '#d9d9d9', text: r.employmentType || '-' };
+        return <Tag color={cfg.color}>{cfg.text}</Tag>;
+      },
     },
     {
       title: '预计入职日期', dataIndex: 'hireDate', width: 130, search: false,

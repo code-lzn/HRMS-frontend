@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, Select, Button, Tag, Table, Space, Spin, Row, Col, Statistic } from 'antd';
 import {
   DownloadOutlined, CalendarOutlined, ClockCircleOutlined,
@@ -101,32 +101,6 @@ const Statistics: React.FC = () => {
   const chartInstance2 = useRef<echarts.ECharts | null>(null);
   const chartInstance3 = useRef<echarts.ECharts | null>(null);
 
-  // 初始化数据：根据用户角色加载不同的数据
-  useEffect(() => {
-    if (isPersonal) {
-      fetchPersonalData(); // 普通员工加载个人数据
-    } else {
-      fetchDepartmentList(); // 管理员/HR加载部门列表
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // 管理员数据刷新：当月份、部门或部门列表变化时重新获取统计数据
-  useEffect(() => {
-    if (!isPersonal && departments.length > 0) {
-      fetchAdminData();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMonth, selectedDept, isPersonal, departments]);
-
-  // 个人数据刷新：当月份变化时重新获取个人统计数据
-  useEffect(() => {
-    if (isPersonal) {
-      fetchPersonalData();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMonth, isPersonal]);
-
   // 获取部门列表：构建部门下拉框选项
   const fetchDepartmentList = async () => {
     try {
@@ -145,8 +119,7 @@ const Statistics: React.FC = () => {
     } catch (e) { console.error('获取部门列表失败:', e); }
   };
 
-  // 获取管理员统计数据：同时获取趋势、请假分布、迟到早退和部门统计数据
-  const fetchAdminData = async () => {
+  const fetchAdminData = useCallback(async () => {
     setLoading(true);
     try {
       const [trendRes, leaveRes, deptStatsRes] = await Promise.all([
@@ -173,10 +146,9 @@ const Statistics: React.FC = () => {
       }
     } catch (e) { console.error('获取统计数据失败:', e); }
     finally { setLoading(false); }
-  };
+  }, [selectedMonth, selectedDept]);
 
-  // 获取个人统计数据：同时获取个人统计、月度记录和趋势数据
-  const fetchPersonalData = async () => {
+  const fetchPersonalData = useCallback(async () => {
     setLoading(true);
     try {
       const [statsRes, recordsRes, trendRes] = await Promise.all([
@@ -189,7 +161,6 @@ const Statistics: React.FC = () => {
       if (recordsRes.code === 0 && recordsRes.data) {
         const records = Array.isArray(recordsRes.data) ? recordsRes.data : [];
         setDailyRecords(records);
-        // 从月度记录派生日历数据
         const dailyStatus: Record<string, number> = {};
         records.forEach((r: any) => {
           const dateStr = dayjs(r.attendanceDate).format('YYYY-MM-DD');
@@ -209,7 +180,29 @@ const Statistics: React.FC = () => {
       }
     } catch (e) { console.error('获取个人统计数据失败:', e); }
     finally { setLoading(false); }
-  };
+  }, [selectedMonth]);
+
+  // 初始化数据：根据用户角色加载不同的数据
+  useEffect(() => {
+    if (isPersonal) {
+      fetchPersonalData();
+    } else {
+      fetchDepartmentList();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!isPersonal && departments.length > 0) {
+      fetchAdminData();
+    }
+  }, [isPersonal, departments, fetchAdminData]);
+
+  useEffect(() => {
+    if (isPersonal) {
+      fetchPersonalData();
+    }
+  }, [isPersonal, fetchPersonalData]);
 
   // 图表渲染：出勤率趋势图（管理员和个人视图通用）
   useEffect(() => {
