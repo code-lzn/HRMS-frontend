@@ -1,7 +1,7 @@
 import { ProTable, type ProColumns, type ActionType } from '@ant-design/pro-components';
 import { Button, Tag, message, Popconfirm, Tabs, Card, Typography, Modal, DatePicker } from 'antd';
 import { PlusOutlined, FileTextOutlined, ClockCircleOutlined, UserAddOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from '@umijs/max';
 import usePermission from '@/hooks/usePermission';
 import OnboardingFormModal from './components/OnboardingFormModal';
@@ -36,6 +36,7 @@ const OnboardingPage: React.FC = () => {
 
   // ===== 筛选状态 =====
   const [activeTab, setActiveTab] = useState(''); // 当前选中的状态标签
+  const activeTabRef = useRef(''); // 同步 ref，确保 request 闭包读到最新值
 
   // ===== 表单弹窗状态 =====
   const [formOpen, setFormOpen] = useState(false); // 入职申请表单弹窗开关
@@ -61,6 +62,22 @@ const OnboardingPage: React.FC = () => {
   // 初始化：组件挂载时获取统计数据
   useEffect(() => {
     fetchStats();
+  }, []);
+
+  // 稳定的请求函数：通过 ref 读取最新 activeTab，避免闭包捕获旧值
+  const fetchData = useCallback(async (p: any) => {
+    const tab = activeTabRef.current;
+    const res = await listOnboarding({
+      keyword: (p.candidateName as string) || undefined,
+      statuses: tab ? [tab] : undefined,
+      page: p.current ?? 1,
+      size: p.pageSize ?? 10,
+    });
+    return {
+      data: res.data?.records ?? [],
+      total: res.data?.total ?? 0,
+      success: res.code === 0,
+    };
   }, []);
 
   // 获取统计数据：调用后端接口获取各状态的入职申请数量
@@ -310,7 +327,7 @@ const OnboardingPage: React.FC = () => {
       <div style={{ padding: 24 }}>
         <Tabs
           activeKey={activeTab}
-          onChange={(key) => { setActiveTab(key); actionRef.current?.reload(); }}
+          onChange={(key) => { setActiveTab(key); activeTabRef.current = key; actionRef.current?.reload(); }}
           items={[
             { key: '', label: '全部' },
             { key: 'DRAFT', label: '草稿' },
@@ -328,20 +345,7 @@ const OnboardingPage: React.FC = () => {
           columns={columns}
           rowKey="id"
           scroll={{ x: 1000 }}
-          params={{ statuses: activeTab ? [activeTab] : undefined }}
-          request={async (p) => {
-            const res = await listOnboarding({
-              keyword: (p.candidateName as string) || undefined,
-              statuses: activeTab ? [activeTab] : undefined,
-              page: p.current ?? 1,
-              size: p.pageSize ?? 10,
-            });
-            return {
-              data: res.data?.records ?? [],
-              total: res.data?.total ?? 0,
-              success: res.code === 0,
-            };
-          }}
+          request={fetchData}
           search={{ labelWidth: 'auto', collapsed: true }}
           pagination={{ showSizeChanger: true, showTotal: (total) => `共 ${total} 条` }}
           headerTitle={null}

@@ -18,8 +18,15 @@ export function listRegularization(params: {
   page: number;
   size: number;
 }) {
+  const parts: string[] = [];
+  if (params.keyword) parts.push(`keyword=${encodeURIComponent(params.keyword)}`);
+  if (params.statuses && params.statuses.length > 0) {
+    params.statuses.forEach(s => parts.push(`statuses=${encodeURIComponent(s)}`));
+  }
+  parts.push(`page=${params.page}`);
+  parts.push(`size=${params.size}`);
   return request.get<{ code: number; data: PageVO<RegularizationVO>; message: string }>(
-    `${BASE}/list`, { params }
+    `${BASE}/list?${parts.join('&')}`
   );
 }
 

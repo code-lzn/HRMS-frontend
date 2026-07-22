@@ -1,7 +1,7 @@
 import { ProTable, type ProColumns, type ActionType } from '@ant-design/pro-components';
 import { Button, Tag, Popconfirm, Tabs, Card, Typography } from 'antd';
 import { PlusOutlined, FileTextOutlined, ClockCircleOutlined, AuditOutlined, LikeOutlined } from '@ant-design/icons';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from '@umijs/max';
 import {
   listRegularization, deleteRegularization, submitDraft,
@@ -28,13 +28,30 @@ const ProbationPage: React.FC = () => {
 
   // ===== 筛选状态 =====
   const [activeTab, setActiveTab] = useState(''); // 当前选中的状态标签
+  const activeTabRef = useRef(''); // 同步 ref，确保 request 闭包读到最新值
 
   // ===== 统计数据状态 =====
-  const [stats, setStats] = useState({ draft: 0, assessing: 0, approving: 0, approved: 0 }); // 各状态数量统计
+  const [stats, setStats] = useState({ draft: 0, assessing: 0, approving: 0, approved: 0 });
 
   // 初始化：组件挂载时获取统计数据
   useEffect(() => {
     fetchStats();
+  }, []);
+
+  // 稳定的请求函数：通过 ref 读取最新 activeTab，避免闭包捕获旧值
+  const fetchData = useCallback(async (p: any) => {
+    const tab = activeTabRef.current;
+    const res = await listRegularization({
+      keyword: (p.employeeName as string) || undefined,
+      statuses: tab ? [tab] : undefined,
+      page: p.current ?? 1,
+      size: p.pageSize ?? 10,
+    });
+    return {
+      data: res.data?.records ?? [],
+      total: res.data?.total ?? 0,
+      success: res.code === 0,
+    };
   }, []);
 
   // 获取统计数据：调用后端接口获取各状态的转正申请数量
@@ -227,7 +244,7 @@ const ProbationPage: React.FC = () => {
       <div style={{ padding: 24 }}>
         <Tabs
           activeKey={activeTab}
-          onChange={(key) => { setActiveTab(key); actionRef.current?.reload(); }}
+          onChange={(key) => { setActiveTab(key); activeTabRef.current = key; actionRef.current?.reload(); }}
           items={[
             { key: '', label: '全部' },
             { key: 'DRAFT', label: '草稿' },
@@ -244,20 +261,7 @@ const ProbationPage: React.FC = () => {
           columns={columns}
           rowKey="id"
           scroll={{ x: 1000 }}
-          params={{ statuses: activeTab ? [activeTab] : undefined }}
-          request={async (p) => {
-            const res = await listRegularization({
-              keyword: (p.employeeName as string) || undefined,
-              statuses: p.statuses as string[],
-              page: p.current ?? 1,
-              size: p.pageSize ?? 10,
-            });
-            return {
-              data: res.data?.records ?? [],
-              total: res.data?.total ?? 0,
-              success: res.code === 0,
-            };
-          }}
+          request={fetchData}
           search={{ labelWidth: 'auto', collapsed: true }}
           pagination={{ showSizeChanger: true, showTotal: (total) => `共 ${total} 条` }}
           headerTitle={null}
