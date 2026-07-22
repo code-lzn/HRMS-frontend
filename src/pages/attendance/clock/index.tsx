@@ -771,6 +771,7 @@ const AttendanceClock: React.FC = () => {
                   setSuppPage(1);
                 }}
                 options={[
+                  { value: 1, label: '草稿' },
                   { value: 2, label: '审批中' },
                   { value: 3, label: '已通过' },
                   { value: 4, label: '已拒绝' },
