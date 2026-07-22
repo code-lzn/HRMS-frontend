@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, Select, Button, Tag, Table, Space, Spin, Row, Col, Statistic } from 'antd';
 import {
-  DownloadOutlined, CalendarOutlined, ClockCircleOutlined,
+  CalendarOutlined, ClockCircleOutlined,
   WarningOutlined, StopOutlined, FileTextOutlined,
   CoffeeOutlined, GiftOutlined, CheckCircleOutlined,
 } from '@ant-design/icons';
@@ -416,7 +416,6 @@ const Statistics: React.FC = () => {
               }
               return opts;
             })()} />
-          <Button type="primary" icon={<DownloadOutlined />}>导出Excel</Button>
         </Space>
       </div>
 
