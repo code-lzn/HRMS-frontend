@@ -5,7 +5,6 @@ import { getDetailUsingGet, listEmployeesUsingGet, updateEmployeeUsingPut } from
 import {
   listPositionsUsingGet,
 } from '@/api/positionController';
-import { listAccountsUsingGet } from '@/api/salaryManageController';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import {
   Button, Card, Form, message, Space, Spin, Tooltip,
@@ -44,11 +43,10 @@ const EmployeeEditPage: React.FC = () => {
   const [deptTreeData, setDeptTreeData] = useState<API.DepartmentTreeVO[]>([]);
   const [positionOptions, setPositionOptions] = useState<API.PositionVO[]>([]);
   const [employeeOptions, setEmployeeOptions] = useState<{ value: number; label: string }[]>([]);
-  const [salaryAccounts, setSalaryAccounts] = useState<{ value: number; label: string }[]>([]);
   const [initialValues, setInitialValues] = useState<Record<string, any>>({});
   const [employeeName, setEmployeeName] = useState('');
   const [employeeNo, setEmployeeNo] = useState('');
-  const [probationRatio, setProbationRatio] = useState(0.8);
+  const [detail, setDetail] = useState<any>(null);
 
   const { handleCancel: handleLeave } = useLeaveConfirm();
 
@@ -118,18 +116,16 @@ const EmployeeEditPage: React.FC = () => {
     if (!employeeId) return;
     setLoading(true);
     try {
-      const [deptRes, posRes, acctRes, detailRes] = await Promise.all([
+      const [deptRes, posRes, detailRes] = await Promise.all([
         getDepartmentTreeUsingGet(),
         listPositionsUsingGet({}),
-        listAccountsUsingGet(),
         getDetailUsingGet({ id: employeeId }),
       ]);
       setDeptTreeData(extractData<API.DepartmentTreeVO[]>(deptRes, []));
       setPositionOptions(extractData<API.PositionVO[]>(posRes, []));
-      const accts = extractData<API.SalaryAccountVO[]>(acctRes, []);
-      setSalaryAccounts(accts.map((a) => ({ value: a.id!, label: a.name ?? '' })));
       const detail: any = extractData(detailRes, null) ?? {};
       if (detail) {
+        setDetail(detail);
         setEmployeeName(detail.employeeName ?? '');
         setEmployeeNo(detail.employeeNo ?? '');
         const vals: Record<string, any> = {
@@ -147,19 +143,11 @@ const EmployeeEditPage: React.FC = () => {
           workLocation: pickVal(detail, 'workLocation', 'workInfo', 'workLocation'),
           hireDate: pickVal(detail, 'hireDate'),
           employmentType: pickVal(detail, 'employmentType', 'workInfo', 'employmentType'),
-          accountSetId: pickVal(detail, 'accountSetId', 'salaryInfo', 'accountSetId'),
-          contractType: pickVal(detail, 'contractType', 'salaryInfo', 'contractType'),
-          probationRatio: pickVal(detail, 'probationRatio', 'salaryInfo', 'probationRatio'),
-          baseSalary: pickVal(detail, 'baseSalary', 'salaryInfo', 'baseSalary'),
-          bankAccount: pickVal(detail, 'bankAccount', 'salaryInfo', 'bankAccount'),
-          bankName: pickVal(detail, 'bankName', 'salaryInfo', 'bankName'),
         };
         if (vals.birthday) vals.birthday = dayjs(vals.birthday);
-        if (vals.contractExpireDate) vals.contractExpireDate = dayjs(vals.contractExpireDate);
         if (vals.hireDate) vals.hireDate = dayjs(vals.hireDate);
         form.setFieldsValue(vals);
         setInitialValues(vals);
-        if (vals.probationRatio !== null && vals.probationRatio !== undefined) setProbationRatio(vals.probationRatio);
       }
     } catch (e: unknown) {
       message.error(getErrorMessage(e, '加载员工信息失败'));
@@ -289,14 +277,16 @@ const EmployeeEditPage: React.FC = () => {
           <SalaryContractSection
             form={form}
             mode="edit"
-            salaryAccounts={salaryAccounts}
-            probationRatio={probationRatio}
-            onProbationRatioChange={setProbationRatio}
+            readonly
+            salaryData={{
+              contractTypeDesc: detail?.contractTypeDesc,
+              contractExpireDate: detail?.contractExpireDate,
+              probationRatio: detail?.probationRatio,
+              baseSalary: detail?.baseSalary,
+              bankAccount: detail?.bankAccount,
+              bankName: detail?.bankName,
+            }}
             inputStyle={inputStyle}
-            disabledInputStyle={disabledInputStyle}
-            isLocked={isLocked}
-            lockedLabel={renderLockedLabel}
-            lockedSuffix={renderLockedSuffix}
           />
         </div>
       </Form>

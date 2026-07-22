@@ -1,4 +1,4 @@
-import { Card, DatePicker, Form, Input, InputNumber, Select, Slider } from 'antd';
+import { Alert, Card, DatePicker, Descriptions, Form, Input, InputNumber, Select, Slider } from 'antd';
 import type { FormInstance } from 'antd/es/form';
 import React from 'react';
 import { CONTRACT_OPTIONS } from '@/utils/employeeConstants';
@@ -6,6 +6,17 @@ import { CONTRACT_OPTIONS } from '@/utils/employeeConstants';
 interface SalaryContractSectionProps {
   form: FormInstance;
   mode: 'add' | 'edit';
+  /** 只读模式：展示薪资摘要并引导至薪资管理模块 */
+  readonly?: boolean;
+  /** 只读模式下展示的薪资数据 */
+  salaryData?: {
+    contractTypeDesc?: string;
+    contractExpireDate?: string;
+    probationRatio?: number;
+    baseSalary?: number;
+    bankAccount?: string;
+    bankName?: string;
+  };
   inputStyle?: React.CSSProperties;
   disabledInputStyle?: React.CSSProperties;
   /** 薪资账套选项 */
@@ -18,9 +29,18 @@ interface SalaryContractSectionProps {
   lockedSuffix?: (field: string, tip: string) => React.ReactNode;
 }
 
+/** 银行账号脱敏 */
+const maskBankAccount = (acct?: string) => {
+  if (!acct) return '-';
+  if (acct.length <= 4) return `****${acct}`;
+  return `****${acct.slice(-4)}`;
+};
+
 const SalaryContractSection: React.FC<SalaryContractSectionProps> = ({
   form,
   mode,
+  readonly = false,
+  salaryData,
   inputStyle = { borderRadius: 6 },
   disabledInputStyle = { borderRadius: 6, color: '#999', background: '#f5f5f5' },
   salaryAccounts = [],
@@ -30,6 +50,50 @@ const SalaryContractSection: React.FC<SalaryContractSectionProps> = ({
   lockedLabel = (label) => label,
   lockedSuffix = () => undefined,
 }) => {
+  // ===== 只读模式：薪资摘要 + 引导至薪资管理 =====
+  if (readonly) {
+    return (
+      <Card
+        title={<span style={{ fontSize: 15, fontWeight: 600, color: '#000' }}>薪资与合同信息</span>}
+        style={{ borderRadius: 8, border: '1px solid #e8edf2', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}
+        styles={{ body: { padding: 20 } }}
+      >
+        <Alert
+          type="info"
+          showIcon
+          message="薪资信息由薪资管理模块统一维护"
+          description="基本工资、社保公积金基数、试用期比例等薪资数据请在「薪资管理 > 薪资档案」模块查看和修改，此处仅展示摘要。"
+          style={{ marginBottom: 16, borderRadius: 6 }}
+        />
+        <Descriptions size="small" column={2} bordered>
+          <Descriptions.Item label="合同类型">
+            {salaryData?.contractTypeDesc || '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label="合同到期日">
+            {salaryData?.contractExpireDate || '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label="基本工资">
+            {salaryData?.baseSalary !== null && salaryData?.baseSalary !== undefined
+              ? <span style={{ fontWeight: 600, color: '#1677ff' }}>¥{salaryData.baseSalary.toFixed(2)}</span>
+              : '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label="试用期待遇比例">
+            {salaryData?.probationRatio !== null && salaryData?.probationRatio !== undefined
+              ? `${(salaryData.probationRatio * 100).toFixed(0)}%`
+              : '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label="银行账号">
+            {maskBankAccount(salaryData?.bankAccount)}
+          </Descriptions.Item>
+          <Descriptions.Item label="开户行">
+            {salaryData?.bankName || '-'}
+          </Descriptions.Item>
+        </Descriptions>
+      </Card>
+    );
+  }
+
+  // ===== 编辑模式：表单 =====
   return (
     <Card
       title={<span style={{ fontSize: 15, fontWeight: 600, color: '#000' }}>薪资与合同信息</span>}
