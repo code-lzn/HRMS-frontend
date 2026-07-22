@@ -47,7 +47,7 @@ interface LeaveTypeData { leaveTypes: string[]; counts: number[]; percentages: n
 // 部门统计数据接口定义
 interface DepartmentStats {
   departmentId: number; departmentName: string; attendanceRate: number;
-  lateRate: number; leaveRate: number; employeeCount: number;
+  lateRate: number; absentRate: number; leaveRate: number; employeeCount: number;
   lateCount: number; earlyCount: number;
 }
 
@@ -310,7 +310,7 @@ const Statistics: React.FC = () => {
     { title: '部门人数', dataIndex: 'employeeCount', key: 'employeeCount' },
     { title: '出勤率', dataIndex: 'attendanceRate', key: 'attendanceRate',
       render: (rate: number) => `${(rate ?? 0).toFixed(1)}%` },
-    { title: '迟到率', dataIndex: 'lateRate', key: 'lateRate',
+    { title: '缺勤率', dataIndex: 'absentRate', key: 'absentRate',
       render: (rate: number) => `${(rate ?? 0).toFixed(1)}%` },
     { title: '请假率', dataIndex: 'leaveRate', key: 'leaveRate',
       render: (rate: number) => `${(rate ?? 0).toFixed(1)}%` },
