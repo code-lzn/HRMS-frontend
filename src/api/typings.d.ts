@@ -2701,4 +2701,60 @@ declare namespace API {
     date?: string;
     pageViews?: number;
   };
+
+  // ==================== AI 智能助理 ====================
+
+  /** SSE 流式对话请求 */
+  type AIChatStreamRequest = {
+    sessionId?: string;
+    message: string;
+  };
+
+  /** 对话消息 */
+  type AIChatMessageVO = {
+    type?: 'user' | 'assistant';
+    content?: string;
+    intent?: string;
+    path?: string;
+    label?: string;
+    action?: string;
+    messageId?: number;
+  };
+
+  /** 会话列表项 */
+  type AISessionVO = {
+    sessionId?: string;
+    title?: string;
+    lastMessageTime?: string;
+    messageCount?: number;
+  };
+
+  /** 反馈请求 */
+  type AIFeedbackRequest = {
+    chatId?: number;
+    feedback?: number; // 1=点赞, 0=点踩
+  };
+
+  /** SSE 事件数据结构 */
+  type AISSEEvent = {
+    type: 'thinking' | 'intent' | 'content' | 'route' | 'done' | 'error';
+    content?: string;
+    intent?: string;
+    confidence?: number;
+    path?: string;
+    label?: string;
+    action?: string;
+  };
+
+  type BaseResponseListAISessionVO_ = {
+    code?: number;
+    data?: AISessionVO[];
+    message?: string;
+  };
+
+  type BaseResponseListAIChatMessageVO_ = {
+    code?: number;
+    data?: AIChatMessageVO[];
+    message?: string;
+  };
 }

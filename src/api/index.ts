@@ -2,6 +2,7 @@
 /* eslint-disable */
 // API 更新时间：
 // API 唯一标识：
+import * as aiController from './aiController';
 import * as accountSecurityController from './accountSecurityController';
 import * as analyticsController from './analyticsController';
 import * as approvalController from './approvalController';
@@ -31,6 +32,7 @@ import * as testHealth from './testHealth';
 import * as transferController from './transferController';
 import * as userController from './userController';
 export default {
+  aiController,
   accountSecurityController,
   analyticsController,
   approvalController,
