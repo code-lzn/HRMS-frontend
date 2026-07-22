@@ -1,6 +1,8 @@
 import { getDepartmentTreeUsingGet } from '@/api/departmentController';
 import { listEmployeesUsingGet } from '@/api/employeeController';
 import { listPositionsUsingGet } from '@/api/positionController';
+import { buildTreeSelectData } from '@/utils/treeUtils';
+import { STATUS_OPTIONS, STATUS_MAP } from '@/utils/employeeConstants';
 import {
   DownOutlined, ExclamationCircleOutlined, EyeOutlined,
   PlusOutlined, SearchOutlined, TeamOutlined, UpOutlined,
@@ -10,34 +12,14 @@ import {
   Row, Select, Space, Table, Tag, TreeSelect,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import type { DataNode } from 'antd/es/tree';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { history, useModel } from '@umijs/max';
 import { hasPermission } from '@/utils/permission';
+import { extractData, getErrorMessage } from '@/utils/apiHelper';
 import TransferModal from './components/TransferModal';
 import ResignationModal from './components/ResignationModal';
 
 const { RangePicker } = DatePicker;
-
-const STATUS_OPTIONS = [
-  { value: 1, label: '试用期', color: 'blue' },
-  { value: 2, label: '正式', color: 'green' },
-  { value: 3, label: '待离职', color: 'orange' },
-  { value: 4, label: '已离职', color: 'default' },
-];
-
-const STATUS_MAP: Record<number, { text: string; color: string }> = {
-  1: { text: '试用期', color: 'blue' },
-  2: { text: '正式', color: 'green' },
-  3: { text: '待离职', color: 'orange' },
-  4: { text: '已离职', color: 'default' },
-};
-
-const buildTreeSelectData = (nodes: API.DepartmentTreeVO[]): DataNode[] =>
-  nodes.map((node) => ({
-    key: node.id!, value: node.id!, title: node.name,
-    children: node.children?.length ? buildTreeSelectData(node.children) : [],
-  }));
 
 const EmployeeListPage: React.FC = () => {
   const { initialState } = useModel('@@initialState');
@@ -64,9 +46,11 @@ const EmployeeListPage: React.FC = () => {
         const [deptRes, posRes] = await Promise.all([
           getDepartmentTreeUsingGet(), listPositionsUsingGet({}),
         ]);
-        setDeptTreeData((deptRes as any)?.data ?? []);
-        setPositionOptions((posRes as any)?.data ?? []);
-      } catch (e) { console.error('pages/Employee/List/index.tsx', e);  /* ignore */ }
+        setDeptTreeData(extractData<API.DepartmentTreeVO[]>(deptRes, []));
+        setPositionOptions(extractData<API.PositionVO[]>(posRes, []));
+      } catch (e: unknown) { console.error('pages/Employee/List/index.tsx', e);
+        message.error(getErrorMessage(e, '加载基础数据失败'));
+      }
     })();
   }, []);
 
@@ -85,12 +69,13 @@ const EmployeeListPage: React.FC = () => {
         params.hireDateEnd = values.hireDateRange[1].format('YYYY-MM-DD');
       }
       const res = await listEmployeesUsingGet(params);
-      const data = (res as any)?.data;
+      const data = extractData<{ records?: API.EmployeeVO[]; current?: number; size?: number; total?: number }>(res, {});
       setDataSource(data?.records ?? []);
       setPagination({ current: data?.current ?? page, pageSize: data?.size ?? size, total: data?.total ?? 0 });
-    } catch (e: any) {
-      setErrorMsg(e.message ?? '加载失败');
-      message.error(e.message ?? '加载失败');
+    } catch (e: unknown) {
+      const msg = getErrorMessage(e, '加载失败');
+      setErrorMsg(msg);
+      message.error(msg);
     } finally { setLoading(false); }
   }, [form]);
 
@@ -105,10 +90,9 @@ const EmployeeListPage: React.FC = () => {
     { title: '在职状态', dataIndex: 'status', width: 100,
       render: (s, r) => { const m = STATUS_MAP[s]; return m ? <Tag color={m.color}>{r.statusDesc ?? m.text}</Tag> : '-'; } },
     { title: '入职日期', dataIndex: 'hireDate', width: 120, render: (t) => t ?? '-' },
-    // 操作列：仅管理员/HR
-    ...(can('employee:edit') || can('employee:delete') ? [{
+    {
       title: '操作', key: 'action', width: 200,
-      render: (_: any, record: API.EmployeeVO) => (
+      render: (_: unknown, record: API.EmployeeVO) => (
         <Space size="small">
           <Button type="link" size="small" icon={<EyeOutlined />}
             onClick={() => history.push(`/employee/detail/${record.id}`)}>查看</Button>
@@ -126,7 +110,7 @@ const EmployeeListPage: React.FC = () => {
           )}
         </Space>
       ),
-    } as ColumnsType<API.EmployeeVO>[number]] : []),
+    } as ColumnsType<API.EmployeeVO>[number],
   ];
 
   return (
@@ -182,7 +166,7 @@ const EmployeeListPage: React.FC = () => {
 
       {errorMsg && (
         <Card size="small" style={{ border: '1px solid #ffccc7', borderRadius: 10, background: '#fff2f0' }}
-          bodyStyle={{ padding: '14px 20px' }}>
+          styles={{ body: { padding: '14px 20px' } }}>
           <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <ExclamationCircleOutlined style={{ color: '#ff4d4f', fontSize: 16 }} />
             <strong style={{ color: '#ff4d4f' }}>加载失败：</strong>{errorMsg}

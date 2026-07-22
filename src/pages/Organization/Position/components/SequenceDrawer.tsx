@@ -1,6 +1,7 @@
 import { getSequencesUsingGet } from '@/api/positionController';
-import { Card, Col, Drawer, Row, Spin, Tag } from 'antd';
+import { Card, Col, Drawer, Row, Spin, Tag, message } from 'antd';
 import React, { useEffect, useState } from 'react';
+import { extractData, getErrorMessage } from '@/utils/apiHelper';
 
 const SEQUENCE_COLOR: Record<string, string> = {
   M: 'blue',
@@ -23,8 +24,10 @@ const SequenceDrawer: React.FC<SequenceDrawerProps> = ({ open, onClose }) => {
       setLoading(true);
       try {
         const res = await getSequencesUsingGet();
-        setSequences((res as any)?.data ?? []);
-      } catch (e) { console.error('pages/Organization/Position/components/SequenceDrawer.tsx', e); } finally {
+        setSequences(extractData<API.SequenceLevelVO[]>(res, []));
+      } catch (e: unknown) { console.error('pages/Organization/Position/components/SequenceDrawer.tsx', e);
+        message.error(getErrorMessage(e, '加载序列数据失败'));
+      } finally {
         setLoading(false);
       }
     })();

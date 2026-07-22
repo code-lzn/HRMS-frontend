@@ -7,8 +7,10 @@ import {
   SafetyOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
-import { Col, Form, Input, message, Modal, Row, Select, TreeSelect } from 'antd';
+import { Button, Col, Form, Input, message, Modal, Row, Select, TreeSelect } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
+import { buildTreeSelectData } from '@/utils/treeUtils';
+import { extractData, getErrorMessage } from '@/utils/apiHelper';
 import { COLORS } from '../../styles';
 
 /** 序列选项配置 */
@@ -38,15 +40,6 @@ const SEQUENCE_OPTIONS = [
     range: 'S1-S5',
   },
 ];
-
-/** 将部门树转为 TreeSelect 数据 */
-const buildTreeSelectData = (nodes: API.DepartmentTreeVO[]): any[] =>
-  nodes.map((node) => ({
-    key: node.id!,
-    value: node.id!,
-    title: node.name,
-    children: node.children?.length ? buildTreeSelectData(node.children) : [],
-  }));
 
 interface PositionFormModalProps {
   open: boolean;
@@ -145,8 +138,8 @@ const PositionFormModal: React.FC<PositionFormModalProps> = ({
         message.success('编辑职位成功');
       }
       onSuccess();
-    } catch (e: any) {
-      if (e.message) message.error(e.message);
+    } catch (e: unknown) {
+      message.error(getErrorMessage(e));
     } finally {
       setSubmitting(false);
     }
@@ -368,37 +361,12 @@ const PositionFormModal: React.FC<PositionFormModalProps> = ({
           marginTop: 8,
         }}
       >
-        <button
-          onClick={onClose}
-          style={{
-            padding: '6px 16px',
-            borderRadius: 6,
-            border: '1px solid #e2e8f0',
-            background: '#fff',
-            color: '#475569',
-            fontSize: 14,
-            cursor: 'pointer',
-            fontWeight: 400,
-          }}
-        >
+        <Button onClick={onClose} style={{ borderRadius: 6 }}>
           取消
-        </button>
-        <button
-          onClick={handleOk}
-          disabled={submitting}
-          style={{
-            padding: '6px 16px',
-            borderRadius: 6,
-            border: 'none',
-            background: submitting ? '#93c5fd' : COLORS.primaryBlue,
-            color: '#fff',
-            fontSize: 14,
-            cursor: submitting ? 'not-allowed' : 'pointer',
-            fontWeight: 500,
-          }}
-        >
+        </Button>
+        <Button type="primary" loading={submitting} onClick={handleOk} style={{ borderRadius: 6 }}>
           {submitting ? '保存中...' : '保存'}
-        </button>
+        </Button>
       </div>
     </Modal>
   );

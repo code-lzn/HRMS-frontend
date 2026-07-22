@@ -3,7 +3,8 @@ import {
   updateDepartmentUsingPut,
 } from '@/api/departmentController';
 import { listManagerCandidatesUsingGet } from '@/api/employeeController';
-import type { DataNode } from 'antd/es/tree';
+import { buildTreeSelectData, isDescendant } from '@/utils/treeUtils';
+import { extractData, getErrorMessage } from '@/utils/apiHelper';
 import {
   Form,
   Input,
@@ -14,44 +15,6 @@ import {
   TreeSelect,
 } from 'antd';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-
-/** 将部门树转为 TreeSelect 数据 */
-const buildTreeSelectData = (nodes: API.DepartmentTreeVO[]): DataNode[] =>
-  nodes.map((node) => ({
-    key: node.id!,
-    value: node.id!,
-    title: node.name,
-    children: node.children?.length ? buildTreeSelectData(node.children) : [],
-  }));
-
-/** 检查 targetId 是否是 sourceId 的子孙节点 */
-const isDescendant = (
-  nodes: API.DepartmentTreeVO[],
-  sourceId: number,
-  targetId: number,
-): boolean => {
-  const findSource = (list: API.DepartmentTreeVO[]): API.DepartmentTreeVO | undefined => {
-    for (const node of list) {
-      if (node.id === sourceId) return node;
-      if (node.children?.length) {
-        const found = findSource(node.children);
-        if (found) return found;
-      }
-    }
-    return undefined;
-  };
-  const sourceNode = findSource(nodes);
-  if (!sourceNode) return false;
-  if (!sourceNode.children?.length) return false;
-  const containsTarget = (list: API.DepartmentTreeVO[]): boolean => {
-    for (const node of list) {
-      if (node.id === targetId) return true;
-      if (node.children?.length && containsTarget(node.children)) return true;
-    }
-    return false;
-  };
-  return containsTarget(sourceNode.children);
-};
 const getDeptDepth = (nodes: API.DepartmentTreeVO[], targetId: number, depth = 1): number => {
   for (const node of nodes) {
     if (node.id === targetId) return depth;
@@ -111,12 +74,12 @@ const DeptFormModal: React.FC<DeptFormModalProps> = ({
     setEmployeeLoading(true);
     try {
       const res = await listManagerCandidatesUsingGet();
-      const records: API.Employee[] = (res as any)?.data ?? [];
+      const records = extractData<API.Employee[]>(res, []);
       setEmployeeOptions(records.map((emp) => ({
         label: `${emp.employeeName}（${emp.employeeNo}）`,
         value: emp.id!,
       })));
-    } catch (e) { console.error('pages/Organization/Department/components/DeptFormModal.tsx', e); setEmployeeOptions([]); } finally {
+    } catch (e: unknown) { console.error('pages/Organization/Department/components/DeptFormModal.tsx', e); setEmployeeOptions([]); } finally {
       setEmployeeLoading(false);
     }
   }, []);
@@ -210,8 +173,8 @@ const DeptFormModal: React.FC<DeptFormModalProps> = ({
         message.success('编辑部门成功');
       }
       onSuccess();
-    } catch (e: any) {
-      if (e.message) message.error(e.message);
+    } catch (e: unknown) {
+      message.error(getErrorMessage(e));
     } finally {
       setSubmitting(false);
     }

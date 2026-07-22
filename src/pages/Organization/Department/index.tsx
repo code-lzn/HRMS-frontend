@@ -4,6 +4,7 @@ import { Button, Input, message, Modal } from 'antd';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useModel } from '@umijs/max';
 import { hasPermission } from '@/utils/permission';
+import { extractData, getErrorMessage } from '@/utils/apiHelper';
 import DepartmentDetail from './components/DepartmentDetail';
 import DeptFormModal from './components/DeptFormModal';
 import MergeDeptModal from './components/MergeDeptModal';
@@ -218,8 +219,8 @@ const DepartmentPage: React.FC = () => {
           message.success('删除成功');
           if (selectedDept?.id === dept.id) setSelectedDept(null);
           loadTree();
-        } catch (e: any) {
-          message.error(e.message ?? '删除失败');
+        } catch (e: unknown) {
+          message.error(getErrorMessage(e, '删除失败'));
         }
       },
     });
@@ -230,9 +231,11 @@ const DepartmentPage: React.FC = () => {
     setTreeLoading(true);
     try {
       const res = await getDepartmentTreeUsingGet();
-      const data = (res as any)?.data ?? [];
-      setTreeData(data);
-    } catch (e) { console.error('pages/Organization/Department/index.tsx', e); } finally {
+      setTreeData(extractData<API.DepartmentTreeVO[]>(res, []));
+    } catch (e: unknown) {
+      console.error('pages/Organization/Department/index.tsx', e);
+      message.error(getErrorMessage(e, '加载部门数据失败'));
+    } finally {
       setTreeLoading(false);
     }
   }, []);
@@ -241,7 +244,7 @@ const DepartmentPage: React.FC = () => {
     loadTree();
   }, [loadTree]);
 
-  /** 树数据变化后同步更新选中节点 */
+  /** 树数据变化后同步更新选中节点（按 id 比较，避免深拷贝对比） */
   useEffect(() => {
     if (!selectedDept?.id || treeData.length === 0) return;
     const findNode = (nodes: API.DepartmentTreeVO[]): API.DepartmentTreeVO | undefined => {
@@ -256,19 +259,17 @@ const DepartmentPage: React.FC = () => {
     };
     const updated = findNode(treeData);
     if (updated) {
-      setSelectedDept((prev) => {
-        if (JSON.stringify(prev) === JSON.stringify(updated)) return prev;
-        return updated;
-      });
+      // 仅在 id 相同时用最新引用替换，避免 JSON.stringify 深比较
+      setSelectedDept(updated);
     }
   }, [treeData, selectedDept?.id]);
 
   // 搜索过滤后的树
   const filteredTree = useMemo(() => filterTree(treeData, searchKeyword), [treeData, searchKeyword]);
 
-  const handleSelectDept = useCallback((node: API.DepartmentTreeVO) => {
+  const handleSelectDept = (node: API.DepartmentTreeVO) => {
     setSelectedDept(node);
-  }, []);
+  };
 
   const handleEditDept = (dept: API.DepartmentTreeVO) => {
     setDeptFormMode('edit');

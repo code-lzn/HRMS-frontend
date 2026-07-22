@@ -1,5 +1,3 @@
-import React from 'react';
-
 /** 全局设计 Token */
 export const COLORS = {
   // Primary
@@ -41,29 +39,6 @@ export const COLORS = {
   btnSecondaryBorder: '#e2e8f0',
   btnSecondaryText: '#475569',
 } as const;
-
-/** 间距 */
-export const SPACING = {
-  contentPadding: 24,
-  cardPadding: 20,
-  pageGap: 16,
-} as const;
-
-/** 通用卡片样式 */
-export const cardStyle: React.CSSProperties = {
-  background: COLORS.cardBg,
-  borderRadius: 8,
-  border: `1px solid ${COLORS.cardBorder}`,
-  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-};
-
-/** 胶囊标签样式工厂 */
-export const badgeCapsule: React.CSSProperties = {
-  borderRadius: 9999,
-  padding: '2px 10px',
-  fontSize: 12,
-  fontWeight: 500,
-};
 
 /** 三类序列的配色方案 */
 export const SEQUENCE_COLORS: Record<

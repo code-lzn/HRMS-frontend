@@ -1,6 +1,7 @@
 import { listEmployeesUsingGet } from '@/api/employeeController';
 import { QuestionCircleOutlined } from '@ant-design/icons';
-import type { DataNode } from 'antd/es/tree';
+import { buildTreeSelectData } from '@/utils/treeUtils';
+import { CONTRACT_OPTIONS, EMPLOYMENT_TYPE_OPTIONS } from '@/utils/employeeConstants';
 import {
   Card,
   Col,
@@ -16,15 +17,7 @@ import {
 } from 'antd';
 import type { FormInstance } from 'antd/es/form';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-/** 将部门树转为 TreeSelect 数据 */
-const buildTreeSelectData = (nodes: API.DepartmentTreeVO[]): DataNode[] =>
-  nodes.map((node) => ({
-    key: node.id!,
-    value: node.id!,
-    title: node.name,
-    children: node.children?.length ? buildTreeSelectData(node.children) : [],
-  }));
+import { extractData, extractNested, getErrorMessage } from '@/utils/apiHelper';
 
 interface EmployeeFormProps {
   mode: 'add' | 'edit';
@@ -63,7 +56,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
       if (keyword) params.keyword = keyword;
       const res = await listEmployeesUsingGet(params);
       if (fetchId === fetchRef.current) {
-        const records = (res as any)?.data?.records ?? [];
+        const records = extractNested<API.EmployeeVO[]>('records', res, []);
         setEmployeeOptions((prev) => {
           const currentIds = new Set(records.map((o: API.EmployeeVO) => o.id));
           const existing = prev.filter((o: API.EmployeeSimpleVO) => !currentIds.has(o.id));
@@ -74,7 +67,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
           }))];
         });
       }
-    } catch (e) { console.error('pages/Employee/components/EmployeeForm.tsx', e); } finally {
+    } catch (e: unknown) { console.error('pages/Employee/components/EmployeeForm.tsx', e); } finally {
       setEmployeeLoading(false);
     }
   }, []);
@@ -126,7 +119,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
     // 编辑模式下不校验自己
     if (mode === 'edit') return;
     const res = await listEmployeesUsingGet({ keyword: value, page: 1, size: 1 });
-    const records = (res as any)?.data?.records ?? [];
+    const records = extractNested<API.EmployeeVO[]>('records', res, []);
     if (records.length > 0) {
       throw new Error('该手机号已被其他员工使用');
     }
@@ -301,11 +294,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
               <Select
                 placeholder="请选择录用类型"
                 disabled={isLocked('employmentType')}
-                options={[
-                  { value: 'FULL_TIME', label: '全职' },
-                  { value: 'PART_TIME', label: '兼职' },
-                  { value: 'INTERN', label: '实习' },
-                ]}
+                options={EMPLOYMENT_TYPE_OPTIONS}
               />
             </Form.Item>
           </Col>
@@ -339,11 +328,7 @@ const EmployeeForm: React.FC<EmployeeFormProps> = ({
               <Select
                 placeholder="请选择合同类型"
                 disabled={isLocked('contractType')}
-                options={[
-                  { value: 1, label: '固定期限' },
-                  { value: 2, label: '无固定期限' },
-                  { value: 3, label: '劳务合同' },
-                ]}
+                options={CONTRACT_OPTIONS}
               />
             </Form.Item>
           </Col>

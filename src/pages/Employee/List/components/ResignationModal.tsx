@@ -1,8 +1,9 @@
 import { submitUsingPost2 } from '@/api/resignationController';
 import { listManagerCandidatesUsingGet } from '@/api/employeeController';
-import { Button, DatePicker, Descriptions, Divider, Form, Input, message, Modal, Select } from 'antd';
+import { Button, Col, DatePicker, Form, Input, message, Modal, Row, Select } from 'antd';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
+import { extractData, getErrorMessage } from '@/utils/apiHelper';
 
 interface Props {
   open: boolean;
@@ -17,23 +18,23 @@ const ResignationModal: React.FC<Props> = ({ open, employee, onCancel, onOk }) =
   const [empList, setEmpList] = useState<{ label: string; value: number }[]>([]);
   const [employeeLoading, setEmployeeLoading] = useState(false);
 
-  // 打开时加载部门负责人候选（用于工作交接人选择）
   useEffect(() => {
-    if (open) {
-      (async () => {
-        setEmployeeLoading(true);
-        try {
-          const res = await listManagerCandidatesUsingGet();
-          const records: API.Employee[] = (res as any)?.data ?? [];
-          setEmpList(records.map((e) => ({
-            label: `${e.employeeName}（${e.employeeNo}）`,
-            value: e.id!,
-          })));
-        } catch (e) { console.error('pages/Employee/List/components/ResignationModal.tsx', e); setEmpList([]); } finally {
-          setEmployeeLoading(false);
-        }
-      })();
-    }
+    if (!open) return;
+    setEmployeeLoading(true);
+    listManagerCandidatesUsingGet()
+      .then((res) => {
+        const records = extractData<API.Employee[]>(res, []);
+        setEmpList(records.map((e) => ({
+          label: `${e.employeeName}（${e.employeeNo}）`,
+          value: e.id!,
+        })));
+      })
+      .catch((e: unknown) => {
+        console.error('pages/Employee/List/components/ResignationModal.tsx', e);
+        message.error(getErrorMessage(e, '加载数据失败'));
+        setEmpList([]);
+      })
+      .finally(() => setEmployeeLoading(false));
   }, [open]);
 
   const handleSubmit = async () => {
@@ -52,8 +53,8 @@ const ResignationModal: React.FC<Props> = ({ open, employee, onCancel, onOk }) =
       message.success('离职申请已提交审批');
       form.resetFields();
       onOk();
-    } catch (e: any) {
-      if (e?.message) message.error(e.message);
+    } catch (e: unknown) {
+      message.error(getErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -71,7 +72,6 @@ const ResignationModal: React.FC<Props> = ({ open, employee, onCancel, onOk }) =
       onCancel={handleCancel}
       width={640}
       destroyOnClose
-      draggable
       footer={[
         <Button key="cancel" onClick={handleCancel}>取消</Button>,
         <Button key="submit" type="primary" loading={loading} onClick={handleSubmit}>
@@ -80,82 +80,69 @@ const ResignationModal: React.FC<Props> = ({ open, employee, onCancel, onOk }) =
       ]}
     >
       <Form form={form} layout="vertical" style={{ marginTop: 12 }}>
-        {/* 员工信息 */}
-        <Divider plain>员工信息</Divider>
-        <Descriptions column={2} size="small" bordered style={{ marginBottom: 16 }}>
-          <Descriptions.Item label="姓名">{employee?.employeeName ?? '-'}</Descriptions.Item>
-          <Descriptions.Item label="工号">{employee?.employeeNo ?? '-'}</Descriptions.Item>
-          <Descriptions.Item label="部门">{employee?.departmentName ?? '-'}</Descriptions.Item>
-          <Descriptions.Item label="职位">{employee?.positionName ?? '-'}</Descriptions.Item>
-          <Descriptions.Item label="入职日期">
+        {/* 当前员工信息 - 紧凑展示 */}
+        <div style={{
+          display: 'flex', gap: 16, padding: '10px 14px',
+          background: '#f9fafb', borderRadius: 6, marginBottom: 16, fontSize: 13,
+        }}>
+          <span><strong>姓名：</strong>{employee?.employeeName ?? '-'}</span>
+          <span><strong>工号：</strong>{employee?.employeeNo ?? '-'}</span>
+          <span><strong>部门：</strong>{employee?.departmentName ?? '-'}</span>
+          <span><strong>职位：</strong>{employee?.positionName ?? '-'}</span>
+          <span><strong>入职日期：</strong>
             {employee?.hireDate ? dayjs(employee.hireDate).format('YYYY-MM-DD') : '-'}
-          </Descriptions.Item>
-        </Descriptions>
+          </span>
+        </div>
 
-        <Divider plain>离职信息</Divider>
+        {/* 离职信息 - 两列布局 */}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="resignDate" label="离职日期" rules={[{ required: true, message: '请选择离职日期' }]}>
+              <DatePicker
+                style={{ width: '100%' }}
+                disabledDate={(current) => current && current < dayjs().startOf('day')}
+                placeholder="选择离职日期（最后工作日）"
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="resignReasonType" label="离职原因大类" rules={[{ required: true, message: '请选择离职原因大类' }]}>
+              <Select placeholder="选择原因大类" options={[
+                { label: '主动离职', value: 'VOLUNTARY' },
+                { label: '被动离职', value: 'INVOLUNTARY' },
+                { label: '协商离职', value: 'NEGOTIATED' },
+              ]} />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="resignType" label="离职类型" rules={[{ required: true, message: '请选择离职类型' }]}>
+              <Select placeholder="选择离职类型" options={[
+                { label: '辞职', value: 'RESIGN' },
+                { label: '辞退', value: 'DISMISS' },
+                { label: '合同到期不续签', value: 'CONTRACT_EXPIRE' },
+                { label: '其他', value: 'OTHER' },
+              ]} />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="handoverPersonId" label="工作交接人" rules={[{ required: true, message: '请选择工作交接人' }]}>
+              <Select
+                placeholder="搜索交接人" showSearch
+                loading={employeeLoading}
+                filterOption={(input, option) =>
+                  (option?.label as string)?.toLowerCase().includes(input.toLowerCase()) ?? false}
+                options={empList}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
 
-        <Form.Item
-          name="resignDate"
-          label="离职日期"
-          rules={[{ required: true, message: '请选择离职日期' }]}
-        >
-          <DatePicker
-            style={{ width: '100%' }}
-            disabledDate={(current) => current && current < dayjs().startOf('day')}
-            placeholder="选择离职日期（最后工作日）"
-          />
+        <Form.Item name="detailReason" label="详细说明" rules={[{ required: true, message: '请填写详细说明' }]}>
+          <Input.TextArea placeholder="请详细说明离职原因" maxLength={2000} rows={2} />
         </Form.Item>
 
-        <Form.Item
-          name="resignReasonType"
-          label="离职原因大类"
-          rules={[{ required: true, message: '请选择离职原因大类' }]}
-        >
-          <Select placeholder="选择原因大类" options={[
-            { label: '主动离职', value: 'VOLUNTARY' },
-            { label: '被动离职', value: 'INVOLUNTARY' },
-            { label: '协商离职', value: 'NEGOTIATED' },
-          ]} />
-        </Form.Item>
-
-        <Form.Item
-          name="resignType"
-          label="离职类型"
-          rules={[{ required: true, message: '请选择离职类型' }]}
-        >
-          <Select placeholder="选择离职类型" options={[
-            { label: '辞职', value: 'RESIGN' },
-            { label: '辞退', value: 'DISMISS' },
-            { label: '合同到期不续签', value: 'CONTRACT_EXPIRE' },
-            { label: '其他', value: 'OTHER' },
-          ]} />
-        </Form.Item>
-
-        <Form.Item
-          name="detailReason"
-          label="详细说明"
-          rules={[{ required: true, message: '请填写详细说明' }]}
-        >
-          <Input.TextArea placeholder="请详细说明离职原因" maxLength={2000} rows={3} />
-        </Form.Item>
-
-        <Form.Item
-          name="handoverPersonId"
-          label="工作交接人"
-          rules={[{ required: true, message: '请选择工作交接人' }]}
-        >
-          <Select
-            placeholder="搜索交接人"
-            showSearch
-            loading={employeeLoading}
-            filterOption={(input, option) =>
-              (option?.label as string)?.toLowerCase().includes(input.toLowerCase()) ?? false}
-            options={empList}
-          />
-        </Form.Item>
-
-        <Form.Item name="remark" label="备注">
-          <Input.TextArea placeholder="单据备注" maxLength={512} rows={2} />
+        <Form.Item name="remark" label="备注（可选）">
+          <Input.TextArea placeholder="单据备注" maxLength={512} rows={1} />
         </Form.Item>
       </Form>
     </Modal>

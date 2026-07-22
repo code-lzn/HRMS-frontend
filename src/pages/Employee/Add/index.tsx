@@ -9,40 +9,25 @@ import { listEnabledRolesUsingGet } from '@/api/roleController';
 import { listAccountsUsingGet } from '@/api/salaryManageController';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import {
-  Button,
-  Card,
-  DatePicker,
-  Form,
-  Input,
-  InputNumber,
-  message,
-  Modal,
-  Radio,
-  Select,
-  Slider,
-  Space,
-  Spin,
-  TreeSelect,
+  Button, Card, Form, message, Space, Spin,
 } from 'antd';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { history } from '@umijs/max';
+import { extractData, extractNested, getErrorMessage } from '@/utils/apiHelper';
+import { buildTreeSelectData } from '@/utils/treeUtils';
+import { useLeaveConfirm } from '@/hooks/useLeaveConfirm';
+import PersonalInfoSection from '@/pages/Employee/components/sections/PersonalInfoSection';
+import WorkInfoSection from '@/pages/Employee/components/sections/WorkInfoSection';
+import SalaryContractSection from '@/pages/Employee/components/sections/SalaryContractSection';
+import EmergencyContactSection from '@/pages/Employee/components/sections/EmergencyContactSection';
 
-const CONTRACT_OPTIONS = [
-  { value: 1, label: '固定期限' },
-  { value: 2, label: '无固定期限' },
-  { value: 3, label: '劳务合同' },
-];
-
-const EMPLOYMENT_TYPE_OPTIONS = [
-  { value: 'FULL_TIME', label: '全职' },
-  { value: 'PART_TIME', label: '兼职' },
-  { value: 'INTERN', label: '实习' },
-];
+const inputStyle = { borderRadius: 6 };
 
 const EmployeeAddPage: React.FC = () => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const { handleCancel: handleLeave } = useLeaveConfirm();
 
   const [deptTreeData, setDeptTreeData] = useState<API.DepartmentTreeVO[]>([]);
   const [positionOptions, setPositionOptions] = useState<API.PositionVO[]>([]);
@@ -53,24 +38,20 @@ const EmployeeAddPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [probationRatio, setProbationRatio] = useState(0.8);
 
-  // 树数据构建函数（每次重新计算）
-  const buildTreeData = useCallback(() => {
-    const build = (nodes: API.DepartmentTreeVO[]): any[] =>
-      nodes.map((n) => ({ key: n.id!, value: n.id!, title: n.name, children: n.children?.length ? build(n.children) : [] }));
-    return build(deptTreeData);
-  }, [deptTreeData]);
+  // 树数据（派生数据）
+  const treeSelectData = useMemo(() => buildTreeSelectData(deptTreeData), [deptTreeData]);
 
   // 加载部门负责人候选（系统管理员/HR专员/部门主管）
   const fetchManagerCandidates = useCallback(async () => {
     setEmployeeLoading(true);
     try {
       const res = await listManagerCandidatesUsingGet();
-      const records: API.Employee[] = (res as any)?.data ?? [];
+      const records = extractData<API.Employee[]>(res, []);
       setEmployeeOptions(records.map((e) => ({
         value: e.id!,
         label: `${e.employeeName}（${e.employeeNo}）`,
       })));
-    } catch (e) { console.error('pages/Employee/Add/index.tsx', e); setEmployeeOptions([]); } finally {
+    } catch (e: unknown) { console.error('pages/Employee/Add/index.tsx', e); setEmployeeOptions([]); } finally {
       setEmployeeLoading(false);
     }
   }, []);
@@ -86,19 +67,19 @@ const EmployeeAddPage: React.FC = () => {
         listEnabledRolesUsingGet(),
       ]);
 
-      if (deptRes.status === 'fulfilled') setDeptTreeData((deptRes.value as any)?.data ?? []);
-      if (posRes.status === 'fulfilled') setPositionOptions((posRes.value as any)?.data ?? []);
+      if (deptRes.status === 'fulfilled') setDeptTreeData(extractData<API.DepartmentTreeVO[]>(deptRes.value, []));
+      if (posRes.status === 'fulfilled') setPositionOptions(extractData<API.PositionVO[]>(posRes.value, []));
       if (acctRes.status === 'fulfilled') {
-        const accts: API.SalaryAccountVO[] = (acctRes.value as any)?.data ?? [];
+        const accts = extractData<API.SalaryAccountVO[]>(acctRes.value, []);
         setSalaryAccounts(accts.map((a) => ({ value: a.id!, label: a.name ?? '' })));
       }
       if (roleRes.status === 'fulfilled') {
-        const roles: API.RoleVO[] = (roleRes.value as any)?.data ?? [];
+        const roles = extractData<API.RoleVO[]>(roleRes.value, []);
         setRoleOptions(roles.filter((r) => r.roleName !== '系统管理员').map((r) => ({ label: r.roleName ?? '', value: r.id! })));
       }
       // 加载部门负责人候选
       fetchManagerCandidates();
-    } catch (e) { console.error('pages/Employee/Add/index.tsx', e);  /* silent */ } finally {
+    } catch (e: unknown) { console.error('pages/Employee/Add/index.tsx', e);  /* silent */ } finally {
       setLoading(false);
     }
   }, []);
@@ -109,7 +90,7 @@ const EmployeeAddPage: React.FC = () => {
   const checkPhoneUnique = useCallback(async (_: any, value: string) => {
     if (!value || value.length < 11) return;
     const res = await listEmployeesUsingGet({ keyword: value, page: 1, size: 1 });
-    const records = (res as any)?.data?.records ?? [];
+    const records = extractNested<API.EmployeeVO[]>('records', res, []);
     if (records.length > 0) throw new Error('该手机号已被其他员工使用');
   }, []);
 
@@ -147,33 +128,23 @@ const EmployeeAddPage: React.FC = () => {
       setDirty(false);
       message.success('新增员工成功');
       history.push('/employee/list');
-    } catch (e: any) {
-      if (e.message) message.error(e.message);
+    } catch (e: unknown) {
+      message.error(getErrorMessage(e));
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleCancel = () => {
-    if (dirty) {
-      Modal.confirm({
-        title: '未保存的更改将丢失', content: '确定要离开吗？已填写的信息将不会保存。',
-        okText: '确定离开', cancelText: '继续填写', okType: 'danger',
-        onOk: () => history.push('/employee/list'),
-      });
-    } else {
-      history.push('/employee/list');
-    }
+    handleLeave(dirty, () => history.push('/employee/list'));
   };
 
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}><Spin size="large" /></div>;
 
-  const inputStyle = { borderRadius: 6 };
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, background: '#f5f7fa' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, background: '#f5f7fa', height: 'calc(100vh - 80px)', overflow: 'hidden' }}>
       {/* ===== 顶部导航 ===== */}
-      <Card style={{ background: '#fff', borderRadius: 8, border: '1px solid #e8edf2' }} styles={{ body: { padding: '16px 20px' } }}>
+      <Card style={{ background: '#fff', borderRadius: 8, border: '1px solid #e8edf2', flexShrink: 0 }} styles={{ body: { padding: '16px 20px' } }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Space>
             <Button icon={<ArrowLeftOutlined />} style={{ borderRadius: 6, borderColor: '#d9d9d9' }} onClick={handleCancel}>返回列表</Button>
@@ -192,201 +163,39 @@ const EmployeeAddPage: React.FC = () => {
         layout="vertical"
         initialValues={{ probationRatio: 0.8 }}
         onFieldsChange={() => setDirty(true)}
-        style={{ display: 'flex', gap: 20 }}
+        style={{ display: 'flex', gap: 20, flex: 1, overflow: 'hidden' }}
       >
         {/* ===== 左侧：个人信息 (40%) ===== */}
-        <Card title={<span style={{ fontSize: 15, fontWeight: 600, color: '#000' }}>个人信息</span>}
-          style={{ width: '40%', borderRadius: 8, border: '1px solid #e8edf2', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}
-          styles={{ body: { padding: 20 } }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-            {/* 姓名 + 性别 */}
-            <Form.Item name="employeeName" label={<span style={{ fontSize: 13, color: '#333' }}>姓名 <span style={{ color: '#ff4d4f' }}>*</span></span>}
-              rules={[{ required: true, message: '请输入姓名' }, { max: 32 }]}>
-              <Input placeholder="请输入姓名" maxLength={32} style={inputStyle} />
-            </Form.Item>
-            <Form.Item name="gender" label={<span style={{ fontSize: 13, color: '#333' }}>性别 <span style={{ color: '#ff4d4f' }}>*</span></span>}
-              rules={[{ required: true, message: '请选择性别' }]}>
-              <Radio.Group>
-                <Radio value={1}>男</Radio>
-                <Radio value={0}>女</Radio>
-              </Radio.Group>
-            </Form.Item>
-
-            {/* 手机号 */}
-            <Form.Item name="phone" label={<span style={{ fontSize: 13, color: '#333' }}>手机号 <span style={{ color: '#ff4d4f' }}>*</span></span>}
-              style={{ gridColumn: '1 / -1' }}
-              rules={[
-                { required: true, message: '请输入手机号' },
-                { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确' },
-                { validator: checkPhoneUnique, validateTrigger: 'onBlur' },
-              ]}>
-              <Input placeholder="请输入手机号" maxLength={11} style={inputStyle} />
-            </Form.Item>
-
-            {/* 邮箱 */}
-            <Form.Item name="email" label={<span style={{ fontSize: 13, color: '#333' }}>邮箱</span>}
-              style={{ gridColumn: '1 / -1' }}
-              rules={[{ type: 'email', message: '邮箱格式不正确' }]}>
-              <Input placeholder="请输入邮箱" style={inputStyle} />
-            </Form.Item>
-
-            {/* 身份证号 */}
-            <Form.Item name="idCard" label={<span style={{ fontSize: 13, color: '#333' }}>身份证号 <span style={{ color: '#ff4d4f' }}>*</span></span>}
-              style={{ gridColumn: '1 / -1' }}
-              rules={[
-                { required: true, message: '请输入身份证号' },
-                { pattern: /^\d{17}[\dXx]$/, message: '身份证号格式不正确' },
-              ]}>
-              <Input placeholder="请输入身份证号" maxLength={18} style={inputStyle} />
-            </Form.Item>
-
-            {/* 生日 */}
-            <Form.Item name="birthday" label={<span style={{ fontSize: 13, color: '#333' }}>生日</span>}
-              style={{ gridColumn: '1 / -1' }}>
-              <DatePicker style={{ width: '100%', ...inputStyle }} placeholder="请选择生日" />
-            </Form.Item>
-
-            {/* 户籍地址 */}
-            <Form.Item name="registeredAddress" label={<span style={{ fontSize: 13, color: '#333' }}>户籍地址</span>}
-              style={{ gridColumn: '1 / -1' }} rules={[{ max: 128 }]}>
-              <Input placeholder="请输入户籍地址" maxLength={128} style={inputStyle} />
-            </Form.Item>
-
-            {/* 现居住地址 */}
-            <Form.Item name="currentAddress" label={<span style={{ fontSize: 13, color: '#333' }}>现居住地址</span>}
-              style={{ gridColumn: '1 / -1' }} rules={[{ max: 128 }]}>
-              <Input placeholder="请输入现居住地址" maxLength={128} style={inputStyle} />
-            </Form.Item>
-          </div>
-        </Card>
+        <PersonalInfoSection
+          form={form}
+          mode="add"
+          inputStyle={inputStyle}
+          checkPhoneUnique={checkPhoneUnique}
+        />
 
         {/* ===== 右侧 (60%) ===== */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* ===== 工作信息 ===== */}
-          <Card title={<span style={{ fontSize: 15, fontWeight: 600, color: '#000' }}>工作信息</span>}
-            style={{ borderRadius: 8, border: '1px solid #e8edf2', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}
-            styles={{ body: { padding: 20 } }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-              {/* 所属部门 + 职位 */}
-              <Form.Item name="departmentId" label={<span style={{ fontSize: 13, color: '#333' }}>所属部门 <span style={{ color: '#ff4d4f' }}>*</span></span>}
-                rules={[{ required: true, message: '请选择所属部门' }]}>
-                <TreeSelect treeData={buildTreeData()} placeholder="请选择部门" allowClear style={inputStyle} />
-              </Form.Item>
-              <Form.Item name="positionId" label={<span style={{ fontSize: 13, color: '#333' }}>职位 <span style={{ color: '#ff4d4f' }}>*</span></span>}
-                rules={[{ required: true, message: '请选择职位' }]}>
-                <Select placeholder="请选择职位" allowClear showSearch
-                  filterOption={(input, option) => (option?.label as string)?.toLowerCase().includes(input.toLowerCase()) ?? false}
-                  options={positionOptions.map((p) => ({ value: p.id, label: p.name }))} style={inputStyle} />
-              </Form.Item>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16, height: '100%', overflow: 'auto' }}>
+          <WorkInfoSection
+            form={form}
+            mode="add"
+            treeSelectData={treeSelectData}
+            positionOptions={positionOptions}
+            roleOptions={roleOptions}
+            employeeOptions={employeeOptions}
+            employeeLoading={employeeLoading}
+            inputStyle={inputStyle}
+          />
 
-              {/* 身份 + 直属上级 */}
-              {roleOptions.length > 0 && (
-                <Form.Item name="roleId" label={<span style={{ fontSize: 13, color: '#333' }}>身份 <span style={{ color: '#ff4d4f' }}>*</span></span>}
-                  rules={[{ required: true, message: '请选择身份' }]} tooltip="新增员工的系统角色权限">
-                  <Select placeholder="请选择身份" options={roleOptions} style={inputStyle} />
-                </Form.Item>
-              )}
-              <Form.Item name="directReportId" label={<span style={{ fontSize: 13, color: '#333' }}>直属上级</span>}>
-                <Select placeholder="请选择部门负责人" showSearch allowClear
-                  filterOption={(input, option) =>
-                    (option?.label as string)?.toLowerCase().includes(input.toLowerCase()) ?? false}
-                  loading={employeeLoading}
-                  options={employeeOptions} style={inputStyle} />
-              </Form.Item>
+          <SalaryContractSection
+            form={form}
+            mode="add"
+            salaryAccounts={salaryAccounts}
+            probationRatio={probationRatio}
+            onProbationRatioChange={setProbationRatio}
+            inputStyle={inputStyle}
+          />
 
-              {/* 工作地点 + 入职日期 */}
-              <Form.Item name="workLocation" label={<span style={{ fontSize: 13, color: '#333' }}>工作地点</span>} rules={[{ max: 64 }]}>
-                <Input placeholder="请输入工作地点" maxLength={64} style={inputStyle} />
-              </Form.Item>
-              <Form.Item name="hireDate" label={<span style={{ fontSize: 13, color: '#333' }}>入职日期 <span style={{ color: '#ff4d4f' }}>*</span></span>}
-                rules={[{ required: true, message: '请选择入职日期' }]}>
-                <DatePicker style={{ width: '100%', ...inputStyle }} placeholder="请选择入职日期" />
-              </Form.Item>
-
-              {/* 录用类型 */}
-              <Form.Item name="employmentType" label={<span style={{ fontSize: 13, color: '#333' }}>录用类型 <span style={{ color: '#ff4d4f' }}>*</span></span>}
-                rules={[{ required: true, message: '请选择录用类型' }]}>
-                <Select placeholder="请选择录用类型" options={EMPLOYMENT_TYPE_OPTIONS} style={inputStyle} />
-              </Form.Item>
-            </div>
-          </Card>
-
-          {/* ===== 薪资与合同信息 ===== */}
-          <Card title={<span style={{ fontSize: 15, fontWeight: 600, color: '#000' }}>薪资与合同信息</span>}
-            style={{ borderRadius: 8, border: '1px solid #e8edf2', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}
-            styles={{ body: { padding: 20 } }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-              {/* 合同类型 + 合同到期日 */}
-              <Form.Item name="contractType" label={<span style={{ fontSize: 13, color: '#333' }}>合同类型 <span style={{ color: '#ff4d4f' }}>*</span></span>}
-                rules={[{ required: true, message: '请选择合同类型' }]}>
-                <Select placeholder="请选择合同类型" options={CONTRACT_OPTIONS} style={inputStyle} />
-              </Form.Item>
-              <Form.Item name="contractExpireDate" label={<span style={{ fontSize: 13, color: '#333' }}>合同到期日</span>}
-                dependencies={['contractType']}
-                rules={[
-                  ({ getFieldValue }) => ({
-                    required: getFieldValue('contractType') === 1,
-                    message: '固定期限合同请选择到期日',
-                  }),
-                ]}>
-                <DatePicker style={{ width: '100%', ...inputStyle }} placeholder="请选择合同到期日" />
-              </Form.Item>
-
-              {/* 试用期待遇比例 - Slider */}
-              <Form.Item name="probationRatio" label={<span style={{ fontSize: 13, color: '#333' }}>试用期待遇比例 <span style={{ color: '#ff4d4f' }}>*</span></span>}
-                rules={[{ required: true, message: '请设置试用期待遇比例' }]}
-                style={{ gridColumn: '1 / -1' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                    <Slider min={0.8} max={1} step={0.05}
-                      value={form.getFieldValue('probationRatio') ?? 0.8}
-                      onChange={(val) => { form.setFieldValue('probationRatio', val); setProbationRatio(val); }}
-                      style={{ flex: 1 }}
-                      tooltip={{ formatter: (v) => `${((v ?? 0.8) * 100).toFixed(0)}%` }}
-                    />
-                    <span style={{ fontSize: 20, fontWeight: 700, color: '#1677ff', minWidth: 52, textAlign: 'right' }}>
-                      {((form.getFieldValue('probationRatio') ?? 0.8) * 100).toFixed(0)}%
-                    </span>
-                  </div>
-                  <div style={{ fontSize: 11, color: '#999', marginTop: 2 }}>范围 80% ~ 100%</div>
-                </div>
-              </Form.Item>
-
-              {/* 薪资账套 + 基本工资 */}
-              <Form.Item name="accountSetId" label={<span style={{ fontSize: 13, color: '#333' }}>薪资账套</span>}>
-                <Select placeholder="请选择薪资账套" allowClear
-                  options={salaryAccounts} style={inputStyle} />
-              </Form.Item>
-              <Form.Item name="baseSalary" label={<span style={{ fontSize: 13, color: '#333' }}>基本工资 <span style={{ color: '#ff4d4f' }}>*</span></span>}
-                rules={[{ required: true, message: '请输入基本工资' }, { type: 'number', min: 0 }]}>
-                <InputNumber min={0} precision={2} prefix="¥" placeholder="0.00"
-                  style={{ width: '100%', ...inputStyle }} />
-              </Form.Item>
-              <Form.Item name="bankAccount" label={<span style={{ fontSize: 13, color: '#333' }}>银行账号</span>} rules={[{ max: 32 }]}>
-                <Input placeholder="请输入银行账号" maxLength={32} style={inputStyle} />
-              </Form.Item>
-
-              {/* 开户行 */}
-              <Form.Item name="bankName" label={<span style={{ fontSize: 13, color: '#333' }}>开户行</span>} rules={[{ max: 64 }]}>
-                <Input placeholder="请输入开户行" maxLength={64} style={inputStyle} />
-              </Form.Item>
-            </div>
-          </Card>
-
-          {/* ===== 紧急联系人 ===== */}
-          <Card title={<span style={{ fontSize: 15, fontWeight: 600, color: '#000' }}>紧急联系人</span>}
-            style={{ borderRadius: 8, border: '1px solid #e8edf2', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}
-            styles={{ body: { padding: 20 } }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-              <Form.Item name="emergencyContactName" label={<span style={{ fontSize: 13, color: '#333' }}>联系人姓名</span>} rules={[{ max: 32 }]}>
-                <Input placeholder="请输入联系人姓名" maxLength={32} style={inputStyle} />
-              </Form.Item>
-              <Form.Item name="emergencyContactPhone" label={<span style={{ fontSize: 13, color: '#333' }}>联系人电话</span>}
-                rules={[{ pattern: /^1[3-9]\d{9}$/, message: '电话格式不正确' }]}>
-                <Input placeholder="请输入联系人电话" maxLength={11} style={inputStyle} />
-              </Form.Item>
-            </div>
-          </Card>
+          <EmergencyContactSection inputStyle={inputStyle} />
         </div>
       </Form>
     </div>

@@ -33,10 +33,11 @@ export default function useEmployeeFieldPermission(
     // 使用 roleId 判别角色，与 permission.ts / lockedFields 保持一致
     const roleId = Number(currentUser?.roleId) || 5;
 
-    // 是否为本人（通过姓名匹配，后续可由后端返回 employeeId 精确判断）
+    // 是否为本人（通过 employeeId 精确判断）
     const isSelf = !!(
-      detail?.employeeName &&
-      currentUser?.userName === detail.employeeName
+      employeeId &&
+      currentUser?.employeeId &&
+      employeeId === currentUser.employeeId
     );
 
     // 角色判定（基于 roleId）

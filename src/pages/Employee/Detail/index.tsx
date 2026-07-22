@@ -19,6 +19,8 @@ import {
 import React, { useCallback, useEffect, useState } from 'react';
 import { history, useModel, useParams } from '@umijs/max';
 import { hasPermission } from '@/utils/permission';
+import { extractData, getErrorMessage } from '@/utils/apiHelper';
+import { EMPLOYMENT_TYPE_MAP } from '@/utils/employeeConstants';
 import ChangeHistoryDrawer from '../components/ChangeHistoryDrawer';
 import useEmployeeFieldPermission from '@/hooks/useEmployeeFieldPermission';
 
@@ -29,10 +31,6 @@ const STATUS_MAP: Record<number, { color: string; bg: string }> = {
   2: { color: '#52c41a', bg: '#f6ffed' },
   3: { color: '#fa8c16', bg: '#fff7e6' },
   4: { color: '#999', bg: '#f5f5f5' },
-};
-
-const EMPLOYMENT_TYPE_MAP: Record<string, string> = {
-  FULL_TIME: '全职', PART_TIME: '兼职', INTERN: '实习',
 };
 
 /** 脱敏显示 */
@@ -106,9 +104,9 @@ const EmployeeDetailPage: React.FC = () => {
     setLoading(true);
     try {
       const res = await getDetailUsingGet({ id: employeeId });
-      setDetail((res as any)?.data ?? null);
-    } catch (e: any) {
-      message.error(e.message ?? '加载员工详情失败');
+      setDetail(extractData<API.EmployeeDetailVO>(res, null));
+    } catch (e: unknown) {
+      message.error(getErrorMessage(e, '加载员工详情失败'));
     } finally {
       setLoading(false);
     }
@@ -192,13 +190,13 @@ const EmployeeDetailPage: React.FC = () => {
       {/* ===== Tab 切换栏 ===== */}
       <Card style={CARD} styles={{ body: { padding: 0 } }}>
         <div style={{ display: 'flex', borderBottom: '1px solid #f0f0f0' }}>
-          {[
-            { key: 'personal', label: '个人信息' },
-            { key: 'work', label: '工作信息' },
-            ...(hasSalary ? [{ key: 'salary', label: '薪资合同' }] : []),
-          ].map((tab) => (
+          {([
+            { key: 'personal' as const, label: '个人信息' },
+            { key: 'work' as const, label: '工作信息' },
+            ...(hasSalary ? [{ key: 'salary' as const, label: '薪资合同' }] : []),
+          ]).map((tab) => (
             <div key={tab.key}
-              onClick={() => setActiveTab(tab.key as any)}
+              onClick={() => setActiveTab(tab.key)}
               style={{
                 flex: 1, padding: '14px 0', textAlign: 'center', cursor: 'pointer', fontSize: 14, fontWeight: 500,
                 color: activeTab === tab.key ? '#fff' : '#333',

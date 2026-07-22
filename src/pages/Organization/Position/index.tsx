@@ -5,12 +5,12 @@ import {
 } from '@/api/positionController';
 import { getDepartmentTreeUsingGet } from '@/api/departmentController';
 import { DeleteOutlined, EditOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import type { ProColumns } from '@ant-design/pro-components';
-import { ProTable } from '@ant-design/pro-components';
+import { ProTable, type ProColumns } from '@ant-design/pro-components';
 import { Button, Card, Col, message, Modal, Row, Space, Tabs, Tag } from 'antd';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useModel } from '@umijs/max';
 import { hasPermission } from '@/utils/permission';
+import { extractData, getErrorMessage } from '@/utils/apiHelper';
 import { COLORS, SEQUENCE_COLORS, SEQUENCE_DATA, SEQUENCE_STATS } from '../styles';
 import PositionFormModal from './components/PositionFormModal';
 
@@ -30,7 +30,6 @@ const PositionPage: React.FC = () => {
   const currentUser = initialState?.currentUser;
   const canManage = hasPermission(currentUser, 'org:manage');
 
-  const actionRef = useRef<any>();
   const [activeTab, setActiveTab] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [positions, setPositions] = useState<API.PositionVO[]>([]);
@@ -51,8 +50,11 @@ const PositionPage: React.FC = () => {
       const seqVal = TAB_MAP[activeTab];
       if (seqVal !== undefined) params.sequence = seqVal;
       const res = await listPositionsUsingGet(params);
-      setPositions((res as any)?.data ?? []);
-    } catch (e) { console.error('pages/Organization/Position/index.tsx', e); } finally {
+      setPositions(extractData<API.PositionVO[]>(res, []));
+    } catch (e: unknown) {
+      console.error('pages/Organization/Position/index.tsx', e);
+      message.error(getErrorMessage(e, '加载职位列表失败'));
+    } finally {
       setLoading(false);
     }
   };
@@ -70,9 +72,11 @@ const PositionPage: React.FC = () => {
           getDepartmentTreeUsingGet(),
           getSequencesUsingGet(),
         ]);
-        setTreeData((treeRes as any)?.data ?? []);
-        setSequences((seqRes as any)?.data ?? []);
-      } catch (e) { console.error('pages/Organization/Position/index.tsx', e); }
+        setTreeData(extractData<API.DepartmentTreeVO[]>(treeRes, []));
+        setSequences(extractData<API.SequenceLevelVO[]>(seqRes, []));
+      } catch (e: unknown) { console.error('pages/Organization/Position/index.tsx', e);
+        message.error(getErrorMessage(e, '加载基础数据失败'));
+      }
     })();
   }, []);
 
@@ -99,8 +103,8 @@ const PositionPage: React.FC = () => {
           message.success('删除成功');
           setCurrentPage(1);
           fetchData();
-        } catch (e: any) {
-          message.error(e.message ?? '删除失败');
+        } catch (e: unknown) {
+          message.error(getErrorMessage(e, '删除失败'));
         }
       },
     });
@@ -127,7 +131,7 @@ const PositionPage: React.FC = () => {
   };
 
   // ===== 表格列定义 =====
-  const columns: ProColumns<API.PositionVO>[] = [
+  const columns: ProColumns<API.PositionVO>[] = useMemo(() => [
     {
       title: '职位名称',
       dataIndex: 'name',
@@ -210,7 +214,7 @@ const PositionPage: React.FC = () => {
           </Space>
         ) : null,
     },
-  ];
+  ], [canManage]);
 
   // ===== Tab 配置 =====
   const tabItems = [

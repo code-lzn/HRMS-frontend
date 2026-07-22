@@ -2,57 +2,8 @@ import { mergeDepartmentsUsingPost } from '@/api/departmentController';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { Form, message, Modal, Select, TreeSelect } from 'antd';
 import React, { useEffect, useMemo, useState } from 'react';
-
-/** 将部门树转为扁平列表（用于 Select） */
-const flattenTree = (nodes: API.DepartmentTreeVO[]): { label: string; value: number }[] => {
-  const result: { label: string; value: number }[] = [];
-  const walk = (list: API.DepartmentTreeVO[], prefix = '') => {
-    for (const node of list) {
-      const label = prefix ? `${prefix} / ${node.name}` : (node.name ?? '');
-      result.push({ label, value: node.id! });
-      if (node.children?.length) walk(node.children, label);
-    }
-  };
-  walk(nodes);
-  return result;
-};
-
-/** 将部门树转为 TreeSelect 数据 */
-const buildTreeSelectData = (nodes: API.DepartmentTreeVO[]): any[] =>
-  nodes.map((node) => ({
-    key: node.id!,
-    value: node.id!,
-    title: node.name,
-    children: node.children?.length ? buildTreeSelectData(node.children) : [],
-  }));
-
-/** 检查 targetId 是否是 sourceId 的子孙节点 */
-const isDescendant = (
-  nodes: API.DepartmentTreeVO[],
-  sourceId: number,
-  targetId: number,
-): boolean => {
-  const findSource = (list: API.DepartmentTreeVO[]): API.DepartmentTreeVO | undefined => {
-    for (const node of list) {
-      if (node.id === sourceId) return node;
-      if (node.children?.length) {
-        const found = findSource(node.children);
-        if (found) return found;
-      }
-    }
-    return undefined;
-  };
-  const sourceNode = findSource(nodes);
-  if (!sourceNode) return false;
-  const containsTarget = (list: API.DepartmentTreeVO[]): boolean => {
-    for (const node of list) {
-      if (node.id === targetId) return true;
-      if (node.children?.length && containsTarget(node.children)) return true;
-    }
-    return false;
-  };
-  return containsTarget(sourceNode.children ?? []);
-};
+import { buildTreeSelectData, flattenTree, isDescendant } from '@/utils/treeUtils';
+import { extractData, getErrorMessage } from '@/utils/apiHelper';
 
 interface MergeDeptModalProps {
   open: boolean;
@@ -101,15 +52,15 @@ const MergeDeptModal: React.FC<MergeDeptModalProps> = ({
 
       setSubmitting(true);
       const res = await mergeDepartmentsUsingPost({ sourceDeptId, targetDeptId });
-      const mergeResult = (res as any)?.data as API.DepartmentMergeResultVO | undefined;
+      const mergeResult = extractData<API.DepartmentMergeResultVO>(res, {});
       Modal.success({
         title: '合并成功',
         icon: <ExclamationCircleOutlined />,
         content: `已将 ${mergeResult?.transferredEmployees ?? 0} 名员工和 ${mergeResult?.transferredChildDepts ?? 0} 个子部门转移至目标部门。`,
       });
       onSuccess();
-    } catch (e: any) {
-      if (e.message) message.error(e.message);
+    } catch (e: unknown) {
+      message.error(getErrorMessage(e));
     } finally {
       setSubmitting(false);
     }

@@ -6,43 +6,20 @@ import {
   listPositionsUsingGet,
 } from '@/api/positionController';
 import { listAccountsUsingGet } from '@/api/salaryManageController';
+import { QuestionCircleOutlined } from '@ant-design/icons';
 import {
-  ArrowLeftOutlined,
-  QuestionCircleOutlined,
-  WarningOutlined,
-} from '@ant-design/icons';
-import {
-  Button,
-  Card,
-  DatePicker,
-  Form,
-  Input,
-  InputNumber,
-  message,
-  Modal,
-  Select,
-  Slider,
-  Space,
-  Spin,
-  Tooltip,
-  TreeSelect,
+  Button, Card, Form, message, Space, Spin, Tooltip,
 } from 'antd';
 import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { history, useModel, useParams } from '@umijs/max';
 import { hasPermission } from '@/utils/permission';
-
-const CONTRACT_OPTIONS = [
-  { value: 1, label: '固定期限' },
-  { value: 2, label: '无固定期限' },
-  { value: 3, label: '劳务合同' },
-];
-
-const EMPLOYMENT_TYPE_OPTIONS = [
-  { value: 'FULL_TIME', label: '全职' },
-  { value: 'PART_TIME', label: '兼职' },
-  { value: 'INTERN', label: '实习' },
-];
+import { extractData, extractNested, getErrorMessage } from '@/utils/apiHelper';
+import { buildTreeSelectData } from '@/utils/treeUtils';
+import { useLeaveConfirm } from '@/hooks/useLeaveConfirm';
+import PersonalInfoSection from '@/pages/Employee/components/sections/PersonalInfoSection';
+import WorkInfoSection from '@/pages/Employee/components/sections/WorkInfoSection';
+import SalaryContractSection from '@/pages/Employee/components/sections/SalaryContractSection';
 
 /** 从详情对象中安全取值 */
 const pickVal = (obj: any, flatKey: string, section?: string, nestedKey?: string): any => {
@@ -73,6 +50,8 @@ const EmployeeEditPage: React.FC = () => {
   const [employeeNo, setEmployeeNo] = useState('');
   const [probationRatio, setProbationRatio] = useState(0.8);
 
+  const { handleCancel: handleLeave } = useLeaveConfirm();
+
   // 直属上级搜索防抖
   const fetchRef = useRef(0);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout>>();
@@ -93,17 +72,18 @@ const EmployeeEditPage: React.FC = () => {
 
   const isLocked = (field: string) => lockedFields.includes(field);
 
-  const lockedLabel = (label: string, field: string, tip: string) => {
+  /** 锁定字段的 label 提示 */
+  const renderLockedLabel = (label: string, field: string, tip: string) => {
     if (!isLocked(field)) return label;
     return <span>{label} <Tooltip title={tip}><QuestionCircleOutlined style={{ color: '#1677ff', fontSize: 12 }} /></Tooltip></span>;
   };
 
+  /** 锁定字段的 suffix 问号图标 */
+  const renderLockedSuffix = (field: string, tip: string) =>
+    isLocked(field) ? <Tooltip title={tip}><QuestionCircleOutlined style={{ color: '#999' }} /></Tooltip> : undefined;
+
   // 部门树转 TreeSelect
-  const treeSelectData = useMemo(() => {
-    const build = (nodes: API.DepartmentTreeVO[]): any[] =>
-      nodes.map((n) => ({ key: n.id!, value: n.id!, title: n.name, children: n.children?.length ? build(n.children) : [] }));
-    return build(deptTreeData);
-  }, [deptTreeData]);
+  const treeSelectData = useMemo(() => buildTreeSelectData(deptTreeData), [deptTreeData]);
 
   // 监听所属部门变化，筛选对应部门的员工
   const selectedDeptId = Form.useWatch('departmentId', form);
@@ -118,10 +98,10 @@ const EmployeeEditPage: React.FC = () => {
       if (deptId) params.departmentIds = [deptId];
       const res = await listEmployeesUsingGet(params);
       if (fetchId === fetchRef.current) {
-        const data = (res as any)?.data?.records ?? [];
-        setEmployeeOptions(data.map((e: any) => ({ value: e.id, label: `${e.employeeName} (${e.employeeNo})` })));
+        const records = extractNested<API.EmployeeVO[]>('records', res, []);
+        setEmployeeOptions(records.map((e) => ({ value: e.id, label: `${e.employeeName} (${e.employeeNo})` })));
       }
-    } catch (e) { console.error('pages/Employee/Edit/index.tsx', e);  /* ignore */ }
+    } catch (e: unknown) { console.error('pages/Employee/Edit/index.tsx', e);  /* ignore */ }
   }, []);
 
   const debouncedSearch = useCallback((kw: string) => {
@@ -144,11 +124,11 @@ const EmployeeEditPage: React.FC = () => {
         listAccountsUsingGet(),
         getDetailUsingGet({ id: employeeId }),
       ]);
-      setDeptTreeData((deptRes as any)?.data ?? []);
-      setPositionOptions((posRes as any)?.data ?? []);
-      const accts: API.SalaryAccountVO[] = (acctRes as any)?.data ?? [];
+      setDeptTreeData(extractData<API.DepartmentTreeVO[]>(deptRes, []));
+      setPositionOptions(extractData<API.PositionVO[]>(posRes, []));
+      const accts = extractData<API.SalaryAccountVO[]>(acctRes, []);
       setSalaryAccounts(accts.map((a) => ({ value: a.id!, label: a.name ?? '' })));
-      const detail: any = (detailRes as any)?.data;
+      const detail: any = extractData(detailRes, null) ?? {};
       if (detail) {
         setEmployeeName(detail.employeeName ?? '');
         setEmployeeNo(detail.employeeNo ?? '');
@@ -181,8 +161,8 @@ const EmployeeEditPage: React.FC = () => {
         setInitialValues(vals);
         if (vals.probationRatio !== null && vals.probationRatio !== undefined) setProbationRatio(vals.probationRatio);
       }
-    } catch (e: any) {
-      message.error(e.message ?? '加载员工信息失败');
+    } catch (e: unknown) {
+      message.error(getErrorMessage(e, '加载员工信息失败'));
     } finally {
       setLoading(false);
     }
@@ -227,31 +207,25 @@ const EmployeeEditPage: React.FC = () => {
         message.info('没有修改任何内容');
         return;
       }
-      // 只校验有变更的字段
+      // 只校验有变更的字段（校验失败时 antd 会自动高亮错误字段）
       await form.validateFields(changedKeys);
       setSubmitting(true);
       await updateEmployeeUsingPut(changedFields);
       message.success('保存成功');
       setHasChanges(false);
       history.push(`/employee/detail/${employeeId}`);
-    } catch (e: any) {
-      if (e.message) message.error(e.message);
+    } catch (e: unknown) {
+      // validateFields 校验失败：antd 已自动高亮错误字段，不覆盖错误提示
+      const err = e as Record<string, unknown>;
+      if (err?.errorFields) return;
+      message.error(getErrorMessage(e));
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleCancel = () => {
-    if (hasChanges) {
-      Modal.confirm({
-        title: '未保存的更改将丢失',
-        content: '确定要离开吗？未保存的更改将丢失。',
-        okText: '确定离开', cancelText: '继续编辑', okType: 'danger',
-        onOk: () => history.push(`/employee/detail/${employeeId}`),
-      });
-    } else {
-      history.push(`/employee/detail/${employeeId}`);
-    }
+    handleLeave(hasChanges, () => history.push(`/employee/detail/${employeeId}`));
   };
 
   if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}><Spin size="large" /></div>;
@@ -286,158 +260,48 @@ const EmployeeEditPage: React.FC = () => {
       <Form form={form} layout="vertical" onFieldsChange={handleFieldsChange}
         style={{ display: 'flex', gap: 20, flex: 1, overflow: 'hidden' }}>
 
-        {/* ===== 左侧：个人信息 (40%) — 独立滚动 ===== */}
-        <Card title={<span style={{ fontSize: 15, fontWeight: 600, color: '#000' }}>个人信息</span>}
-          style={{ width: '40%', borderRadius: 8, border: '1px solid #e8edf2', boxShadow: '0 1px 4px rgba(0,0,0,0.03)', height: '100%', overflow: 'auto' }}
-          styles={{ body: { padding: 20 } }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-            <Form.Item name="employeeName" label={lockedLabel('姓名', 'employeeName', '基本信息不可修改')}
-              rules={[{ required: true, message: '请输入姓名' }, { max: 32 }]}>
-              <Input placeholder="请输入姓名" maxLength={32} style={isLocked('employeeName') ? disabledInputStyle : inputStyle} disabled={isLocked('employeeName')} />
-            </Form.Item>
-            <Form.Item name="gender" label={lockedLabel('性别', 'gender', '基本信息不可修改')}
-              rules={[{ required: true, message: '请选择性别' }]}>
-              <Select placeholder="请选择" disabled={isLocked('gender')}
-                options={[{ value: 1, label: '男' }, { value: 0, label: '女' }]} style={inputStyle} />
-            </Form.Item>
-            <Form.Item name="phone" label={lockedLabel('手机号', 'phone', '')}
-              rules={isLocked('phone') ? [] : [{ required: true, message: '请输入手机号' }, { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确' }]}>
-              <Input placeholder="请输入手机号" maxLength={11} style={isLocked('phone') ? disabledInputStyle : inputStyle} disabled={isLocked('phone')} />
-            </Form.Item>
-            <Form.Item name="email" label={lockedLabel('邮箱', 'email', '基本信息不可修改')}
-              rules={[{ type: 'email', message: '邮箱格式不正确' }]}>
-              <Input placeholder="请输入邮箱" style={isLocked('email') ? disabledInputStyle : inputStyle} disabled={isLocked('email')} />
-            </Form.Item>
-            <Form.Item name="idCard" label={lockedLabel('身份证号', 'idCard', '')}
-              rules={isLocked('idCard') ? [] : [{ required: true, message: '请输入身份证号' }, { pattern: /^\d{17}[\dXx]$/, message: '身份证号格式不正确' }]}>
-              <Input placeholder="请输入身份证号" maxLength={18} style={isLocked('idCard') ? disabledInputStyle : inputStyle} disabled={isLocked('idCard')} />
-            </Form.Item>
-            <Form.Item name="birthday" label={lockedLabel('生日', 'birthday', '基本信息不可修改')}>
-              <DatePicker style={{ width: '100%', ...inputStyle }} disabled={isLocked('birthday')} />
-            </Form.Item>
-            <Form.Item name="registeredAddress" label={lockedLabel('户籍地址', 'registeredAddress', '基本信息不可修改')}
-              style={{ gridColumn: '1 / -1' }}>
-              <Input placeholder="请输入户籍地址" maxLength={128} style={isLocked('registeredAddress') ? disabledInputStyle : inputStyle} disabled={isLocked('registeredAddress')} />
-            </Form.Item>
-            <Form.Item name="currentAddress" label={lockedLabel('现居住地址', 'currentAddress', '基本信息不可修改')}
-              style={{ gridColumn: '1 / -1' }}>
-              <Input placeholder="请输入现居住地址" maxLength={128} style={isLocked('currentAddress') ? disabledInputStyle : inputStyle} disabled={isLocked('currentAddress')} />
-            </Form.Item>
-          </div>
-        </Card>
+        {/* ===== 左侧：个人信息 (40%) ===== */}
+        <PersonalInfoSection
+          form={form}
+          mode="edit"
+          inputStyle={inputStyle}
+          disabledInputStyle={disabledInputStyle}
+          isLocked={isLocked}
+          lockedLabel={renderLockedLabel}
+        />
 
-        {/* ===== 右侧 (60%) — 独立滚动 ===== */}
+        {/* ===== 右侧 (60%) ===== */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16, height: '100%', overflow: 'auto' }}>
-          {/* ===== 工作信息 ===== */}
-          <Card title={<span style={{ fontSize: 15, fontWeight: 600, color: '#000' }}>工作信息</span>}
-            style={{ borderRadius: 8, border: '1px solid #e8edf2', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}
-            styles={{ body: { padding: 20 } }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-              <Form.Item name="departmentId" label={<span>{lockedLabel('所属部门', 'departmentId', '需调岗流程')} {isLocked('departmentId') && <Tag style={{ fontSize: 11, color: '#999', background: '#f5f5f5', border: '1px solid #e8e8e8', borderRadius: 4, marginLeft: 4 }}>需调岗流程</Tag>}</span>}
-                rules={[{ required: true, message: '请选择部门' }]}>
-                <TreeSelect treeData={treeSelectData} placeholder="请选择部门"
-                  style={inputStyle} disabled={isLocked('departmentId')} />
-              </Form.Item>
-              <Form.Item name="positionId" label={<span>{lockedLabel('职位', 'positionId', '需调岗流程')} {isLocked('positionId') && <Tag style={{ fontSize: 11, color: '#999', background: '#f5f5f5', border: '1px solid #e8e8e8', borderRadius: 4, marginLeft: 4 }}>需调岗流程</Tag>}</span>}
-                rules={[{ required: true, message: '请选择职位' }]}>
-                <Select placeholder="请选择职位" showSearch
-                  filterOption={(input, option) => (option?.label as string)?.toLowerCase().includes(input.toLowerCase()) ?? false}
-                  options={positionOptions.map((p) => ({ value: p.id, label: p.name }))}
-                  style={inputStyle} disabled={isLocked('positionId')} />
-              </Form.Item>
-              <Form.Item name="directReportId" label={<span>{lockedLabel('直接汇报人', 'directReportId', '需调岗流程')} {isLocked('directReportId') && <Tag style={{ fontSize: 11, color: '#999', background: '#f5f5f5', border: '1px solid #e8e8e8', borderRadius: 4, marginLeft: 4 }}>需调岗流程</Tag>}</span>}>
-                <Select placeholder="请搜索并选择" showSearch allowClear filterOption={false}
-                  onSearch={debouncedSearch}
-                  options={employeeOptions} style={inputStyle} disabled={isLocked('directReportId')} />
-              </Form.Item>
-              <Form.Item name="workLocation" label={<span>{lockedLabel('工作地点', 'workLocation', '需调岗流程')} {isLocked('workLocation') && <Tag style={{ fontSize: 11, color: '#999', background: '#f5f5f5', border: '1px solid #e8e8e8', borderRadius: 4, marginLeft: 4 }}>需调岗流程</Tag>}</span>}
-                rules={[{ max: 64 }]}>
-                <Input placeholder="请输入工作地点" maxLength={64} style={isLocked('workLocation') ? disabledInputStyle : inputStyle} disabled={isLocked('workLocation')} />
-              </Form.Item>
-              <Form.Item name="hireDate" label={lockedLabel('入职日期', 'hireDate', '需调岗流程修改')}
-                rules={[{ required: true, message: '请选择入职日期' }]}>
-                <DatePicker style={{ width: '100%', ...inputStyle }} disabled={isLocked('hireDate')} />
-              </Form.Item>
-              <Form.Item name="employmentType" label={lockedLabel('录用类型', 'employmentType', '录用类型不可修改')}
-                rules={[{ required: true, message: '请选择录用类型' }]}>
-                <Select placeholder="请选择录用类型" options={EMPLOYMENT_TYPE_OPTIONS}
-                  style={inputStyle} disabled={isLocked('employmentType')} />
-              </Form.Item>
-            </div>
-            {/* 黄色警告 */}
-            <div style={{ marginTop: 12, padding: '10px 14px', background: '#fffbe6', borderRadius: 6, border: '1px solid #ffe58f', fontSize: 12, color: '#ad8b00', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <WarningOutlined />
-              <span>工作信息变更需通过调岗流程，修改后提交审批方可生效。</span>
-            </div>
-          </Card>
+          <WorkInfoSection
+            form={form}
+            mode="edit"
+            treeSelectData={treeSelectData}
+            positionOptions={positionOptions}
+            employeeOptions={employeeOptions}
+            employeeLoading={false}
+            onSearchEmployee={debouncedSearch}
+            inputStyle={inputStyle}
+            disabledInputStyle={disabledInputStyle}
+            isLocked={isLocked}
+            lockedLabel={renderLockedLabel}
+          />
 
-          {/* ===== 薪资与合同 ===== */}
-          <Card title={<span style={{ fontSize: 15, fontWeight: 600, color: '#000' }}>薪资与合同</span>}
-            style={{ borderRadius: 8, border: '1px solid #e8edf2', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}
-            styles={{ body: { padding: 20 } }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-              <Form.Item name="contractType" label={lockedLabel('合同类型', 'contractType', '如需修改请联系HR')}
-                rules={[{ required: true, message: '请选择合同类型' }]}>
-                <Select placeholder="请选择合同类型" options={CONTRACT_OPTIONS}
-                  style={inputStyle} disabled={isLocked('contractType')} />
-              </Form.Item>
-              <Form.Item name="contractExpireDate" label={lockedLabel('合同到期日', 'contractExpireDate', '如需修改请联系HR')}
-                dependencies={['contractType']}
-                rules={[
-                  ({ getFieldValue }) => ({
-                    required: getFieldValue('contractType') === 1,
-                    message: '固定期限合同请选择到期日',
-                  }),
-                ]}>
-                <DatePicker style={{ width: '100%', ...inputStyle }} disabled={isLocked('contractExpireDate')} />
-              </Form.Item>
-              <div style={{ gridColumn: '1 / -1' }}>
-                <div style={{ fontSize: 13, color: '#333', marginBottom: 8 }}>试用期待遇比例 <span style={{ color: '#ff4d4f' }}>*</span></div>
-                <Form.Item name="probationRatio" rules={[{ required: true, message: '请设置试用期待遇比例' }]}
-                  hidden>
-                  <Input />
-                </Form.Item>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                  <Slider min={0.6} max={1} step={0.05}
-                    value={probationRatio}
-                    onChange={(val) => { setProbationRatio(val); form.setFieldValue('probationRatio', val); }}
-                    style={{ flex: 1 }}
-                    tooltip={{ formatter: (v) => `${((v ?? 0.8) * 100).toFixed(0)}%` }}
-                  />
-                  <span style={{ fontSize: 18, fontWeight: 700, color: '#1677ff', minWidth: 48, textAlign: 'right' }}>
-                    {(probationRatio * 100).toFixed(0)}%
-                  </span>
-                </div>
-                <div style={{ fontSize: 11, color: '#999', marginTop: 4 }}>范围：60% ~ 100%，步长 5%</div>
-              </div>
-              <Form.Item name="accountSetId" label={lockedLabel('薪资账套', 'accountSetId', '如需修改请联系HR')}>
-                <Select placeholder="请选择薪资账套" allowClear
-                  options={salaryAccounts} style={inputStyle} disabled={isLocked('accountSetId')} />
-              </Form.Item>
-              <Form.Item name="baseSalary" label={lockedLabel('基本工资', 'baseSalary', '如需修改请联系HR')}
-                rules={[{ required: true, message: '请输入基本工资' }]}>
-                <InputNumber min={0} precision={2} prefix="¥" placeholder="0.00"
-                  style={{ width: '100%', ...inputStyle }} disabled={isLocked('baseSalary')} />
-              </Form.Item>
-              <Form.Item name="bankAccount" label={lockedLabel('银行账号', 'bankAccount', '如需修改请联系HR')}
-                rules={[{ max: 32 }]}>
-                <Input placeholder="请输入银行账号" maxLength={32} style={isLocked('bankAccount') ? disabledInputStyle : inputStyle} disabled={isLocked('bankAccount')} />
-              </Form.Item>
-              <Form.Item name="bankName" label={lockedLabel('开户行', 'bankName', '如需修改请联系HR')}
-                rules={[{ max: 64 }]}>
-                <Input placeholder="请输入开户行" maxLength={64} style={isLocked('bankName') ? disabledInputStyle : inputStyle} disabled={isLocked('bankName')} />
-              </Form.Item>
-            </div>
-          </Card>
+          <SalaryContractSection
+            form={form}
+            mode="edit"
+            salaryAccounts={salaryAccounts}
+            probationRatio={probationRatio}
+            onProbationRatioChange={setProbationRatio}
+            inputStyle={inputStyle}
+            disabledInputStyle={disabledInputStyle}
+            isLocked={isLocked}
+            lockedLabel={renderLockedLabel}
+            lockedSuffix={renderLockedSuffix}
+          />
         </div>
       </Form>
     </div>
   );
 };
-
-// Tag helper（避免额外 import）
-const Tag: React.FC<{ children: React.ReactNode; style?: React.CSSProperties }> = ({ children, style }) => (
-  <span style={{ display: 'inline-block', padding: '0 6px', fontSize: 11, lineHeight: '20px', ...style }}>{children}</span>
-);
 
 export default EmployeeEditPage;
