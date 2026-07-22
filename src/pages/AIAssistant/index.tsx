@@ -26,15 +26,14 @@ import {
   Tag,
   Tooltip,
 } from 'antd';
-import { flushSync } from 'react-dom';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   deleteSessionUsingDelete,
   getHistoryUsingGet,
   getSessionsUsingGet,
   submitFeedbackUsingPost,
-  chatStreamUsingPost,
 } from '@/api/aiController';
+import { useAIChatStream, type StreamMessage } from '@/hooks/useAIChatStream';
 import {
   type RouteEntry,
   VALID_PATHS,
@@ -43,94 +42,302 @@ import {
 } from './routeRegistry';
 import './index.less';
 
-// ==================== SSE 解析 ====================
-
-const parseSSEBuffer = (buffer: string): [API.AISSEEvent[], string] => {
-  const events: API.AISSEEvent[] = [];
-  const lastNL = buffer.lastIndexOf('\n');
-  if (lastNL === -1) return [events, buffer];
-
-  const complete = buffer.slice(0, lastNL + 1);
-  const rest = buffer.slice(lastNL + 1);
-
-  for (const line of complete.split('\n')) {
-    const trimmed = line.trim();
-    if (trimmed.startsWith('data: ')) {
-      try {
-        events.push(JSON.parse(trimmed.slice(6)));
-      } catch {
-        /* ignore */
-      }
-    }
-  }
-  return [events, rest];
-};
+// ==================== 路由解析工具 ====================
 
 /**
  * 解析并修正后端返回的路由路径
- * - 路径在 VALID_PATHS 中 → 直接使用
- * - 路径无效但 label 能匹配到 → 用匹配到的 path
- * - 都不行 → 返回 null
  */
 const resolveRoute = (p: {
   path: string;
   label: string;
   action?: string;
 }): RouteEntry | null => {
-  // 如果是有效路径，直接用
   if (VALID_PATHS.has(p.path)) {
     return findRouteByPath(p.path) ?? null;
   }
-  // 路径无效，尝试用 label 匹配
   const matched = matchRouteByKeywords(p.label);
   if (matched) return matched;
-  // 尝试用 path 本身的片段匹配
   const byPath = matchRouteByKeywords(p.path);
   if (byPath) return byPath;
   return null;
 };
 
-// ==================== 组件 ====================
+// ==================== 子组件：用户头像 ====================
+
+const UserAvatar: React.FC<{
+  avatarUrl?: string;
+  userName?: string;
+}> = ({ avatarUrl, userName }) => {
+  if (avatarUrl) {
+    return (
+      <Avatar
+        size={36}
+        src={avatarUrl}
+        alt={userName || '用户'}
+        style={{ border: '1px solid #f0f0f0' }}
+      />
+    );
+  }
+  // 无头像时显示首字母或默认图标
+  const initial = userName?.charAt(0)?.toUpperCase();
+  return (
+    <Avatar
+      size={36}
+      style={{ backgroundColor: '#1677ff', verticalAlign: 'middle' }}
+    >
+      {initial || <UserOutlined />}
+    </Avatar>
+  );
+};
+
+// ==================== 子组件：AI 头像 ====================
+
+const AIAvatar: React.FC = () => (
+  <Avatar
+    size={36}
+    icon={<RobotOutlined />}
+    style={{ backgroundColor: '#52c41a' }}
+  />
+);
+
+// ==================== 子组件：流式占位加载动画 ====================
+
+const TypingDots: React.FC = () => (
+  <span className="chat-typing-dots">
+    <span className="chat-typing-dot" />
+    <span className="chat-typing-dot" />
+    <span className="chat-typing-dot" />
+  </span>
+);
+
+// ==================== 子组件：消息气泡 ====================
+
+const MessageBubble: React.FC<{
+  msg: StreamMessage;
+  index: number;
+  feedbacks: Record<number, number | null>;
+  onFeedback: (messageId: number | undefined, fb: number) => void;
+  onNavigate: (path: string) => void;
+  currentUser: any;
+}> = ({ msg, index, feedbacks, onFeedback, onNavigate, currentUser }) => {
+  const isUser = msg.type === 'user';
+  const isStreaming = msg._streaming;
+  const isError = msg._error;
+  const hasRoute = !!msg.path && !!msg.label;
+  const msgId = msg.messageId;
+  const fbStatus = msgId ? feedbacks[msgId] : undefined;
+
+  // 是否正在显示 thinking 文本（首 chunk 未到达时的意图提示）
+  const isThinking = isStreaming && !!msg.intent && !msg.content;
+
+  return (
+    <div
+      className={`chat-message ${isUser ? 'chat-message--user' : 'chat-message--assistant'} ${
+        isStreaming ? 'chat-message--streaming' : ''
+      } ${isError ? 'chat-message--error' : ''}`}
+    >
+      {/* 头像 */}
+      <div className="chat-message-avatar">
+        {isUser ? (
+          <UserAvatar
+            avatarUrl={currentUser?.userAvatar}
+            userName={currentUser?.userName}
+          />
+        ) : (
+          <AIAvatar />
+        )}
+      </div>
+
+      {/* 消息体 */}
+      <div className="chat-message-body">
+        <div
+          className={`chat-bubble ${isUser ? 'chat-bubble--user' : 'chat-bubble--assistant'} ${
+            isStreaming ? 'chat-bubble--streaming' : ''
+          } ${isError ? 'chat-bubble--error' : ''}`}
+        >
+          {/* 正在思考中（显示 loading 文本） */}
+          {isThinking && (
+            <div className="chat-thinking">
+              <Spin size="small" style={{ marginRight: 8 }} />
+              <span>{msg.intent}</span>
+            </div>
+          )}
+
+          {/* 消息文本 */}
+          {msg.content && (
+            <div className="chat-bubble-text">{msg.content}</div>
+          )}
+
+          {/* 首次渲染占位（空内容且非 thinking 状态） */}
+          {!msg.content && !isThinking && (
+            <div className="chat-bubble-placeholder">
+              <TypingDots />
+            </div>
+          )}
+
+          {/* 流式光标（内容非空且仍在流式时显示） */}
+          {isStreaming && msg.content && <span className="chat-cursor" />}
+
+          {/* 意图标签 */}
+          {msg.intent && msg.content && (
+            <div className="chat-bubble-meta">
+              <Tag color="blue" style={{ fontSize: 11 }}>
+                意图：{msg.intent}
+              </Tag>
+            </div>
+          )}
+
+          {/* 错误提示 */}
+          {isError && (
+            <div className="chat-error-banner">
+              <WarningOutlined style={{ marginRight: 6 }} />
+              响应异常，请重试
+            </div>
+          )}
+        </div>
+
+        {/* 跳转按钮 */}
+        {hasRoute && !isStreaming && (
+          <div className="chat-route-btn-wrapper">
+            <Button
+              type="primary"
+              size="small"
+              icon={<BulbOutlined />}
+              onClick={() => onNavigate(msg.path!)}
+              className="chat-route-btn"
+            >
+              点击前往：{msg.label}
+            </Button>
+          </div>
+        )}
+
+        {/* 反馈按钮 */}
+        {!isUser && !isStreaming && (
+          <div className="chat-feedback">
+            <Tooltip title="点赞">
+              <span
+                className="chat-feedback-btn"
+                onClick={() => onFeedback(msgId, 1)}
+              >
+                {fbStatus === 1 ? (
+                  <LikeFilled style={{ color: '#1677ff' }} />
+                ) : (
+                  <LikeOutlined />
+                )}
+              </span>
+            </Tooltip>
+            <Tooltip title="点踩">
+              <span
+                className="chat-feedback-btn"
+                onClick={() => onFeedback(msgId, 0)}
+              >
+                {fbStatus === 0 ? (
+                  <DislikeFilled style={{ color: '#ff4d4f' }} />
+                ) : (
+                  <DislikeOutlined />
+                )}
+              </span>
+            </Tooltip>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ==================== 主组件 ====================
 
 const AIAssistantPage: React.FC = () => {
   const { initialState } = useModel('@@initialState');
   const currentUser = initialState?.currentUser;
 
-  // ---- 会话 ----
+  // ========== 从自定义 Hook 获取消息状态和发送能力 ==========
+  const {
+    messages,
+    sending,
+    sendMessage,
+    clearMessages,
+    loadHistory,
+  } = useAIChatStream();
+
+  // ========== 会话管理 ==========
   const [sessions, setSessions] = useState<API.AISessionVO[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
-  // ---- 消息 ----
-  const [messages, setMessages] = useState<API.AIChatMessageVO[]>([]);
+  // ========== 输入 ==========
   const [inputValue, setInputValue] = useState('');
-  const [sending, setSending] = useState(false);
 
-  // 流式 UI 状态
-  const [thinkingText, setThinkingText] = useState('');
-  const [routeInfo, setRouteInfo] = useState<{
-    path: string;
-    label: string;
-    action?: string;
-  } | null>(null);
-
-  // 反馈
+  // ========== 反馈 ==========
   const [feedbacks, setFeedbacks] = useState<Record<number, number | null>>({});
 
-  // ---- refs ----
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  // ========== Refs ==========
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<any>(null);
-  const abortRef = useRef<AbortController | null>(null);
-  const sendingRef = useRef(false);
-  const streamingTextRef = useRef<HTMLDivElement | null>(null);
-  const [streaming, setStreaming] = useState(false);
+  const prevMessagesLengthRef = useRef(0);
+  const isInitialLoadRef = useRef(true);
 
-  // 滚动到底
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, thinkingText, streaming]);
+  // ========== 智能滚动 ==========
 
-  // ---- 会话列表 ----
+  /**
+   * 检测用户是否靠近底部（50px 阈值）
+   */
+  const isNearBottom = useCallback(() => {
+    const el = messagesContainerRef.current;
+    if (!el) return true;
+    const threshold = 50;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+  }, []);
+
+  /**
+   * 平滑滚动到底部
+   */
+  const scrollToBottom = useCallback((smooth: boolean = true) => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    el.scrollTo({
+      top: el.scrollHeight,
+      behavior: smooth ? 'smooth' : 'auto',
+    });
+  }, []);
+
+  /**
+   * 核心滚动逻辑：
+   * - 首次加载 → 立即滚动到底部（无动画）
+   * - 消息从空到有（加载历史）→ 总是滚动到底部
+   * - 新增消息（长度增加）→ 用户靠近底部时才自动滚动
+   * - 流式内容更新（长度不变但内容变）→ 用户靠近底部时才跟随
+   * - 用户在查看历史 → 不干涉
+   */
+  useLayoutEffect(() => {
+    const currentLen = messages.length;
+    const prevLen = prevMessagesLengthRef.current;
+
+    // 首次加载或从空到有消息
+    if (isInitialLoadRef.current || (prevLen === 0 && currentLen > 0)) {
+      isInitialLoadRef.current = false;
+      requestAnimationFrame(() => scrollToBottom(false));
+      prevMessagesLengthRef.current = currentLen;
+      return;
+    }
+
+    // 消息数量新增（新消息到了）
+    if (currentLen > prevLen) {
+      prevMessagesLengthRef.current = currentLen;
+      if (isNearBottom()) {
+        requestAnimationFrame(() => scrollToBottom(true));
+      }
+      return;
+    }
+
+    // 流式内容更新（同一条消息内容变化）
+    if (isNearBottom()) {
+      requestAnimationFrame(() => scrollToBottom(false));
+    }
+  }, [messages, isNearBottom, scrollToBottom]);
+
+  // ========== 加载会话列表 ==========
+
   const loadSessions = useCallback(async () => {
     setSessionsLoading(true);
     try {
@@ -147,45 +354,40 @@ const AIAssistantPage: React.FC = () => {
     loadSessions();
   }, [loadSessions]);
 
-  // ---- 清理 ----
-  const clearStreamState = useCallback(() => {
-    if (streamingTextRef.current) {
-      streamingTextRef.current.textContent = '';
-    }
-    setStreaming(false);
-    setThinkingText('');
-    setRouteInfo(null);
-  }, []);
+  // ========== 会话操作 ==========
 
   const handleNewSession = useCallback(() => {
-    abortRef.current?.abort();
-    abortRef.current = null;
-    sendingRef.current = false;
-    clearStreamState();
+    clearMessages();
     setActiveSessionId(null);
-    setMessages([]);
     setInputValue('');
-    setSending(false);
-  }, [clearStreamState]);
+    isInitialLoadRef.current = true;
+    prevMessagesLengthRef.current = 0;
+  }, [clearMessages]);
 
   const handleSelectSession = useCallback(
     async (sessionId: string) => {
-      abortRef.current?.abort();
-      abortRef.current = null;
-      sendingRef.current = false;
-      clearStreamState();
+      clearMessages();
       setActiveSessionId(sessionId);
-      setMessages([]);
-      setSending(false);
+      setInputValue('');
+      isInitialLoadRef.current = true;
+      prevMessagesLengthRef.current = 0;
 
       try {
         const res = await getHistoryUsingGet({ sessionId });
-        if (res?.code === 0 && res?.data) setMessages(res.data);
+        if (res?.code === 0 && res?.data) {
+          // 确保历史消息没有流式标志
+          const history = res.data.map((m: API.AIChatMessageVO) => ({
+            ...m,
+            _streaming: false,
+            _error: false,
+          }));
+          loadHistory(history);
+        }
       } catch {
         message.error('加载历史失败');
       }
     },
-    [clearStreamState],
+    [clearMessages, loadHistory],
   );
 
   const handleDeleteSession = useCallback(
@@ -196,7 +398,9 @@ const AIAssistantPage: React.FC = () => {
           message.success('会话已删除');
           if (activeSessionId === sessionId) {
             setActiveSessionId(null);
-            setMessages([]);
+            clearMessages();
+            isInitialLoadRef.current = true;
+            prevMessagesLengthRef.current = 0;
           }
           loadSessions();
         }
@@ -204,185 +408,31 @@ const AIAssistantPage: React.FC = () => {
         message.error('删除失败');
       }
     },
-    [activeSessionId, loadSessions],
+    [activeSessionId, clearMessages, loadSessions],
   );
 
   const handleNavigate = useCallback((path: string) => {
     history.push(path);
   }, []);
 
-  // ==================== 发送消息（核心） ====================
+  // ========== 发送消息 ==========
+
   const handleSend = useCallback(async () => {
-    const text = inputValue.trim();
-    if (!text || sendingRef.current) return;
+    if (!inputValue.trim() || sending) return;
 
-    sendingRef.current = true;
+    // 保存输入框文本并清空
+    const text = inputValue;
     setInputValue('');
-    setSending(true);
-    clearStreamState();
-
-    const userMsg: API.AIChatMessageVO = { type: 'user', content: text };
-    setMessages((prev) => [...prev, userMsg]);
-
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    let fullContent = '';
-    let finalRoute: (RouteEntry & { action?: string }) | null = null;
-    let finalIntent: string | undefined;
-
-    const finish = (err?: string) => {
-      sendingRef.current = false;
-      abortRef.current = null;
-      setSending(false);
-      if (streamingTextRef.current) {
-        streamingTextRef.current.textContent = '';
-      }
-      setStreaming(false);
-      setThinkingText('');
-      setRouteInfo(null);
-
-      if (err) {
-        message.error(err);
-        return;
-      }
-
-      if (!fullContent && !finalRoute) return;
-
-      // ★ 如果后端没有返回 route，用本地关键词匹配兜底
-      if (!finalRoute && fullContent) {
-        const matched = matchRouteByKeywords(fullContent);
-        if (matched) {
-          finalRoute = { ...matched, action: 'push' };
-        }
-      }
-
-      const assistantMsg: API.AIChatMessageVO = {
-        type: 'assistant',
-        content: fullContent || '已为您定位到对应功能，请点击下方按钮跳转',
-        intent: finalIntent,
-        path: finalRoute?.path,
-        label: finalRoute?.name,
-        action: finalRoute?.action || 'push',
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
-    };
 
     try {
-      const response = await chatStreamUsingPost(
-        { sessionId: activeSessionId || undefined, message: text },
-        { signal: controller.signal },
-      );
-
-      if (!response.ok) {
-        let errMsg = '请求失败，请重试';
-        try {
-          const errData = await response.json();
-          errMsg = errData?.message || errMsg;
-        } catch {}
-        finish(errMsg);
-        return;
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) {
-        finish('浏览器不支持流式读取');
-        return;
-      }
-
-      // ★ 强制渲染流式气泡
-      flushSync(() => {
-        setStreaming(true);
-        setThinkingText('正在分析您的问题...');
-      });
-
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const [events, rest] = parseSSEBuffer(buffer);
-        buffer = rest;
-
-        for (const event of events) {
-          switch (event.type) {
-            case 'thinking':
-              flushSync(() => setThinkingText(event.content || ''));
-              break;
-
-            case 'intent':
-              finalIntent = event.intent;
-              break;
-
-            case 'content':
-              if (!fullContent) {
-                flushSync(() => setThinkingText(''));
-              }
-              fullContent += event.content || '';
-              if (streamingTextRef.current) {
-                streamingTextRef.current.textContent = fullContent;
-              }
-              messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-              break;
-
-            case 'route': {
-              // ★ 路径校验：后端给的 path 可能不存在于前端路由表中
-              const resolved = resolveRoute({
-                path: event.path || '',
-                label: event.label || '',
-                action: event.action || 'push',
-              });
-              if (resolved) {
-                finalRoute = { ...resolved, action: event.action || 'push' };
-                flushSync(() =>
-                  setRouteInfo({
-                    path: resolved.path,
-                    label: resolved.name,
-                    action: event.action || 'push',
-                  }),
-                );
-              } else {
-                // 路径无效 — 不渲染按钮，靠后续本地关键词匹配兜底
-                console.warn(
-                  '[AI Assistant] 后端返回的路径未在前端注册:',
-                  event.path,
-                );
-              }
-              break;
-            }
-
-            case 'done':
-              break;
-
-            case 'error':
-              finish(event.content || '服务异常');
-              return;
-          }
-        }
-      }
-
-      finish();
-
-      if (!activeSessionId) {
-        const updated = await getSessionsUsingGet();
-        if (updated?.data?.length) {
-          setActiveSessionId(updated.data[0].sessionId!);
-          setSessions(updated.data);
-        }
-      }
-    } catch (err: any) {
-      if (err?.name !== 'AbortError') {
-        finish('发送失败，请检查网络');
-      } else {
-        finish();
-      }
+      await sendMessage(text, activeSessionId);
+    } catch (e) {
+      console.error('[AIAssistant] handleSend error:', e);
     }
-  }, [inputValue, activeSessionId, clearStreamState]);
+  }, [inputValue, sending, activeSessionId, sendMessage]);
 
-  // ---- 键盘 ----
+  // ========== 键盘快捷操作 ==========
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -393,7 +443,8 @@ const AIAssistantPage: React.FC = () => {
     [handleSend],
   );
 
-  // ---- 反馈 ----
+  // ========== 反馈 ==========
+
   const handleFeedback = useCallback(
     async (messageId: number | undefined, fb: number) => {
       if (!messageId) {
@@ -416,88 +467,59 @@ const AIAssistantPage: React.FC = () => {
     [],
   );
 
-  // ---- 渲染消息 ----
-  const renderMessage = (msg: API.AIChatMessageVO, index: number) => {
-    const isUser = msg.type === 'user';
-    const hasRoute = !!msg.path && !!msg.label;
-    const msgId = msg.messageId;
-    const fbStatus = msgId ? feedbacks[msgId] : undefined;
+  // ========== 流式完成后刷新数据 ==========
 
-    return (
-      <div
-        key={index}
-        className={`chat-message ${isUser ? 'chat-message--user' : 'chat-message--assistant'}`}
-      >
-        <div className="chat-message-avatar">
-          <Avatar
-            size={36}
-            icon={isUser ? <UserOutlined /> : <RobotOutlined />}
-            style={{ backgroundColor: isUser ? '#1677ff' : '#52c41a' }}
-          />
-        </div>
+  /** 重新加载会话历史（带 retry） */
+  const reloadHistoryWithRetry = useCallback(
+    async (sessionId: string, retries = 5, delay = 1200) => {
+      for (let i = 0; i < retries; i++) {
+        try {
+          // 首次立即尝试，后续重试带延迟
+          if (i > 0) await new Promise((r) => setTimeout(r, delay));
+          const res = await getHistoryUsingGet({ sessionId });
+          if (res?.code === 0 && res?.data && res.data.length > 0) {
+            // 至少有一条消息才替换（避免后端还没写完就覆盖）
+            const history = res.data.map((m: API.AIChatMessageVO) => ({
+              ...m,
+              _streaming: false,
+              _error: false,
+            }));
+            loadHistory(history);
+            return;
+          }
+        } catch {
+          // 继续重试
+        }
+      }
+    },
+    [loadHistory],
+  );
 
-        <div className="chat-message-body">
-          <div
-            className={`chat-bubble ${isUser ? 'chat-bubble--user' : 'chat-bubble--assistant'}`}
-          >
-            <div className="chat-bubble-text">{msg.content || ''}</div>
-            {msg.intent && (
-              <div className="chat-bubble-meta">
-                <Tag color="blue" style={{ fontSize: 11 }}>
-                  意图：{msg.intent}
-                </Tag>
-              </div>
-            )}
-          </div>
+  const prevSendingRef = useRef(false);
+  useEffect(() => {
+    // sending 从 true → false（流式完成）时触发
+    if (prevSendingRef.current && !sending) {
+      if (activeSessionId) {
+        // 有活跃会话 → 轮询重新加载历史
+        reloadHistoryWithRetry(activeSessionId);
+      } else {
+        // 无活跃会话（首次对话）→ 刷新会话列表获取新 sessionId
+        (async () => {
+          const updated = await getSessionsUsingGet();
+          if (updated?.data?.length) {
+            const newId = updated.data[0].sessionId!;
+            setActiveSessionId(newId);
+            setSessions(updated.data);
+            // 新会话创建后也要加载历史
+            reloadHistoryWithRetry(newId);
+          }
+        })();
+      }
+    }
+    prevSendingRef.current = sending;
+  }, [sending, activeSessionId, reloadHistoryWithRetry]);
 
-          {/* ★ 跳转按钮 — 路径已经过后端+本地双重校验 */}
-          {hasRoute && (
-            <div className="chat-route-btn-wrapper">
-              <Button
-                type="primary"
-                size="small"
-                icon={<BulbOutlined />}
-                onClick={() => handleNavigate(msg.path!)}
-                className="chat-route-btn"
-              >
-                点击前往：{msg.label}
-              </Button>
-            </div>
-          )}
-
-          {/* 反馈 */}
-          {!isUser && (
-            <div className="chat-feedback">
-              <Tooltip title="点赞">
-                <span
-                  className="chat-feedback-btn"
-                  onClick={() => handleFeedback(msgId, 1)}
-                >
-                  {fbStatus === 1 ? (
-                    <LikeFilled style={{ color: '#1677ff' }} />
-                  ) : (
-                    <LikeOutlined />
-                  )}
-                </span>
-              </Tooltip>
-              <Tooltip title="点踩">
-                <span
-                  className="chat-feedback-btn"
-                  onClick={() => handleFeedback(msgId, 0)}
-                >
-                  {fbStatus === 0 ? (
-                    <DislikeFilled style={{ color: '#ff4d4f' }} />
-                  ) : (
-                    <DislikeOutlined />
-                  )}
-                </span>
-              </Tooltip>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
+  // ========== 渲染 ==========
 
   return (
     <PageContainer ghost>
@@ -547,7 +569,9 @@ const AIAssistantPage: React.FC = () => {
                         <span>{s.messageCount ?? 0} 条消息</span>
                         {s.lastMessageTime && (
                           <span className="ai-session-item-time">
-                            {s.lastMessageTime.slice(0, 16).replace('T', ' ')}
+                            {s.lastMessageTime
+                              .slice(0, 16)
+                              .replace('T', ' ')}
                           </span>
                         )}
                       </div>
@@ -595,14 +619,19 @@ const AIAssistantPage: React.FC = () => {
               </span>
             </div>
             <div className="ai-chat-header-right">
-              <span style={{ fontSize: 12, color: '#999' }}>
+              <UserAvatar
+                avatarUrl={currentUser?.userAvatar}
+                userName={currentUser?.userName}
+              />
+              <span style={{ fontSize: 12, color: '#999', marginLeft: 8 }}>
                 {currentUser?.userName || '用户'}
               </span>
             </div>
           </div>
 
-          <div className="ai-chat-messages">
-            {messages.length === 0 && !streaming && !thinkingText && (
+          {/* 消息列表 */}
+          <div className="ai-chat-messages" ref={messagesContainerRef}>
+            {messages.length === 0 && (
               <div className="ai-chat-empty">
                 <RobotOutlined
                   style={{
@@ -611,7 +640,9 @@ const AIAssistantPage: React.FC = () => {
                     marginBottom: 16,
                   }}
                 />
-                <div className="ai-chat-empty-title">AI 智能助理 · 小智</div>
+                <div className="ai-chat-empty-title">
+                  AI 智能助理 · 小智
+                </div>
                 <div className="ai-chat-empty-desc">
                   我是您的 HR 助手，可以帮您解答考勤、请假、薪资、审批等问题
                 </div>
@@ -637,51 +668,20 @@ const AIAssistantPage: React.FC = () => {
               </div>
             )}
 
-            {messages.map((msg, idx) => renderMessage(msg, idx))}
-
-            {/* 流式实时输出 */}
-            {(streaming || thinkingText) && (
-              <div className="chat-message chat-message--assistant">
-                <div className="chat-message-avatar">
-                  <Avatar
-                    size={36}
-                    icon={<RobotOutlined />}
-                    style={{ backgroundColor: '#52c41a' }}
-                  />
-                </div>
-                <div className="chat-message-body">
-                  <div className="chat-bubble chat-bubble--assistant">
-                    {thinkingText && (
-                      <div className="chat-thinking">
-                        <Spin size="small" style={{ marginRight: 8 }} />
-                        <span>{thinkingText}</span>
-                      </div>
-                    )}
-                    <div className="chat-bubble-text" ref={streamingTextRef} />
-                    {streaming && !routeInfo && (
-                      <span className="chat-cursor" />
-                    )}
-                  </div>
-                  {routeInfo && (
-                    <div className="chat-route-btn-wrapper">
-                      <Button
-                        type="primary"
-                        size="small"
-                        icon={<BulbOutlined />}
-                        onClick={() => handleNavigate(routeInfo.path)}
-                        className="chat-route-btn"
-                      >
-                        点击前往：{routeInfo.label}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <div ref={messagesEndRef} />
+            {messages.map((msg, idx) => (
+              <MessageBubble
+                key={`${msg.type}-${idx}-${msg._streaming ? 'streaming' : 'done'}`}
+                msg={msg}
+                index={idx}
+                feedbacks={feedbacks}
+                onFeedback={handleFeedback}
+                onNavigate={handleNavigate}
+                currentUser={currentUser}
+              />
+            ))}
           </div>
 
+          {/* 输入区域 */}
           <div className="ai-chat-input-area">
             <Input.TextArea
               ref={inputRef}

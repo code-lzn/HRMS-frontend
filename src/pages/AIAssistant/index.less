@@ -117,6 +117,11 @@
       display: flex;
       align-items: center;
     }
+
+    .ai-chat-header-right {
+      display: flex;
+      align-items: center;
+    }
   }
 
   // 消息区域
@@ -199,7 +204,7 @@
   }
 }
 
-// ==================== 消息样式 ====================
+// ==================== 消息通用样式 ====================
 .chat-message {
   display: flex;
   gap: 10px;
@@ -217,6 +222,19 @@
     flex-direction: row;
   }
 
+  // 流式输出时底部留白稍大，避免光标闪烁时布局跳动
+  &--streaming {
+    margin-bottom: 24px;
+  }
+
+  // 错误消息增加警示感
+  &--error {
+    .chat-bubble {
+      border-color: #ffccc7;
+      background: #fff2f0;
+    }
+  }
+
   .chat-message-avatar {
     flex-shrink: 0;
     padding-top: 2px;
@@ -230,7 +248,7 @@
   }
 }
 
-// 气泡
+// ==================== 气泡 ====================
 .chat-bubble {
   padding: 10px 14px;
   border-radius: 12px;
@@ -253,8 +271,31 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   }
 
+  // 流式中的气泡 — 轻微高亮边界
+  &--streaming {
+    border-color: #bae0ff;
+    box-shadow: 0 1px 4px rgba(22, 119, 255, 0.08);
+  }
+
+  // 错误气泡
+  &--error {
+    border-color: #ffccc7;
+    background: #fff2f0;
+  }
+
+  .chat-bubble-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
   .chat-bubble-meta {
     margin-top: 6px;
+  }
+
+  .chat-bubble-placeholder {
+    min-height: 24px;
+    display: flex;
+    align-items: center;
   }
 
   .chat-thinking {
@@ -264,7 +305,34 @@
     font-size: 13px;
   }
 
-  // 光标闪烁动画
+  // ========== 打字机点点动画 ==========
+  .chat-typing-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 0;
+  }
+
+  .chat-typing-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #bbb;
+    animation: typingBounce 1.4s ease-in-out infinite both;
+
+    &:nth-child(1) {
+      animation-delay: 0s;
+    }
+    &:nth-child(2) {
+      animation-delay: 0.16s;
+    }
+    &:nth-child(3) {
+      animation-delay: 0.32s;
+    }
+  }
+
+  // ========== 光标闪烁动画 ==========
   .chat-cursor {
     display: inline-block;
     width: 2px;
@@ -272,9 +340,24 @@
     background: #1677ff;
     margin-left: 2px;
     vertical-align: text-bottom;
-    animation: blink 0.8s infinite;
+    animation: blink 0.8s steps(1) infinite;
+  }
+
+  // ========== 错误横幅 ==========
+  .chat-error-banner {
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: #fff1f0;
+    border: 1px solid #ffccc7;
+    border-radius: 6px;
+    color: #cf1322;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
   }
 }
+
+// ==================== 动画 Keyframes ====================
 
 @keyframes blink {
   0%,
@@ -286,7 +369,20 @@
   }
 }
 
-// 跳转按钮
+@keyframes typingBounce {
+  0%,
+  80%,
+  100% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// ==================== 跳转按钮 ====================
 .chat-route-btn-wrapper {
   margin-top: 8px;
 
@@ -297,7 +393,7 @@
   }
 }
 
-// 反馈按钮
+// ==================== 反馈按钮 ====================
 .chat-feedback {
   display: flex;
   gap: 12px;
