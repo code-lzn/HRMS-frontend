@@ -1,42 +1,83 @@
 import { ProTable, type ProColumns, type ActionType } from '@ant-design/pro-components';
-import { Button, Tag, Popconfirm, Tabs, Card, Typography } from 'antd';
-import { PlusOutlined, FileTextOutlined, ClockCircleOutlined, UserDeleteOutlined, StopOutlined } from '@ant-design/icons';
-import { useRef, useState, useEffect } from 'react';
-import ResignationFormModal from './components/ResignationFormModal';
+import { Button, Tag, message, Popconfirm, Tabs, Card, Typography, Modal, DatePicker } from 'antd';
+import { PlusOutlined, FileTextOutlined, ClockCircleOutlined, UserDeleteOutlined, StopOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { useRef, useState, useEffect, useCallback } from 'react';
+import { useNavigate } from '@umijs/max';
 import {
   listResignation, deleteResignation, submitDraft,
+  revokeResignation, abandonResignation, confirmResignation,
+  updateResignDate, resubmitResignation,
   getResignationStats,
 } from './services/resignation';
+import dayjs from 'dayjs';
 import type { ResignationVO } from './types/resignation';
 
+// 离职申请状态映射表：将状态枚举值转换为显示文本和颜色
 const STATUS_MAP: Record<string, { color: string; text: string }> = {
   DRAFT:        { color: '#d9d9d9', text: '草稿' },
   APPROVING:    { color: '#1677ff', text: '审批中' },
   PENDING_RESIGN:{ color: '#faad14', text: '待离职' },
   RESIGNED:     { color: '#999', text: '已离职' },
   REJECTED:     { color: '#ff4d4f', text: '已拒绝' },
+  CANCELLED:    { color: '#8c8c8c', text: '已放弃' },
 };
 
 const { Title, Text } = Typography;
 
+// 离职原因映射表：将原因枚举值转换为显示文本
 const REASON_MAP: Record<string, string> = {
   VOLUNTARY: '主动离职', INVOLUNTARY: '被动离职', NEGOTIATED: '协商离职',
 };
+// 离职类型映射表：将类型枚举值转换为显示文本
 const TYPE_MAP: Record<string, string> = {
   RESIGN: '辞职', DISMISS: '辞退', CONTRACT_EXPIRE: '合同到期不续签', OTHER: '其他',
 };
 
+// 离职管理页面组件：管理员工离职申请的全生命周期
 const ResignationPage: React.FC = () => {
+  // ProTable表格引用：用于触发表格刷新
   const actionRef = useRef<ActionType>();
-  const [activeTab, setActiveTab] = useState('');
-  const [formOpen, setFormOpen] = useState(false);
-  const [editRecord, setEditRecord] = useState<ResignationVO | null>(null);
+  const navigate = useNavigate();
+
+  // ===== 筛选状态 =====
+  const [activeTab, setActiveTab] = useState(''); // 当前选中的状态标签
+  const activeTabRef = useRef(''); // 同步 ref，确保 request 闭包读到最新值
+
+  // ===== 统计数据状态 =====
   const [stats, setStats] = useState({ draft: 0, approving: 0, pending: 0, resigned: 0 });
 
+  // ===== 拒绝原因弹窗 =====
+  const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
+  const [rejectionText, setRejectionText] = useState('');
+
+  // ===== 修改离职日期弹窗 =====
+  const [resignDateOpen, setResignDateOpen] = useState(false);
+  const [resignDateId, setResignDateId] = useState<number>();
+  const [resignDateValue, setResignDateValue] = useState<string>('');
+  const [resignDateLoading, setResignDateLoading] = useState(false);
+
+  // 初始化：组件挂载时获取统计数据
   useEffect(() => {
     fetchStats();
   }, []);
 
+  // 稳定的请求函数：通过 ref 读取最新 activeTab，避免闭包捕获旧值
+  const fetchData = useCallback(async (p: any) => {
+    const tab = activeTabRef.current;
+    const res = await listResignation({
+      keyword: (p.employeeName as string) || undefined,
+      statuses: tab ? [tab] : undefined,
+      page: p.current ?? 1,
+      size: p.pageSize ?? 10,
+    });
+    return {
+      data: res.data?.records ?? [],
+      total: res.data?.total ?? 0,
+      success: res.code === 0,
+    };
+  }, []);
+
+  // 获取统计数据：调用后端接口获取各状态的离职申请数量
   const fetchStats = async () => {
     try {
       const res = await getResignationStats();
@@ -52,11 +93,13 @@ const ResignationPage: React.FC = () => {
     }
   };
 
+  // 表格列配置：定义离职申请列表的显示列
   const columns: ProColumns<ResignationVO>[] = [
     {
       title: '姓名', dataIndex: 'employeeName', width: 120, ellipsis: true,
       render: (name: string) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
+          {/* 姓名首字母头像 */}
           <div
             style={{
               width: 32,
@@ -85,7 +128,7 @@ const ResignationPage: React.FC = () => {
     { title: '职位', dataIndex: 'positionName', width: 120, search: false },
     {
       title: '离职日期', dataIndex: 'resignDate', width: 130, search: false,
-      render: (date: string) => date || '-',
+      render: (date: string) => date ? dayjs(date).format('YYYY-MM-DD') : '-',
     },
     {
       title: '原因', dataIndex: 'resignReasonType', width: 100, search: false,
@@ -107,31 +150,82 @@ const ResignationPage: React.FC = () => {
       valueType: 'select',
       valueEnum: {
         DRAFT: '草稿', APPROVING: '审批中', PENDING_RESIGN: '待离职',
-        RESIGNED: '已离职', REJECTED: '已拒绝',
+        REJECTED: '已拒绝', RESIGNED: '已离职', CANCELLED: '已放弃',
       },
     },
     {
-      title: '操作', key: 'action', width: 150, fixed: 'right', search: false,
+      title: '操作', key: 'action', width: 300, fixed: 'right', search: false,
       render: (_, r) => {
         const isDraft = !r.recordId;
+        const isFirstStep = (r as any).approvalProgress?.startsWith('1/');
+
+        // 草稿状态：编辑、提交审批、删除
         if (isDraft) return (
           <>
-            <a onClick={() => { setEditRecord(r); setFormOpen(true); }} style={{ marginRight: 8 }}>编辑</a>
-            <a onClick={() => submitDraft(r.id).then(() => actionRef.current?.reload())} style={{ marginRight: 8 }}>提交审批</a>
-            <Popconfirm title="确定删除？" onConfirm={() => deleteResignation(r.id).then(() => actionRef.current?.reload())}>
+            <a onClick={() => { navigate('/hr/resignation/add', { state: { editData: r } }); }} style={{ marginRight: 8 }}>编辑</a>
+            <a onClick={() => submitDraft(r.id).then(() => { actionRef.current?.reload(); fetchStats(); })} style={{ marginRight: 8 }}>提交审批</a>
+            <Popconfirm title="确定删除？" onConfirm={() => deleteResignation(r.id).then(() => { actionRef.current?.reload(); fetchStats(); })}>
               <a style={{ color: '#ff4d4f' }}>删除</a>
             </Popconfirm>
           </>
         );
+
+        // 审批中状态：可撤回（仅第一步）、查看进度
         if (r.approvalStatus === 'APPROVING' || r.status === 'APPROVING') return (
-          <a href={`/approval/detail/${r.recordId}`}>查看审批进度</a>
+          <>
+            {isFirstStep && (
+              <Popconfirm title="确定撤回？撤回后恢复为草稿" onConfirm={() =>
+                revokeResignation(r.id).then(() => { message.success('已撤回'); actionRef.current?.reload(); fetchStats(); }).catch((e: any) => message.error(e?.message || '撤回失败'))
+              }>
+                <a style={{ color: '#faad14', marginRight: 8 }}>撤回</a>
+              </Popconfirm>
+            )}
+            <a href={`/approval/detail/${r.recordId}`}>查看进度</a>
+          </>
         );
-        if (r.status === 'PENDING_RESIGN' || r.status === 'RESIGNED') return (
-          <span style={{ color: '#999' }}>{r.status === 'RESIGNED' ? '已离职' : '待离职'}</span>
+
+        // 已批准待离职：修改离职日期、标记放弃、确认离职
+        if (r.status === 'PENDING_RESIGN') return (
+          <>
+            <a onClick={() => { setResignDateId(r.id); setResignDateValue(''); setResignDateOpen(true); }} style={{ marginRight: 8 }}>
+              修改日期
+            </a>
+            <Popconfirm title="确定放弃该离职申请？员工状态将恢复" onConfirm={() =>
+              abandonResignation(r.id).then(() => { message.success('已标记放弃'); actionRef.current?.reload(); fetchStats(); }).catch((e: any) => message.error(e?.message || '操作失败'))
+            }>
+              <a style={{ color: '#ff4d4f', marginRight: 8 }}>标记放弃</a>
+            </Popconfirm>
+            <Popconfirm title="确定确认离职？员工将立即变为已离职状态" onConfirm={() =>
+              confirmResignation(r.id).then(() => { message.success('已确认离职'); actionRef.current?.reload(); fetchStats(); }).catch((e: any) => message.error(e?.message || '操作失败'))
+            }>
+              <a style={{ color: '#1677ff' }}>确认离职</a>
+            </Popconfirm>
+          </>
         );
+
+        // 已拒绝状态：查看原因、重新发起
         if (r.approvalStatus === 'REJECTED' || r.status === 'REJECTED') return (
-          <a onClick={() => { setEditRecord(r); setFormOpen(true); }}>重新编辑</a>
+          <>
+            <a onClick={() => {
+              setRejectionText((r as any).rejectionReason || '未填写拒绝原因');
+              setRejectionModalOpen(true);
+            }} style={{ marginRight: 8 }}>
+              查看原因
+            </a>
+            <Popconfirm title="确定重新发起审批？" onConfirm={() =>
+              resubmitResignation(r.id).then(() => { message.success('已重新发起'); actionRef.current?.reload(); fetchStats(); }).catch((e: any) => message.error(e?.message || '重新发起失败'))
+            }>
+              <a style={{ color: '#1677ff' }}>重新发起</a>
+            </Popconfirm>
+          </>
         );
+
+        // 已放弃状态
+        if (r.status === 'CANCELLED') return <span style={{ color: '#8c8c8c' }}>已放弃</span>;
+
+        // 已离职状态
+        if (r.status === 'RESIGNED') return <span style={{ color: '#999' }}>已离职</span>;
+
         return null;
       },
     },
@@ -159,7 +253,7 @@ const ResignationPage: React.FC = () => {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => { setEditRecord(null); setFormOpen(true); }}
+            onClick={() => navigate('/hr/resignation/add')}
             style={{ borderRadius: 6, height: 36, padding: '0 20px' }}
           >
             新增离职申请
@@ -209,14 +303,15 @@ const ResignationPage: React.FC = () => {
       <div style={{ padding: 24 }}>
         <Tabs
           activeKey={activeTab}
-          onChange={(key) => { setActiveTab(key); actionRef.current?.reload(); }}
+          onChange={(key) => { setActiveTab(key); activeTabRef.current = key; actionRef.current?.reload(); }}
           items={[
             { key: '', label: '全部' },
             { key: 'DRAFT', label: '草稿' },
             { key: 'APPROVING', label: '审批中' },
             { key: 'PENDING_RESIGN', label: '待离职' },
-            { key: 'RESIGNED', label: '已离职' },
             { key: 'REJECTED', label: '已拒绝' },
+            { key: 'RESIGNED', label: '已离职' },
+            { key: 'CANCELLED', label: '已放弃' },
           ]}
           style={{ marginBottom: 16 }}
         />
@@ -226,20 +321,7 @@ const ResignationPage: React.FC = () => {
           columns={columns}
           rowKey="id"
           scroll={{ x: 1100 }}
-          params={{ statuses: activeTab ? [activeTab] : undefined }}
-          request={async (p) => {
-            const res = await listResignation({
-              keyword: (p.employeeName as string) || undefined,
-              statuses: p.statuses as string[],
-              page: p.current ?? 1,
-              size: p.pageSize ?? 10,
-            });
-            return {
-              data: res.data?.records ?? [],
-              total: res.data?.total ?? 0,
-              success: res.code === 0,
-            };
-          }}
+          request={fetchData}
           search={{ labelWidth: 'auto', collapsed: true }}
           pagination={{ showSizeChanger: true, showTotal: (total) => `共 ${total} 条` }}
           headerTitle={null}
@@ -247,10 +329,48 @@ const ResignationPage: React.FC = () => {
         />
       </div>
 
-      <ResignationFormModal open={formOpen} editData={editRecord}
-        onCancel={() => { setFormOpen(false); setEditRecord(null); }}
-        onOk={() => { setFormOpen(false); setEditRecord(null); actionRef.current?.reload(); }}
-      />
+      <Modal
+        title="拒绝原因"
+        open={rejectionModalOpen}
+        onCancel={() => setRejectionModalOpen(false)}
+        footer={<Button onClick={() => setRejectionModalOpen(false)}>关闭</Button>}
+        destroyOnClose
+      >
+        <div style={{ padding: '12px 0' }}>
+          <ExclamationCircleOutlined style={{ color: '#ff4d4f', fontSize: 16, marginRight: 8 }} />
+          {rejectionText}
+        </div>
+      </Modal>
+
+      <Modal
+        title="修改离职日期"
+        open={resignDateOpen}
+        onCancel={() => setResignDateOpen(false)}
+        onOk={async () => {
+          if (!resignDateValue) { message.warning('请选择日期'); return; }
+          setResignDateLoading(true);
+          try {
+            await updateResignDate(resignDateId!, resignDateValue);
+            message.success('离职日期已修改');
+            setResignDateOpen(false);
+            actionRef.current?.reload();
+            fetchStats();
+          } catch (e: any) {
+            if (e?.message) message.error(e.message);
+          } finally {
+            setResignDateLoading(false);
+          }
+        }}
+        confirmLoading={resignDateLoading}
+        destroyOnClose
+      >
+        <DatePicker
+          style={{ width: '100%' }}
+          placeholder="选择新的离职日期"
+          onChange={(date) => setResignDateValue(date?.format('YYYY-MM-DD') || '')}
+        />
+      </Modal>
+
     </div>
   );
 };

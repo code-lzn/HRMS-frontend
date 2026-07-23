@@ -45,6 +45,7 @@ export interface TransferVO {
   updateTime: string;
   approvalStatus?: string;
   approvalProgress?: string;
+  rejectionReason?: string;
 }
 
 export interface PageVO<T> {

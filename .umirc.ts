@@ -67,8 +67,11 @@ export default defineConfig({
         { path: '/hr', redirect: '/hr/onboarding' },
         { name: '入职管理', path: '/hr/onboarding', component: './HR/Onboarding' },
         { name: '转正管理', path: '/hr/probation', component: './HR/Probation' },
+        { name: '转正申请', path: '/hr/probation/add', component: './HR/Probation/Add', hideInMenu: true },
         { name: '调岗管理', path: '/hr/transfer', component: './HR/Transfer' },
+        { name: '调岗申请', path: '/hr/transfer/add', component: './HR/Transfer/Add', hideInMenu: true },
         { name: '离职管理', path: '/hr/resignation', component: './HR/Resignation' },
+        { name: '离职申请', path: '/hr/resignation/add', component: './HR/Resignation/Add', hideInMenu: true },
       ],
     },
     {

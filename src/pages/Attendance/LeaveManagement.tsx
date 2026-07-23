@@ -13,6 +13,7 @@ import {
 import { getMyMakeupPunchesUsingGet, getApprovalProgressUsingGet1, cancelUsingPost1 } from '@/api/makeupPunchController';
 import { getMyOvertimesUsingGet, cancelUsingPost2 } from '@/api/overtimeController';
 
+// 请假类型映射表：定义各类假期的显示名称和颜色
 const LEAVE_TYPES: { value: any; label: string; color: string }[] = [
   { value: 2, label: '年假', color: '#52c41a' },
   { value: 1, label: '病假', color: '#faad14' },
@@ -25,6 +26,7 @@ const LEAVE_TYPES: { value: any; label: string; color: string }[] = [
   { value: 'overtime', label: '加班', color: '#fa541c' },
 ];
 
+// 审批规则配置：定义不同假期类型和天数对应的审批人
 const APPROVAL_RULES = [
   { type: '年假/调休', condition: '≤ 3天', approver: '直接上级' },
   { type: '年假/调休', condition: '> 3天', approver: '直接上级 → 部门负责人' },
@@ -33,6 +35,7 @@ const APPROVAL_RULES = [
   { type: '婚假/产假/丧假', condition: '-', approver: '直接上级 → HR备案' },
 ];
 
+// 审批状态映射表：将状态值转换为显示文本和颜色
 const STATUS_MAP: Record<string, { color: string; text: string }> = {
   approved: { color: '#52c41a', text: '已批准' },
   approving: { color: '#1890ff', text: '审批中' },
@@ -40,9 +43,10 @@ const STATUS_MAP: Record<string, { color: string; text: string }> = {
   pending: { color: '#faad14', text: '待审批' },
 };
 
+// 请假记录数据接口定义
 interface LeaveRecord {
   id: number;
-  recordType: 'leave' | 'makeup' | 'overtime';
+  recordType: 'leave' | 'makeup' | 'overtime'; // 记录类型：请假/补卡/加班
   leaveType: string;
   startDate: string;
   endDate: string;
@@ -55,27 +59,40 @@ interface LeaveRecord {
   overtimeTypeText?: string;
 }
 
+// 假期余额数据接口定义
 interface LeaveBalance {
-  annualRemaining: number;
-  compRemaining: number;
+  annualRemaining: number; // 年假余额
+  compRemaining: number; // 调休余额
 }
 
+// 请假管理组件：管理请假申请、补卡申请、加班申请，查看审批进度
 const LeaveManagement: React.FC = () => {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [form] = Form.useForm();
-  const [leaveRecords, setLeaveRecords] = useState<LeaveRecord[]>([]);
-  const [leaveBalance, setLeaveBalance] = useState<LeaveBalance>({ annualRemaining: 0, compRemaining: 0 });
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [progressOpen, setProgressOpen] = useState(false);
-  const [progressData, setProgressData] = useState<any>(null);
-  const [selectedRecord, setSelectedRecord] = useState<LeaveRecord | null>(null);
+  // ===== 请假申请相关状态 =====
+  const [modalVisible, setModalVisible] = useState(false); // 请假申请弹窗开关
+  const [form] = Form.useForm(); // 请假表单实例
 
+  // ===== 数据状态 =====
+  const [leaveRecords, setLeaveRecords] = useState<LeaveRecord[]>([]); // 请假/补卡/加班记录列表
+  const [leaveBalance, setLeaveBalance] = useState<LeaveBalance>({ annualRemaining: 0, compRemaining: 0 }); // 假期余额
+
+  // ===== 页面导航 =====
+  const navigate = useNavigate();
+
+  // ===== 加载状态 =====
+  const [loading, setLoading] = useState(true);
+
+  // ===== 审批进度相关状态 =====
+  const [progressOpen, setProgressOpen] = useState(false); // 审批进度弹窗开关
+  const [progressData, setProgressData] = useState<any>(null); // 审批进度数据
+  const [selectedRecord, setSelectedRecord] = useState<LeaveRecord | null>(null); // 当前选中的记录
+
+  // 初始化数据：组件挂载时获取请假记录和假期余额
   useEffect(() => {
     fetchLeaveRecords();
     fetchLeaveBalance();
   }, []);
 
+  // 获取请假记录：同时获取请假、补卡、加班三种类型的记录并合并排序
   const fetchLeaveRecords = async () => {
     try {
       const [leaveRes, makeupRes, overtimeRes] = await Promise.all([
@@ -84,6 +101,7 @@ const LeaveManagement: React.FC = () => {
         getMyOvertimesUsingGet(),
       ]);
 
+      // 转换请假记录格式
       const leaveList: LeaveRecord[] = (leaveRes.code === 0 && leaveRes.data ? leaveRes.data : []).map((r: any) => ({
         id: r.id,
         recordType: 'leave' as const,
@@ -98,6 +116,7 @@ const LeaveManagement: React.FC = () => {
         status: r.status === 1 ? 'approved' : (r.status === 2 ? 'rejected' : (r.status === 0 ? 'approving' : 'pending')),
       }));
 
+      // 转换补卡记录格式
       const makeupList: LeaveRecord[] = (makeupRes.code === 0 && makeupRes.data ? makeupRes.data : []).map((r: any) => ({
         id: r.id,
         recordType: 'makeup' as const,
@@ -112,6 +131,7 @@ const LeaveManagement: React.FC = () => {
         punchTypeText: r.punchTypeText,
       }));
 
+      // 转换加班记录格式
       const overtimeList: LeaveRecord[] = (overtimeRes.code === 0 && overtimeRes.data ? overtimeRes.data : []).map((r: any) => ({
         id: r.id,
         recordType: 'overtime' as const,
@@ -126,6 +146,7 @@ const LeaveManagement: React.FC = () => {
         overtimeTypeText: r.overtimeTypeText,
       }));
 
+      // 合并并按创建时间倒序排序
       const merged = [...leaveList, ...makeupList, ...overtimeList].sort((a, b) =>
         (b.createTime || '').localeCompare(a.createTime || ''),
       );
@@ -135,6 +156,7 @@ const LeaveManagement: React.FC = () => {
     }
   };
 
+  // 获取假期余额：调用后端接口查询年假和调休余额
   const fetchLeaveBalance = async () => {
     try {
       const res = await getBalanceUsingGet();
@@ -151,22 +173,27 @@ const LeaveManagement: React.FC = () => {
     }
   };
 
+  // 申请请假：跳转到个人请假页面
   const handleApply = () => navigate('/personal/leave');
 
+  // 查看审批进度：根据记录类型调用不同接口获取审批进度
   const handleViewProgress = async (record: LeaveRecord) => {
     setSelectedRecord(record);
     setProgressOpen(true);
     try {
       if (record.recordType === 'makeup') {
+        // 补卡记录使用专用审批进度接口
         const res = await getApprovalProgressUsingGet1({ id: record.id });
         setProgressData(res?.data ?? null);
       } else {
+        // 请假/加班使用通用审批进度接口
         const res = await getApprovalProgressUsingGet({ id: record.id });
         setProgressData(res?.data ?? null);
       }
     } catch (e) { console.error('pages/Attendance/LeaveManagement.tsx', e); setProgressData(null); }
   };
 
+  // 取消申请：根据记录类型调用不同的取消接口
   const handleCancel = async (record: LeaveRecord) => {
     try {
       let res: any;
@@ -179,14 +206,15 @@ const LeaveManagement: React.FC = () => {
       }
       if (res.code === 0) {
         message.success('已取消申请');
-        fetchLeaveRecords();
-        fetchLeaveBalance();
+        fetchLeaveRecords(); // 刷新记录列表
+        fetchLeaveBalance(); // 刷新余额
       }
     } catch (e) {
       message.error('取消失败');
     }
   };
 
+  // 提交请假申请：验证表单并调用后端接口提交
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
@@ -204,8 +232,8 @@ const LeaveManagement: React.FC = () => {
       if (res.code === 0) {
         message.success('请假申请已提交');
         setModalVisible(false);
-        fetchLeaveRecords();
-        fetchLeaveBalance();
+        fetchLeaveRecords(); // 刷新记录列表
+        fetchLeaveBalance(); // 刷新余额
       }
     } catch (e) {
       console.error('提交失败:', e);

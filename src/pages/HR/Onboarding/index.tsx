@@ -1,7 +1,8 @@
 import { ProTable, type ProColumns, type ActionType } from '@ant-design/pro-components';
 import { Button, Tag, message, Popconfirm, Tabs, Card, Typography, Modal, DatePicker } from 'antd';
 import { PlusOutlined, FileTextOutlined, ClockCircleOutlined, UserAddOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
+import { useNavigate } from '@umijs/max';
 import usePermission from '@/hooks/usePermission';
 import OnboardingFormModal from './components/OnboardingFormModal';
 import ConfirmModal from './components/ConfirmModal';
@@ -15,34 +16,71 @@ import type { OnboardingVO } from './types/onboarding';
 
 const { Title, Text } = Typography;
 
+// 入职申请状态映射表：将状态枚举值转换为显示文本和颜色
 const STATUS_MAP: Record<string, { color: string; text: string }> = {
   DRAFT:      { color: '#d9d9d9', text: '草稿' },
   APPROVING:  { color: '#faad14', text: '审批中' },
   APPROVED:   { color: '#1677ff', text: '已批准待入职' },
   REJECTED:   { color: '#ff4d4f', text: '已拒绝' },
   ONBOARDED:  { color: '#52c41a', text: '已入职' },
+  CANCELLED:  { color: '#8c8c8c', text: '已放弃' },
 };
 
+// 入职管理页面组件：管理候选人入职申请的全生命周期
 const OnboardingPage: React.FC = () => {
+  // ProTable表格引用：用于触发表格刷新
   const actionRef = useRef<ActionType>();
+  const navigate = useNavigate();
+  // 获取用户权限（是否可以添加员工）
   const { canAddEmployee } = usePermission();
-  const [activeTab, setActiveTab] = useState('');
-  const [formOpen, setFormOpen] = useState(false);
-  const [editRecord, setEditRecord] = useState<OnboardingVO | null>(null);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmId, setConfirmId] = useState<number>();
-  const [hireDateOpen, setHireDateOpen] = useState(false);
-  const [hireDateId, setHireDateId] = useState<number>();
-  const [hireDateValue, setHireDateValue] = useState<string>('');
-  const [hireDateLoading, setHireDateLoading] = useState(false);
-  const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
-  const [rejectionText, setRejectionText] = useState('');
-  const [stats, setStats] = useState({ draft: 0, approving: 0, approved: 0, onboarded: 0 });
 
+  // ===== 筛选状态 =====
+  const [activeTab, setActiveTab] = useState(''); // 当前选中的状态标签
+  const activeTabRef = useRef(''); // 同步 ref，确保 request 闭包读到最新值
+
+  // ===== 表单弹窗状态 =====
+  const [formOpen, setFormOpen] = useState(false); // 入职申请表单弹窗开关
+  const [editRecord, setEditRecord] = useState<OnboardingVO | null>(null); // 当前编辑的入职记录
+
+  // ===== 确认入职状态 =====
+  const [confirmOpen, setConfirmOpen] = useState(false); // 确认入职弹窗开关
+  const [confirmId, setConfirmId] = useState<number>(); // 待确认入职的记录ID
+
+  // ===== 修改入职日期状态 =====
+  const [hireDateOpen, setHireDateOpen] = useState(false); // 修改入职日期弹窗开关
+  const [hireDateId, setHireDateId] = useState<number>(); // 待修改的记录ID
+  const [hireDateValue, setHireDateValue] = useState<string>(''); // 新入职日期值
+  const [hireDateLoading, setHireDateLoading] = useState(false); // 修改日期加载状态
+
+  // ===== 拒绝原因状态 =====
+  const [rejectionModalOpen, setRejectionModalOpen] = useState(false); // 拒绝原因弹窗开关
+  const [rejectionText, setRejectionText] = useState(''); // 拒绝原因文本
+
+  // ===== 统计数据状态 =====
+  const [stats, setStats] = useState({ draft: 0, approving: 0, approved: 0, onboarded: 0 }); // 各状态数量统计
+
+  // 初始化：组件挂载时获取统计数据
   useEffect(() => {
     fetchStats();
   }, []);
 
+  // 稳定的请求函数：通过 ref 读取最新 activeTab，避免闭包捕获旧值
+  const fetchData = useCallback(async (p: any) => {
+    const tab = activeTabRef.current;
+    const res = await listOnboarding({
+      keyword: (p.candidateName as string) || undefined,
+      statuses: tab ? [tab] : undefined,
+      page: p.current ?? 1,
+      size: p.pageSize ?? 10,
+    });
+    return {
+      data: res.data?.records ?? [],
+      total: res.data?.total ?? 0,
+      success: res.code === 0,
+    };
+  }, []);
+
+  // 获取统计数据：调用后端接口获取各状态的入职申请数量
   const fetchStats = async () => {
     try {
       const res = await getOnboardingStats();
@@ -58,11 +96,13 @@ const OnboardingPage: React.FC = () => {
     }
   };
 
+  // 表格列配置：定义入职申请列表的显示列
   const columns: ProColumns<OnboardingVO>[] = [
     {
       title: '姓名', dataIndex: 'candidateName', width: 120, ellipsis: true,
       render: (name: string) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
+          {/* 姓名首字母头像 */}
           <div
             style={{
               width: 32,
@@ -90,15 +130,19 @@ const OnboardingPage: React.FC = () => {
     { title: '职位', dataIndex: 'positionName', width: 120, search: false },
     {
       title: '录用类型', dataIndex: 'employmentType', width: 90, search: false,
-      render: (_, r) => (
-        <Tag color={r.employmentType === 'FULL_TIME' ? '#1677ff' : '#faad14'}>
-          {r.employmentType === 'FULL_TIME' ? '全职' : '兼职'}
-        </Tag>
-      ),
+      render: (_, r) => {
+        const typeMap: Record<string, { color: string; text: string }> = {
+          FULL_TIME: { color: '#1677ff', text: '全职' },
+          PART_TIME: { color: '#faad14', text: '兼职' },
+          INTERN:    { color: '#52c41a', text: '实习' },
+        };
+        const cfg = typeMap[r.employmentType] || { color: '#d9d9d9', text: r.employmentType || '-' };
+        return <Tag color={cfg.color}>{cfg.text}</Tag>;
+      },
     },
     {
       title: '预计入职日期', dataIndex: 'hireDate', width: 130, search: false,
-      render: (date: string) => date || '-',
+      render: (date: string) => date ? dayjs(date).format('YYYY-MM-DD') : '-',
     },
     {
       title: '状态', dataIndex: 'approvalStatus', width: 120,
@@ -110,6 +154,7 @@ const OnboardingPage: React.FC = () => {
           APPROVED: '#1677ff',
           REJECTED: '#ff4d4f',
           ONBOARDED: '#52c41a',
+          CANCELLED: '#8c8c8c',
         };
         return cfg ? (
           <Tag color={colorMap[r.approvalStatus ?? 'DRAFT']} style={{ fontWeight: 500 }}>
@@ -122,15 +167,17 @@ const OnboardingPage: React.FC = () => {
       valueType: 'select',
       valueEnum: {
         DRAFT: '草稿', APPROVING: '审批中', APPROVED: '已批准待入职',
-        REJECTED: '已拒绝', ONBOARDED: '已入职',
+        REJECTED: '已拒绝', ONBOARDED: '已入职', CANCELLED: '已放弃',
       },
     },
     {
       title: '操作', key: 'action', width: 280, fixed: 'right', search: false,
       render: (_, r) => {
         const status = (r as any).approvalStatus;
-        const isDraft = !r.recordId;
-        const isFirstStep = (r as any).approvalProgress?.startsWith('1/');
+        const isDraft = !r.recordId; // 判断是否为草稿状态
+        const isFirstStep = (r as any).approvalProgress?.startsWith('1/'); // 判断是否在审批第一步
+
+        // 草稿状态：编辑、提交审批、删除
         if (isDraft) return (
           <>
             <a onClick={() => { setEditRecord(r); setFormOpen(true); }} style={{ marginRight: 8 }}>编辑</a>
@@ -142,6 +189,8 @@ const OnboardingPage: React.FC = () => {
             </Popconfirm>
           </>
         );
+
+        // 审批中状态：查看进度、撤回（仅限第一步）、删除
         if (status === 'APPROVING') return (
           <>
             <a href={`/approval/detail/${r.recordId}`} style={{ marginRight: 8 }}>查看进度</a>
@@ -159,6 +208,8 @@ const OnboardingPage: React.FC = () => {
             </Popconfirm>
           </>
         );
+
+        // 已批准状态：确认入职、修改日期、标记放弃
         if (status === 'APPROVED') return (
           <>
             <a onClick={() => { setConfirmId(r.id); setConfirmOpen(true); }} style={{ marginRight: 8, color: '#1677ff' }}>确认入职</a>
@@ -172,6 +223,8 @@ const OnboardingPage: React.FC = () => {
             </Popconfirm>
           </>
         );
+
+        // 已拒绝状态：查看原因、重新发起
         if (status === 'REJECTED') return (
           <>
             <a onClick={() => {
@@ -187,7 +240,12 @@ const OnboardingPage: React.FC = () => {
             </Popconfirm>
           </>
         );
-        return <span style={{ color: '#999' }}>完成入职</span>;
+
+        // 已放弃状态
+        if (status === 'CANCELLED') return <span style={{ color: '#8c8c8c' }}>已放弃</span>;
+
+        // 已入职状态：显示确认入职
+        return <span style={{ color: '#999' }}>确认入职</span>;
       },
     },
   ];
@@ -215,7 +273,7 @@ const OnboardingPage: React.FC = () => {
             <Button
               type="primary"
               icon={<PlusOutlined />}
-              onClick={() => { setEditRecord(null); setFormOpen(true); }}
+              onClick={() => navigate('/employee/add')}
               style={{ borderRadius: 6, height: 36, padding: '0 20px' }}
             >
               新建入职申请
@@ -268,7 +326,7 @@ const OnboardingPage: React.FC = () => {
       <div style={{ padding: 24 }}>
         <Tabs
           activeKey={activeTab}
-          onChange={(key) => { setActiveTab(key); actionRef.current?.reload(); }}
+          onChange={(key) => { setActiveTab(key); activeTabRef.current = key; actionRef.current?.reload(); }}
           items={[
             { key: '', label: '全部' },
             { key: 'DRAFT', label: '草稿' },
@@ -276,6 +334,7 @@ const OnboardingPage: React.FC = () => {
             { key: 'APPROVED', label: '已批准待入职' },
             { key: 'REJECTED', label: '已拒绝' },
             { key: 'ONBOARDED', label: '已入职' },
+            { key: 'CANCELLED', label: '已放弃' },
           ]}
           style={{ marginBottom: 16 }}
         />
@@ -285,20 +344,7 @@ const OnboardingPage: React.FC = () => {
           columns={columns}
           rowKey="id"
           scroll={{ x: 1000 }}
-          params={{ statuses: activeTab ? [activeTab] : undefined }}
-          request={async (p) => {
-            const res = await listOnboarding({
-              keyword: (p.candidateName as string) || undefined,
-              statuses: activeTab ? [activeTab] : undefined,
-              page: p.current ?? 1,
-              size: p.pageSize ?? 10,
-            });
-            return {
-              data: res.data?.records ?? [],
-              total: res.data?.total ?? 0,
-              success: res.code === 0,
-            };
-          }}
+          request={fetchData}
           search={{ labelWidth: 'auto', collapsed: true }}
           pagination={{ showSizeChanger: true, showTotal: (total) => `共 ${total} 条` }}
           headerTitle={null}
