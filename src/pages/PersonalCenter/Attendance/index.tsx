@@ -22,16 +22,19 @@ const STATUS_MAP: Record<number, { color: string; text: string; bg: string }> = 
   7: { color: '#1890ff', text: '下班缺卡', bg: '#f0f5ff' },
   8: { color: '#87d068', text: '休息', bg: '#f6ffed' },
   9: { color: '#ff7a45', text: '迟到&早退', bg: '#fff2e8' },
+  10: { color: '#ff7a00', text: '严重迟到', bg: '#fff2e8' },
 };
 
 /** 按文字匹配颜色（后端 dailyStatus 的 code 和前端定义可能不一致，用文字兜底） */
 const COLOR_BY_TEXT: Record<string, string> = {
   '正常': '#52c41a', '迟到': '#faad14', '早退': '#faad14',
   '旷工': '#ff4d4f', '请假': '#1677ff', '缺卡': '#8c8c8c',
+  '迟到&早退': '#ff7a45', '严重迟到': '#ff7a00',
 };
 const BG_BY_TEXT: Record<string, string> = {
   '正常': '#f6ffed', '迟到': '#fffbe6', '早退': '#fffbe6',
   '旷工': '#fff2f0', '请假': '#f0f5ff', '缺卡': '#fafafa',
+  '迟到&早退': '#fff2e8', '严重迟到': '#fff2e8',
 };
 
 const MyAttendance: React.FC = () => {
