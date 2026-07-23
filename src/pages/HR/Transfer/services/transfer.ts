@@ -94,3 +94,28 @@ export function deleteTransfer(id: number) {
 export function getTransferStats() {
   return request.get<{ code: number; data: Record<string, number>; message: string }>(`${BASE}/stats`);
 }
+
+/** 撤回审批中的调岗申请 */
+export function revokeTransfer(id: number) {
+  return request.post(`${BASE}/${id}/revoke`);
+}
+
+/** 放弃已批准的调岗申请 */
+export function abandonTransfer(id: number) {
+  return request.post(`${BASE}/${id}/abandon`);
+}
+
+/** 确认调岗生效 */
+export function confirmTransfer(id: number) {
+  return request.post(`${BASE}/${id}/confirm`);
+}
+
+/** 修改调岗生效日期 */
+export function updateTransferDate(id: number, date: string) {
+  return request.put(`${BASE}/${id}/transfer-date`, null, { params: { date } });
+}
+
+/** 重新发起已拒绝的调岗申请 */
+export function resubmitTransfer(id: number) {
+  return request.post(`${BASE}/${id}/resubmit`);
+}

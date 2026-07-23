@@ -5,7 +5,7 @@ import { listEmployeesUsingGet } from '@/api/employeeController';
 import type { RegularizationAddRequest, RegularizationVO } from '../types/regularization';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import {
-  Button, Card, Form, Input, Select, InputNumber, message, Space, Descriptions, Divider, Spin, Modal,
+  Button, Card, Form, Input, Select, InputNumber, message, Space, Descriptions, Divider, Modal,
 } from 'antd';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from '@umijs/max';
@@ -23,7 +23,6 @@ const RegularizationAddPage: React.FC = () => {
   const [empList, setEmpList] = useState<{ label: string; value: number }[]>([]);
   const [selectedEmp, setSelectedEmp] = useState<any>(null);
   const [probationMonths, setProbationMonths] = useState(3);
-  const [loading, setLoading] = useState(true);
 
   const resultValue = Form.useWatch('result', form);
 
@@ -70,7 +69,6 @@ const RegularizationAddPage: React.FC = () => {
         hireDate: editData.probationStartDate,
       });
     }
-    setLoading(false);
   }, []);
 
   const handleSubmit = async (submitNow: boolean) => {
@@ -122,8 +120,6 @@ const RegularizationAddPage: React.FC = () => {
     const end = dayjs(selectedEmp.hireDate).add(probationMonths, 'month');
     return `${end.diff(dayjs(), 'day')} 天`;
   };
-
-  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}><Spin size="large" /></div>;
 
   const inputStyle = { borderRadius: 6 };
 

@@ -7,7 +7,7 @@ import { listPositionsUsingGet } from '@/api/positionController';
 import type { TransferAddRequest, TransferVO } from '../types/transfer';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import {
-  Button, Card, Form, Input, Select, InputNumber, DatePicker, message, Space, Descriptions, Divider, Spin, Modal,
+  Button, Card, Form, Input, Select, InputNumber, DatePicker, message, Space, Descriptions, Divider, Modal,
 } from 'antd';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from '@umijs/max';
@@ -26,8 +26,6 @@ const TransferAddPage: React.FC = () => {
   const [deptList, setDeptList] = useState<{ label: string; value: number }[]>([]);
   const [posList, setPosList] = useState<{ label: string; value: number }[]>([]);
   const [selectedEmp, setSelectedEmp] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
   const fetchEmpList = async () => {
     try {
       const res = await listEmployeesUsingGet({ page: 1, size: 500 });
@@ -75,7 +73,9 @@ const TransferAddPage: React.FC = () => {
   };
 
   useEffect(() => {
-    Promise.all([fetchEmpList(), fetchDeptList(), fetchPosList()]).finally(() => setLoading(false));
+    fetchEmpList();
+    fetchDeptList();
+    fetchPosList();
     if (editData) {
       form.setFieldsValue({
         ...editData,
@@ -131,8 +131,6 @@ const TransferAddPage: React.FC = () => {
       navigate('/hr/transfer');
     }
   };
-
-  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}><Spin size="large" /></div>;
 
   const inputStyle = { borderRadius: 6 };
 

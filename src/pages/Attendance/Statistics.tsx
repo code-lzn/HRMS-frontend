@@ -24,18 +24,20 @@ const STATUS_COLOR_MAP: Record<string, string> = {
   NORMAL: '#52c41a', LATE: '#faad14', EARLY: '#fa8c16',
   MISSING: '#bfbfbf', LEAVE: '#1890ff', ABSENT: '#ff4d4f',
   MISS_IN: '#722ed1', MISS_OUT: '#1890ff', REST: '#87d068',
+  SEVERE_LATE: '#ff7a00',
 };
 
 // 考勤状态文本映射表：将状态枚举值转换为中文显示
 const STATUS_TEXT_MAP: Record<string, string> = {
   NORMAL: '正常', LATE: '迟到', EARLY: '早退', MISSING: '缺卡',
   LEAVE: '请假', ABSENT: '旷工', MISS_IN: '上班缺卡', MISS_OUT: '下班缺卡',
+  SEVERE_LATE: '严重迟到',
 };
 
 // 考勤状态数字映射表：将数字状态值转换为枚举字符串
 const STATUS_NUM_MAP: Record<number, string> = {
   0: 'NORMAL', 1: 'LATE', 2: 'EARLY', 3: 'MISSING', 4: 'LEAVE', 5: 'ABSENT',
-  6: 'MISS_IN', 7: 'MISS_OUT', 8: 'REST', 9: 'LATE_AND_EARLY',
+  6: 'MISS_IN', 7: 'MISS_OUT', 8: 'REST', 9: 'LATE_AND_EARLY', 10: 'SEVERE_LATE',
 };
 
 // 部门选项接口定义

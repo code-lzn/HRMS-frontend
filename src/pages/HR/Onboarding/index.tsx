@@ -143,7 +143,7 @@ const OnboardingPage: React.FC = () => {
     },
     {
       title: '预计入职日期', dataIndex: 'hireDate', width: 130, search: false,
-      render: (date: string) => date || '-',
+      render: (date: string) => date ? dayjs(date).format('YYYY-MM-DD') : '-',
     },
     {
       title: '状态', dataIndex: 'approvalStatus', width: 120,

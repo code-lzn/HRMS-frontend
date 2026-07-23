@@ -5,7 +5,7 @@ import { listEmployeesUsingGet } from '@/api/employeeController';
 import type { ResignationAddRequest, ResignationVO } from '../types/resignation';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import {
-  Button, Card, Form, Input, Select, DatePicker, message, Space, Descriptions, Divider, Spin, Modal,
+  Button, Card, Form, Input, Select, DatePicker, message, Space, Descriptions, Divider, Modal,
 } from 'antd';
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from '@umijs/max';
@@ -22,7 +22,6 @@ const ResignationAddPage: React.FC = () => {
   const [dirty, setDirty] = useState(false);
   const [empList, setEmpList] = useState<{ label: string; value: number }[]>([]);
   const [selectedEmp, setSelectedEmp] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
 
   const fetchEmpList = async () => {
     try {
@@ -47,7 +46,7 @@ const ResignationAddPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchEmpList().finally(() => setLoading(false));
+    fetchEmpList();
     if (editData) {
       form.setFieldsValue({
         ...editData,
@@ -104,8 +103,6 @@ const ResignationAddPage: React.FC = () => {
       navigate('/hr/resignation');
     }
   };
-
-  if (loading) return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}><Spin size="large" /></div>;
 
   const inputStyle = { borderRadius: 6 };
 

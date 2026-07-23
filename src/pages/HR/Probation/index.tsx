@@ -9,6 +9,7 @@ import {
   updateRegularizationDate, resubmitRegularization,
   getRegularizationStats,
 } from './services/regularization';
+import dayjs from 'dayjs';
 import type { RegularizationVO } from './types/regularization';
 
 // 转正申请状态映射表：将状态枚举值转换为显示文本和颜色
@@ -119,7 +120,7 @@ const ProbationPage: React.FC = () => {
     { title: '职位', dataIndex: 'positionName', width: 120, search: false },
     {
       title: '试用期截止', dataIndex: 'probationEndDate', width: 130, search: false,
-      render: (date: string) => date || '-',
+      render: (date: string) => date ? dayjs(date).format('YYYY-MM-DD') : '-',
     },
     {
       title: '考核分数', dataIndex: 'probationScore', width: 90, search: false,

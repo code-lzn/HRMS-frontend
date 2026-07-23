@@ -129,7 +129,7 @@ const ResignationPage: React.FC = () => {
     { title: '职位', dataIndex: 'positionName', width: 120, search: false },
     {
       title: '离职日期', dataIndex: 'resignDate', width: 130, search: false,
-      render: (date: string) => date || '-',
+      render: (date: string) => date ? dayjs(date).format('YYYY-MM-DD') : '-',
     },
     {
       title: '原因', dataIndex: 'resignReasonType', width: 100, search: false,

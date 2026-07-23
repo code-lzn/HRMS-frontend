@@ -1,21 +1,25 @@
 import { ProTable, type ProColumns, type ActionType } from '@ant-design/pro-components';
-import { Button, Tag, Popconfirm, Tabs, Card, Typography } from 'antd';
-import { PlusOutlined, FileTextOutlined, ClockCircleOutlined, SwapOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { Button, Tag, message, Popconfirm, Tabs, Card, Typography, Modal, DatePicker } from 'antd';
+import { PlusOutlined, FileTextOutlined, ClockCircleOutlined, SwapOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from '@umijs/max';
 import {
   listTransfer, deleteTransfer, submitDraft,
+  revokeTransfer, abandonTransfer, confirmTransfer,
+  updateTransferDate, resubmitTransfer,
   getTransferStats,
 } from './services/transfer';
+import dayjs from 'dayjs';
 import type { TransferVO } from './types/transfer';
 
 // 调岗申请状态映射表：将状态枚举值转换为显示文本和颜色
 const STATUS_MAP: Record<string, { color: string; text: string }> = {
   DRAFT:    { color: '#d9d9d9', text: '草稿' },
   APPROVING:{ color: '#1677ff', text: '审批中' },
-  APPROVED: { color: '#52c41a', text: '已通过' },
+  APPROVED: { color: '#faad14', text: '待调岗' },
   EFFECTIVE:{ color: '#52c41a', text: '已生效' },
   REJECTED: { color: '#ff4d4f', text: '已拒绝' },
+  CANCELLED:{ color: '#8c8c8c', text: '已放弃' },
 };
 
 const { Title, Text } = Typography;
@@ -32,6 +36,16 @@ const TransferPage: React.FC = () => {
 
   // ===== 统计数据状态 =====
   const [stats, setStats] = useState({ draft: 0, approving: 0, approved: 0, effective: 0 });
+
+  // ===== 拒绝原因弹窗 =====
+  const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
+  const [rejectionText, setRejectionText] = useState('');
+
+  // ===== 修改调岗日期弹窗 =====
+  const [transferDateOpen, setTransferDateOpen] = useState(false);
+  const [transferDateId, setTransferDateId] = useState<number>();
+  const [transferDateValue, setTransferDateValue] = useState<string>('');
+  const [transferDateLoading, setTransferDateLoading] = useState(false);
 
   // 初始化：组件挂载时获取统计数据
   useEffect(() => {
@@ -121,7 +135,7 @@ const TransferPage: React.FC = () => {
     },
     {
       title: '生效日期', dataIndex: 'effectiveDate', width: 130, search: false,
-      render: (date: string) => date || '-',
+      render: (date: string) => date ? dayjs(date).format('YYYY-MM-DD') : '-',
     },
     {
       title: '状态', dataIndex: 'status', width: 100,
@@ -131,40 +145,82 @@ const TransferPage: React.FC = () => {
       },
       valueType: 'select',
       valueEnum: {
-        DRAFT: '草稿', APPROVING: '审批中', APPROVED: '已通过',
-        EFFECTIVE: '已生效', REJECTED: '已拒绝',
+        DRAFT: '草稿', APPROVING: '审批中', APPROVED: '待调岗',
+        REJECTED: '已拒绝', EFFECTIVE: '已生效', CANCELLED: '已放弃',
       },
     },
     {
-      title: '操作', key: 'action', width: 150, fixed: 'right', search: false,
+      title: '操作', key: 'action', width: 300, fixed: 'right', search: false,
       render: (_, r) => {
         const isDraft = !r.recordId;
+        const isFirstStep = (r as any).approvalProgress?.startsWith('1/');
 
         // 草稿状态：编辑、提交审批、删除
         if (isDraft) return (
           <>
-            <a onClick={() => { navigate('/hr/transfer/add', { state: { editData: r } }); }} style={{ marginRight: 8 }}>编辑</a>
-            <a onClick={() => submitDraft(r.id).then(() => actionRef.current?.reload())} style={{ marginRight: 8 }}>提交审批</a>
-            <Popconfirm title="确定删除？" onConfirm={() => deleteTransfer(r.id).then(() => actionRef.current?.reload())}>
+            <a onClick={() => navigate('/hr/transfer/add', { state: { editData: r } })} style={{ marginRight: 8 }}>编辑</a>
+            <a onClick={() => submitDraft(r.id).then(() => { actionRef.current?.reload(); fetchStats(); })} style={{ marginRight: 8 }}>提交审批</a>
+            <Popconfirm title="确定删除？" onConfirm={() => deleteTransfer(r.id).then(() => { actionRef.current?.reload(); fetchStats(); })}>
               <a style={{ color: '#ff4d4f' }}>删除</a>
             </Popconfirm>
           </>
         );
 
-        // 审批中状态：查看审批进度
+        // 审批中状态：可撤回（仅第一步）、查看进度
         if (r.approvalStatus === 'APPROVING' || r.status === 'APPROVING') return (
-          <a href={`/approval/detail/${r.recordId}`}>查看审批进度</a>
+          <>
+            {isFirstStep && (
+              <Popconfirm title="确定撤回？撤回后恢复为草稿" onConfirm={() =>
+                revokeTransfer(r.id).then(() => { message.success('已撤回'); actionRef.current?.reload(); fetchStats(); }).catch((e: any) => message.error(e?.message || '撤回失败'))
+              }>
+                <a style={{ color: '#faad14', marginRight: 8 }}>撤回</a>
+              </Popconfirm>
+            )}
+            <a href={`/approval/detail/${r.recordId}`}>查看进度</a>
+          </>
         );
 
-        // 已通过/已生效状态：显示完成提示
-        if (r.approvalStatus === 'APPROVED' || r.status === 'APPROVED') return (
-          <span style={{ color: '#999' }}>已生效</span>
+        // 已批准待调岗：修改调岗日期、标记放弃、确认调岗
+        if (r.status === 'APPROVED') return (
+          <>
+            <a onClick={() => { setTransferDateId(r.id); setTransferDateValue(''); setTransferDateOpen(true); }} style={{ marginRight: 8 }}>
+              修改日期
+            </a>
+            <Popconfirm title="确定放弃该调岗申请？" onConfirm={() =>
+              abandonTransfer(r.id).then(() => { message.success('已标记放弃'); actionRef.current?.reload(); fetchStats(); }).catch((e: any) => message.error(e?.message || '操作失败'))
+            }>
+              <a style={{ color: '#ff4d4f', marginRight: 8 }}>标记放弃</a>
+            </Popconfirm>
+            <Popconfirm title="确定确认调岗？员工信息将立即更新" onConfirm={() =>
+              confirmTransfer(r.id).then(() => { message.success('调岗已生效'); actionRef.current?.reload(); fetchStats(); }).catch((e: any) => message.error(e?.message || '操作失败'))
+            }>
+              <a style={{ color: '#1677ff' }}>确认调岗</a>
+            </Popconfirm>
+          </>
         );
 
-        // 已拒绝状态：重新编辑
+        // 已拒绝状态：查看原因、重新发起
         if (r.approvalStatus === 'REJECTED' || r.status === 'REJECTED') return (
-          <a onClick={() => { navigate('/hr/transfer/add', { state: { editData: r } }); }}>重新编辑</a>
+          <>
+            <a onClick={() => {
+              setRejectionText((r as any).rejectionReason || '未填写拒绝原因');
+              setRejectionModalOpen(true);
+            }} style={{ marginRight: 8 }}>
+              查看原因
+            </a>
+            <Popconfirm title="确定重新发起审批？" onConfirm={() =>
+              resubmitTransfer(r.id).then(() => { message.success('已重新发起'); actionRef.current?.reload(); fetchStats(); }).catch((e: any) => message.error(e?.message || '重新发起失败'))
+            }>
+              <a style={{ color: '#1677ff' }}>重新发起</a>
+            </Popconfirm>
+          </>
         );
+
+        // 已放弃状态
+        if (r.status === 'CANCELLED') return <span style={{ color: '#8c8c8c' }}>已放弃</span>;
+
+        // 已生效状态
+        if (r.status === 'EFFECTIVE') return <span style={{ color: '#52c41a' }}>已生效</span>;
 
         return null;
       },
@@ -174,7 +230,7 @@ const TransferPage: React.FC = () => {
   const statCards = [
     { label: '草稿', value: stats.draft, icon: <FileTextOutlined />, color: '#d9d9d9', bgColor: '#f5f5f5', borderColor: '#e8e8e8' },
     { label: '审批中', value: stats.approving, icon: <ClockCircleOutlined />, color: '#d48806', bgColor: '#fffbe6', borderColor: '#ffe58f' },
-    { label: '已通过', value: stats.approved, icon: <SwapOutlined />, color: '#1890ff', bgColor: '#e6f7ff', borderColor: '#91d5ff' },
+    { label: '待调岗', value: stats.approved, icon: <SwapOutlined />, color: '#fa8c16', bgColor: '#fff7e6', borderColor: '#ffd591' },
     { label: '已生效', value: stats.effective, icon: <CheckCircleOutlined />, color: '#52c41a', bgColor: '#f6ffed', borderColor: '#b7eb8f' },
   ];
 
@@ -248,8 +304,10 @@ const TransferPage: React.FC = () => {
             { key: '', label: '全部' },
             { key: 'DRAFT', label: '草稿' },
             { key: 'APPROVING', label: '审批中' },
-            { key: 'APPROVED', label: '已通过' },
+            { key: 'APPROVED', label: '待调岗' },
             { key: 'REJECTED', label: '已拒绝' },
+            { key: 'EFFECTIVE', label: '已生效' },
+            { key: 'CANCELLED', label: '已放弃' },
           ]}
           style={{ marginBottom: 16 }}
         />
@@ -258,7 +316,7 @@ const TransferPage: React.FC = () => {
           actionRef={actionRef}
           columns={columns}
           rowKey="id"
-          scroll={{ x: 900 }}
+          scroll={{ x: 1200 }}
           request={fetchData}
           search={{ labelWidth: 'auto', collapsed: true }}
           pagination={{ showSizeChanger: true, showTotal: (total) => `共 ${total} 条` }}
@@ -266,6 +324,48 @@ const TransferPage: React.FC = () => {
           toolbar={{ actions: [] }}
         />
       </div>
+
+      <Modal
+        title="拒绝原因"
+        open={rejectionModalOpen}
+        onCancel={() => setRejectionModalOpen(false)}
+        footer={<Button onClick={() => setRejectionModalOpen(false)}>关闭</Button>}
+        destroyOnClose
+      >
+        <div style={{ padding: '12px 0' }}>
+          <ExclamationCircleOutlined style={{ color: '#ff4d4f', fontSize: 16, marginRight: 8 }} />
+          {rejectionText}
+        </div>
+      </Modal>
+
+      <Modal
+        title="修改调岗日期"
+        open={transferDateOpen}
+        onCancel={() => setTransferDateOpen(false)}
+        onOk={async () => {
+          if (!transferDateValue) { message.warning('请选择日期'); return; }
+          setTransferDateLoading(true);
+          try {
+            await updateTransferDate(transferDateId!, transferDateValue);
+            message.success('调岗日期已修改');
+            setTransferDateOpen(false);
+            actionRef.current?.reload();
+            fetchStats();
+          } catch (e: any) {
+            if (e?.message) message.error(e.message);
+          } finally {
+            setTransferDateLoading(false);
+          }
+        }}
+        confirmLoading={transferDateLoading}
+        destroyOnClose
+      >
+        <DatePicker
+          style={{ width: '100%' }}
+          placeholder="选择新的调岗日期"
+          onChange={(date) => setTransferDateValue(date?.format('YYYY-MM-DD') || '')}
+        />
+      </Modal>
 
     </div>
   );
