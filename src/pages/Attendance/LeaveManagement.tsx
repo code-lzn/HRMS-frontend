@@ -41,6 +41,7 @@ const STATUS_MAP: Record<string, { color: string; text: string }> = {
   approving: { color: '#1890ff', text: '审批中' },
   rejected: { color: '#ff4d4f', text: '已拒绝' },
   pending: { color: '#faad14', text: '待审批' },
+  cancelled: { color: '#999', text: '已撤回' },
 };
 
 // 请假记录数据接口定义
@@ -113,7 +114,7 @@ const LeaveManagement: React.FC = () => {
         approverName: r.employeeName || '待分配',
         overtimeTypeText: (r as any).timeSlotText,
         createTime: r.createTime,
-        status: r.status === 1 ? 'approved' : (r.status === 2 ? 'rejected' : (r.status === 0 ? 'approving' : 'pending')),
+        status: r.status === 1 ? 'approved' : (r.status === 2 ? 'rejected' : (r.status === 0 ? 'approving' : 'cancelled')),
       }));
 
       // 转换补卡记录格式
@@ -127,7 +128,7 @@ const LeaveManagement: React.FC = () => {
         reason: r.reason,
         approverName: r.employeeName || '待分配',
         createTime: r.createTime,
-        status: r.status === 1 ? 'approved' : (r.status === 2 ? 'rejected' : (r.status === 0 ? 'approving' : 'pending')),
+        status: r.status === 1 ? 'approved' : (r.status === 2 ? 'rejected' : (r.status === 0 ? 'approving' : 'cancelled')),
         punchTypeText: r.punchTypeText,
       }));
 
@@ -142,12 +143,13 @@ const LeaveManagement: React.FC = () => {
         reason: r.reason,
         approverName: r.employeeName || '待分配',
         createTime: r.createTime,
-        status: r.status === 1 ? 'approved' : (r.status === 2 ? 'rejected' : (r.status === 0 ? 'approving' : 'pending')),
+        status: r.status === 1 ? 'approved' : (r.status === 2 ? 'rejected' : (r.status === 0 ? 'approving' : 'cancelled')),
         overtimeTypeText: r.overtimeTypeText,
       }));
 
       // 合并并按创建时间倒序排序
-      const merged = [...leaveList, ...makeupList, ...overtimeList].sort((a, b) =>
+      const merged = [...leaveList, ...makeupList, ...overtimeList]
+        .sort((a, b) =>
         (b.createTime || '').localeCompare(a.createTime || ''),
       );
       setLeaveRecords(merged);

@@ -54,6 +54,22 @@ export async function cancelUsingPost2(
   );
 }
 
+/** deleteOvertime DELETE /api/attendance/overtime/${param0} */
+export async function deleteOvertimeUsingDelete(
+  params: API.deleteOvertimeUsingDELETEParams,
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseBoolean_>(
+    `/api/attendance/overtime/${param0}`,
+    {
+      method: 'DELETE',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}
+
 /** getMyOvertimes GET /api/attendance/overtime/my */
 export async function getMyOvertimesUsingGet(options?: { [key: string]: any }) {
   return request<API.BaseResponseListOvertimeVO_>(

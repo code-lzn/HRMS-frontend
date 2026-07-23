@@ -62,10 +62,42 @@ export async function cancelUsingPost(
   );
 }
 
+/** deleteLeave DELETE /api/attendance/leave/${param0} */
+export async function deleteLeaveUsingDelete(
+  params: API.deleteLeaveUsingDELETEParams,
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseBoolean_>(
+    `/api/attendance/leave/${param0}`,
+    {
+      method: 'DELETE',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}
+
 /** getMyLeaves GET /api/attendance/leave/my */
 export async function getMyLeavesUsingGet(options?: { [key: string]: any }) {
   return request<API.BaseResponseListLeaveVO_>('/api/attendance/leave/my', {
     method: 'GET',
     ...(options || {}),
   });
+}
+
+/** resubmit POST /api/attendance/leave/resubmit/${param0} */
+export async function resubmitUsingPost(
+  params: { id: number | string; [key: string]: any },
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseBoolean_>(
+    `/api/attendance/leave/resubmit/${param0}`,
+    {
+      method: 'POST',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
 }

@@ -1,7 +1,7 @@
-import { applyUsingPost, cancelUsingPost, getBalanceUsingGet, getMyLeavesUsingGet } from '@/api/leaveController';
+import { applyUsingPost, cancelUsingPost, deleteLeaveUsingDelete, getBalanceUsingGet, getMyLeavesUsingGet, resubmitUsingPost } from '@/api/leaveController';
 import { getApprovalProgressUsingGet } from '@/api/leaveController';
-import { getMyMakeupPunchesUsingGet, getApprovalProgressUsingGet1, cancelUsingPost1 } from '@/api/makeupPunchController';
-import { getMyOvertimesUsingGet, cancelUsingPost2, getApprovalProgressUsingGet2 } from '@/api/overtimeController';
+import { applyUsingPost1, deleteMakeupPunchUsingDelete, getMyMakeupPunchesUsingGet, getApprovalProgressUsingGet1, cancelUsingPost1 } from '@/api/makeupPunchController';
+import { applyUsingPost2, deleteOvertimeUsingDelete, getMyOvertimesUsingGet, cancelUsingPost2, getApprovalProgressUsingGet2 } from '@/api/overtimeController';
 import { CalendarOutlined, CoffeeOutlined, MedicineBoxOutlined, ScheduleOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
@@ -88,28 +88,59 @@ const MyLeave: React.FC = () => {
     },
     {
       title: '操作',
-      width: 200,
-      render: (_, record) => (
-        <Space>
-          <Button
-            type="link"
-            size="small"
-            onClick={() => handleViewProgress(record)}
-          >
-            审批进度
-          </Button>
-          {record.status === 0 && (
-            <Button
-              type="link"
-              size="small"
-              danger
-              onClick={() => handleCancel(record)}
-            >
-              取消
-            </Button>
-          )}
-        </Space>
-      ),
+      width: 280,
+      render: (_, record) => {
+        const isLeave = !record._recordType || record._recordType === 'leave';
+        return (
+          <Space>
+            {record.status === 0 && (
+              <>
+                <Button type="link" size="small" onClick={() => handleViewProgress(record)}>
+                  查看审批进度
+                </Button>
+                <Button type="link" size="small" danger onClick={() => handleCancel(record)}>
+                  撤回
+                </Button>
+              </>
+            )}
+            {record.status === 3 && (
+              <>
+                {isLeave && (
+                  <Button type="link" size="small" onClick={() => handleResubmit(record)}>
+                    重新提交
+                  </Button>
+                )}
+                <Button type="link" size="small" onClick={() => handleViewProgress(record)}>
+                  查看详情
+                </Button>
+                <Button type="link" size="small" danger onClick={() => handleDelete(record)}>
+                  删除
+                </Button>
+              </>
+            )}
+            {record.status === 1 && (
+              <Button type="link" size="small" onClick={() => handleViewProgress(record)}>
+                查看详情
+              </Button>
+            )}
+            {record.status === 2 && (
+              <>
+                <Button type="link" size="small" onClick={() => handleViewProgress(record)}>
+                  查看原因
+                </Button>
+                {isLeave && (
+                  <Button type="link" size="small" onClick={() => handleResubmit(record)}>
+                    重新提交
+                  </Button>
+                )}
+                <Button type="link" size="small" danger onClick={() => handleDelete(record)}>
+                  删除
+                </Button>
+              </>
+            )}
+          </Space>
+        );
+      },
     },
   ];
 
@@ -162,8 +193,8 @@ const MyLeave: React.FC = () => {
     const isOvertime = record._recordType === 'overtime';
     const label = isMakeup ? '补卡' : isOvertime ? '加班' : '请假';
     Modal.confirm({
-      title: '确认取消',
-      content: `确定要取消此${label}申请吗？`,
+      title: '确认撤回',
+      content: `确定要撤回此${label}申请吗？`,
       onOk: async () => {
         try {
           if (isMakeup) {
@@ -173,10 +204,83 @@ const MyLeave: React.FC = () => {
           } else {
             await cancelUsingPost({ id: record.id! });
           }
-          message.success('已取消');
+          message.success('已撤回');
           actionRef.current?.reload();
         } catch (e: any) {
-          message.error(e.message || '取消失败');
+          message.error(e.message || '撤回失败');
+        }
+      },
+    });
+  };
+
+  const handleResubmit = (record: any) => {
+    const isMakeup = record._recordType === 'makeup';
+    const isOvertime = record._recordType === 'overtime';
+    const label = isMakeup ? '补卡' : isOvertime ? '加班' : '请假';
+    Modal.confirm({
+      title: '确认重新提交',
+      content: `确定要重新提交此${label}申请吗？`,
+      onOk: async () => {
+        try {
+          if (!isMakeup && !isOvertime) {
+            await resubmitUsingPost({ id: record.id! });
+          } else if (isMakeup) {
+            const rawTime = record._punchTime;
+            const timeStr = rawTime ? dayjs(rawTime).format('HH:mm') : '09:00';
+            await applyUsingPost1({
+              punchDate: record.startDate,
+              punchTime: timeStr,
+              punchType: record._punchType ?? 0,
+              reason: record.reason,
+            });
+          } else if (isOvertime) {
+            const rawStart = record._startTime;
+            const rawEnd = record._endTime;
+            const startTime = rawStart ? dayjs(rawStart).format('HH:mm') : '18:00';
+            const endTime = rawEnd ? dayjs(rawEnd).format('HH:mm') : '20:00';
+            const hours = rawStart && rawEnd
+              ? Math.round(dayjs(rawEnd).diff(dayjs(rawStart), 'hour', true) * 10) / 10
+              : 2;
+            await applyUsingPost2({
+              overtimeDate: record.startDate,
+              startTime,
+              endTime,
+              overtimeHours: hours > 0 ? hours : 2,
+              overtimeType: record._overtimeType ?? 0,
+              reason: record.reason,
+            });
+          }
+          message.success('已重新提交');
+          actionRef.current?.reload();
+        } catch (e: any) {
+          message.error(e.message || '重新提交失败');
+        }
+      },
+    });
+  };
+
+  const handleDelete = (record: any) => {
+    const isMakeup = record._recordType === 'makeup';
+    const isOvertime = record._recordType === 'overtime';
+    const label = isMakeup ? '补卡' : isOvertime ? '加班' : '请假';
+    Modal.confirm({
+      title: '确认删除',
+      content: `确定要删除此${label}申请吗？此操作不可恢复。`,
+      okType: 'danger',
+      onOk: async () => {
+        try {
+          const id = record._rawId ?? record.id!;
+          if (isMakeup) {
+            await deleteMakeupPunchUsingDelete({ id });
+          } else if (isOvertime) {
+            await deleteOvertimeUsingDelete({ id });
+          } else {
+            await deleteLeaveUsingDelete({ id });
+          }
+          message.success('已删除');
+          actionRef.current?.reload();
+        } catch (e: any) {
+          message.error(e.message || '删除失败');
         }
       },
     });
@@ -262,6 +366,8 @@ const MyLeave: React.FC = () => {
               employeeName: r.employeeName,
               _recordType: 'makeup' as const,
               _rawId: r.id,
+              _punchType: r.punchType,
+              _punchTime: r.punchTime,
             }));
 
             const overtimeData = ((overtimeRes?.data ?? []) as any[]).map((r: any) => ({
@@ -278,6 +384,9 @@ const MyLeave: React.FC = () => {
               employeeName: r.employeeName,
               _recordType: 'overtime' as const,
               _rawId: r.id,
+              _overtimeType: r.overtimeType,
+              _startTime: r.startTime,
+              _endTime: r.endTime,
             }));
 
             const merged = [...leaveData, ...makeupData, ...overtimeData].sort((a, b) =>

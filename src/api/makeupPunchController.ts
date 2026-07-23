@@ -54,6 +54,22 @@ export async function cancelUsingPost1(
   );
 }
 
+/** deleteMakeupPunch DELETE /api/attendance/makeup/${param0} */
+export async function deleteMakeupPunchUsingDelete(
+  params: API.deleteMakeupPunchUsingDELETEParams,
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.BaseResponseBoolean_>(
+    `/api/attendance/makeup/${param0}`,
+    {
+      method: 'DELETE',
+      params: { ...queryParams },
+      ...(options || {}),
+    },
+  );
+}
+
 /** getMyMakeupPunches GET /api/attendance/makeup/my */
 export async function getMyMakeupPunchesUsingGet(options?: {
   [key: string]: any;

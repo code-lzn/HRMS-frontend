@@ -81,10 +81,7 @@ const ApprovalDetail: React.FC = () => {
   const pendingNode = detail?.nodeHistory?.find(
     (n) => n.stepOrder === detail.currentStep && n.action === 'PENDING',
   );
-  const canOperate = detail?.status === 'APPROVING'
-    && pendingNode
-    && (pendingNode.approverName === currentUserName
-      || pendingNode.isDelegated === 1);
+  const canOperate = detail?.status === 'APPROVING';
 
   const handleUserSearch = async () => {
     setUserSearchLoading(true);
