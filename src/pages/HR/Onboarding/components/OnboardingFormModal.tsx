@@ -256,7 +256,8 @@ const OnboardingFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }
           <DatePicker style={{ width: '100%' }} />
         </Form.Item>
 
-        <Form.Item name="baseSalary" label="基本工资">
+        <Form.Item name="baseSalary" label="基本工资"
+          rules={[{ required: true, message: '基本工资不能为空' }]}>
           <InputNumber min={0} step={100} style={{ width: '100%' }}
             prefix="¥" placeholder="约定基本工资" />
         </Form.Item>
