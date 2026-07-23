@@ -4,9 +4,9 @@ import {
 import { listEmployeesUsingGet } from '@/api/employeeController';
 import type { ResignationAddRequest, ResignationVO } from '../types/resignation';
 import {
-  Modal, Form, Input, Select, DatePicker, message, Button, Descriptions, Divider,
+  Drawer, Form, Input, Select, DatePicker, message, Button, Descriptions, Divider,
 } from 'antd';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import dayjs from 'dayjs';
 
 interface Props {
@@ -20,12 +20,15 @@ const ResignationFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk 
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [empList, setEmpList] = useState<{ label: string; value: number }[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [selectedEmp, setSelectedEmp] = useState<any>(null);
+  const searchTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isEdit = !!editData;
 
-  const fetchEmpList = async () => {
+  const fetchEmpList = async (keyword?: string) => {
+    setSearchLoading(true);
     try {
-      const res = await listEmployeesUsingGet({ page: 1, size: 500 });
+      const res = await listEmployeesUsingGet({ keyword, page: 1, size: 50 });
       const records = res?.data?.records ?? [];
       const active = records.filter((e: any) => e.status === 1 || e.status === 2);
       setEmpList(active.map((e: any) => ({
@@ -33,6 +36,12 @@ const ResignationFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk 
         value: e.id,
       })));
     } catch (e) { console.error('pages/HR/Resignation/components/ResignationFormModal.tsx', e); setEmpList([]); }
+    finally { setSearchLoading(false); }
+  };
+
+  const handleSearch = (value: string) => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => { fetchEmpList(value); }, 300);
   };
 
   const handleEmpChange = async (empId: number) => {
@@ -47,12 +56,12 @@ const ResignationFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk 
 
   useEffect(() => {
     if (open) {
-      fetchEmpList();
       if (editData) {
         form.setFieldsValue({
           ...editData,
           resignDate: editData.resignDate ? dayjs(editData.resignDate) : null,
         });
+        setEmpList([{ label: `${editData.employeeName} (${editData.employeeNo || '-'})`, value: editData.employeeId }]);
         setSelectedEmp({
           employeeName: editData.employeeName,
           employeeNo: editData.employeeNo,
@@ -62,6 +71,7 @@ const ResignationFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk 
       } else {
         form.resetFields();
         setSelectedEmp(null);
+        fetchEmpList();
       }
     }
   }, [open, editData, form]);
@@ -96,23 +106,28 @@ const ResignationFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk 
   };
 
   return (
-    <Modal
+    <Drawer
       title={isEdit ? '编辑离职申请' : '新增离职申请'}
-      open={open} onCancel={onCancel} width={720} destroyOnClose draggable
-      footer={isEdit ? [
-        <Button key="cancel" onClick={onCancel}>取消</Button>,
-        <Button key="save" type="primary" loading={loading} onClick={() => handleSubmit(false)}>保存</Button>,
-      ] : [
-        <Button key="cancel" onClick={onCancel}>取消</Button>,
-        <Button key="draft" loading={loading} onClick={() => handleSubmit(false)}>保存草稿</Button>,
-        <Button key="submit" type="primary" loading={loading} onClick={() => handleSubmit(true)}>提交审批</Button>,
-      ]}
+      open={open} onClose={onCancel} width={640} destroyOnClose
+      footer={
+        <div style={{ textAlign: 'right' }}>
+          {isEdit ? [
+            <Button key="cancel" onClick={onCancel}>取消</Button>,
+            <Button key="save" type="primary" loading={loading} onClick={() => handleSubmit(false)} style={{ marginLeft: 8 }}>保存</Button>,
+          ] : [
+            <Button key="cancel" onClick={onCancel}>取消</Button>,
+            <Button key="draft" loading={loading} onClick={() => handleSubmit(false)} style={{ marginLeft: 8 }}>保存草稿</Button>,
+            <Button key="submit" type="primary" loading={loading} onClick={() => handleSubmit(true)} style={{ marginLeft: 8 }}>提交审批</Button>,
+          ]}
+        </div>
+      }
     >
       <Form form={form} layout="vertical" style={{ marginTop: 12 }}>
         <Form.Item name="employeeId" label="选择员工"
           rules={[{ required: true, message: '必选' }]}>
           <Select placeholder="搜索在职员工" showSearch
-            optionFilterProp="label" options={empList}
+            filterOption={false} onSearch={handleSearch} loading={searchLoading}
+            options={empList}
             onChange={handleEmpChange} disabled={isEdit}
           />
         </Form.Item>
@@ -169,7 +184,8 @@ const ResignationFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk 
         <Form.Item name="handoverPersonId" label="工作交接人"
           rules={[{ required: true, message: '必选' }]}>
           <Select placeholder="搜索交接人" showSearch
-            optionFilterProp="label" options={empList}
+            filterOption={false} onSearch={handleSearch} loading={searchLoading}
+            options={empList}
           />
         </Form.Item>
 
@@ -177,7 +193,7 @@ const ResignationFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk 
           <Input.TextArea placeholder="单据备注" maxLength={512} rows={2} />
         </Form.Item>
       </Form>
-    </Modal>
+    </Drawer>
   );
 };
 

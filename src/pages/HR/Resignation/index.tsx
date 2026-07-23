@@ -2,7 +2,6 @@ import { ProTable, type ProColumns, type ActionType } from '@ant-design/pro-comp
 import { Button, Tag, message, Popconfirm, Tabs, Card, Typography, Modal, DatePicker } from 'antd';
 import { PlusOutlined, FileTextOutlined, ClockCircleOutlined, UserDeleteOutlined, StopOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { useNavigate } from '@umijs/max';
 import {
   listResignation, deleteResignation, submitDraft,
   revokeResignation, abandonResignation, confirmResignation,
@@ -11,6 +10,7 @@ import {
 } from './services/resignation';
 import dayjs from 'dayjs';
 import type { ResignationVO } from './types/resignation';
+import ResignationFormModal from './components/ResignationFormModal';
 
 // 离职申请状态映射表：将状态枚举值转换为显示文本和颜色
 const STATUS_MAP: Record<string, { color: string; text: string }> = {
@@ -35,22 +35,19 @@ const TYPE_MAP: Record<string, string> = {
 
 // 离职管理页面组件：管理员工离职申请的全生命周期
 const ResignationPage: React.FC = () => {
-  // ProTable表格引用：用于触发表格刷新
   const actionRef = useRef<ActionType>();
-  const navigate = useNavigate();
 
-  // ===== 筛选状态 =====
-  const [activeTab, setActiveTab] = useState(''); // 当前选中的状态标签
-  const activeTabRef = useRef(''); // 同步 ref，确保 request 闭包读到最新值
+  const [activeTab, setActiveTab] = useState('');
+  const activeTabRef = useRef('');
 
-  // ===== 统计数据状态 =====
   const [stats, setStats] = useState({ draft: 0, approving: 0, pending: 0, resigned: 0 });
 
-  // ===== 拒绝原因弹窗 =====
+  const [formOpen, setFormOpen] = useState(false);
+  const [editRecord, setEditRecord] = useState<ResignationVO | null>(null);
+
   const [rejectionModalOpen, setRejectionModalOpen] = useState(false);
   const [rejectionText, setRejectionText] = useState('');
 
-  // ===== 修改离职日期弹窗 =====
   const [resignDateOpen, setResignDateOpen] = useState(false);
   const [resignDateId, setResignDateId] = useState<number>();
   const [resignDateValue, setResignDateValue] = useState<string>('');
@@ -162,7 +159,7 @@ const ResignationPage: React.FC = () => {
         // 草稿状态：编辑、提交审批、删除
         if (isDraft) return (
           <>
-            <a onClick={() => { navigate('/hr/resignation/add', { state: { editData: r } }); }} style={{ marginRight: 8 }}>编辑</a>
+            <a onClick={() => { setEditRecord(r); setFormOpen(true); }} style={{ marginRight: 8 }}>编辑</a>
             <a onClick={() => submitDraft(r.id).then(() => { actionRef.current?.reload(); fetchStats(); })} style={{ marginRight: 8 }}>提交审批</a>
             <Popconfirm title="确定删除？" onConfirm={() => deleteResignation(r.id).then(() => { actionRef.current?.reload(); fetchStats(); })}>
               <a style={{ color: '#ff4d4f' }}>删除</a>
@@ -253,7 +250,7 @@ const ResignationPage: React.FC = () => {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            onClick={() => navigate('/hr/resignation/add')}
+            onClick={() => { setEditRecord(null); setFormOpen(true); }}
             style={{ borderRadius: 6, height: 36, padding: '0 20px' }}
           >
             新增离职申请
@@ -370,6 +367,11 @@ const ResignationPage: React.FC = () => {
           onChange={(date) => setResignDateValue(date?.format('YYYY-MM-DD') || '')}
         />
       </Modal>
+
+      <ResignationFormModal open={formOpen} editData={editRecord}
+        onCancel={() => { setFormOpen(false); setEditRecord(null); }}
+        onOk={() => { setFormOpen(false); setEditRecord(null); actionRef.current?.reload(); fetchStats(); }}
+      />
 
     </div>
   );

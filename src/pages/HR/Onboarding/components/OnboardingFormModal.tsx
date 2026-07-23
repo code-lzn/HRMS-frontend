@@ -6,7 +6,7 @@ import { listPositionsUsingGet } from '@/api/positionController';
 import { listEmployeesUsingGet } from '@/api/employeeController';
 import type { OnboardingAddRequest, OnboardingVO } from '../types/onboarding';
 import {
-  Modal, Form, Input, Select, DatePicker, InputNumber, message, Button,
+  Drawer, Form, Input, Select, DatePicker, InputNumber, message, Button,
 } from 'antd';
 import { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
@@ -146,17 +146,21 @@ const OnboardingFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }
   };
 
   return (
-    <Modal
-      title={isEdit ? '编辑入职申请' : '新增入职申请'}
-      open={open} onCancel={onCancel} width={720} destroyOnClose draggable
-      footer={isEdit ? [
-        <Button key="cancel" onClick={onCancel}>取消</Button>,
-        <Button key="save" type="primary" loading={loading} onClick={() => handleSubmit(false)}>保存</Button>,
-      ] : [
-        <Button key="cancel" onClick={onCancel}>取消</Button>,
-        <Button key="draft" loading={loading} onClick={() => handleSubmit(false)}>保存草稿</Button>,
-        <Button key="submit" type="primary" loading={loading} onClick={() => handleSubmit(true)}>提交审批</Button>,
-      ]}
+    <Drawer
+      title={isEdit ? '编辑入职申请' : '新建入职申请'}
+      open={open} onClose={onCancel} width={640} destroyOnClose
+      footer={
+        <div style={{ textAlign: 'right' }}>
+          {isEdit ? [
+            <Button key="cancel" onClick={onCancel}>取消</Button>,
+            <Button key="save" type="primary" loading={loading} onClick={() => handleSubmit(false)} style={{ marginLeft: 8 }}>保存</Button>,
+          ] : [
+            <Button key="cancel" onClick={onCancel}>取消</Button>,
+            <Button key="draft" loading={loading} onClick={() => handleSubmit(false)} style={{ marginLeft: 8 }}>保存草稿</Button>,
+            <Button key="submit" type="primary" loading={loading} onClick={() => handleSubmit(true)} style={{ marginLeft: 8 }}>提交审批</Button>,
+          ]}
+        </div>
+      }
     >
       <Form form={form} layout="vertical" style={{ marginTop: 12 }}
         initialValues={{ probationMonth: 3, probationSalaryRatio: 80, employmentType: 'FULL_TIME' }}>
@@ -217,7 +221,7 @@ const OnboardingFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }
           <Select options={[
             { label: '全职', value: 'FULL_TIME' },
             { label: '兼职', value: 'PART_TIME' },
-            { label: '实习', value: 'INTERNSHIP' },
+            { label: '实习', value: 'INTERN' },
           ]} placeholder="选择录用类型" />
         </Form.Item>
 
@@ -285,7 +289,7 @@ const OnboardingFormModal: React.FC<Props> = ({ open, editData, onCancel, onOk }
           <Input.TextArea placeholder="单据备注" maxLength={512} rows={2} />
         </Form.Item>
       </Form>
-    </Modal>
+    </Drawer>
   );
 };
 

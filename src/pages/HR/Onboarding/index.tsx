@@ -2,7 +2,6 @@ import { ProTable, type ProColumns, type ActionType } from '@ant-design/pro-comp
 import { Button, Tag, message, Popconfirm, Tabs, Card, Typography, Modal, DatePicker } from 'antd';
 import { PlusOutlined, FileTextOutlined, ClockCircleOutlined, UserAddOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { useNavigate } from '@umijs/max';
 import usePermission from '@/hooks/usePermission';
 import OnboardingFormModal from './components/OnboardingFormModal';
 import ConfirmModal from './components/ConfirmModal';
@@ -28,10 +27,7 @@ const STATUS_MAP: Record<string, { color: string; text: string }> = {
 
 // 入职管理页面组件：管理候选人入职申请的全生命周期
 const OnboardingPage: React.FC = () => {
-  // ProTable表格引用：用于触发表格刷新
   const actionRef = useRef<ActionType>();
-  const navigate = useNavigate();
-  // 获取用户权限（是否可以添加员工）
   const { canAddEmployee } = usePermission();
 
   // ===== 筛选状态 =====
@@ -135,8 +131,12 @@ const OnboardingPage: React.FC = () => {
           FULL_TIME: { color: '#1677ff', text: '全职' },
           PART_TIME: { color: '#faad14', text: '兼职' },
           INTERN:    { color: '#52c41a', text: '实习' },
+          '1':       { color: '#1677ff', text: '全职' },
+          '2':       { color: '#faad14', text: '兼职' },
+          '3':       { color: '#52c41a', text: '实习' },
         };
-        const cfg = typeMap[r.employmentType] || { color: '#d9d9d9', text: r.employmentType || '-' };
+        const val = String(r.employmentType);
+        const cfg = typeMap[val] || { color: '#d9d9d9', text: val || '-' };
         return <Tag color={cfg.color}>{cfg.text}</Tag>;
       },
     },
@@ -273,7 +273,7 @@ const OnboardingPage: React.FC = () => {
             <Button
               type="primary"
               icon={<PlusOutlined />}
-              onClick={() => navigate('/employee/add')}
+              onClick={() => { setEditRecord(null); setFormOpen(true); }}
               style={{ borderRadius: 6, height: 36, padding: '0 20px' }}
             >
               新建入职申请

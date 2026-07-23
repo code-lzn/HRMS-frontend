@@ -4,9 +4,9 @@ import {
 import { listEmployeesUsingGet } from '@/api/employeeController';
 import type { RegularizationAddRequest, RegularizationVO } from '../types/regularization';
 import {
-  Modal, Form, Input, Select, InputNumber, message, Button, Descriptions, Divider,
+  Drawer, Form, Input, Select, InputNumber, message, Button, Descriptions, Divider,
 } from 'antd';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import dayjs from 'dayjs';
 
 interface Props {
@@ -20,13 +20,16 @@ const RegularizationFormModal: React.FC<Props> = ({ open, editData, onCancel, on
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [empList, setEmpList] = useState<{ label: string; value: number }[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [selectedEmp, setSelectedEmp] = useState<any>(null);
   const [probationMonths, setProbationMonths] = useState(3);
+  const searchTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isEdit = !!editData;
 
-  const fetchEmpList = async () => {
+  const fetchEmpList = async (keyword?: string) => {
+    setSearchLoading(true);
     try {
-      const res = await listEmployeesUsingGet({ page: 1, size: 200 });
+      const res = await listEmployeesUsingGet({ keyword, page: 1, size: 50 });
       const records = res?.data?.records ?? [];
       const probEmployees = records.filter((e: any) => e.status === 1);
       setEmpList(probEmployees.map((e: any) => ({
@@ -34,6 +37,12 @@ const RegularizationFormModal: React.FC<Props> = ({ open, editData, onCancel, on
         value: e.id,
       })));
     } catch (e) { console.error('pages/HR/Probation/components/RegularizationFormModal.tsx', e); setEmpList([]); }
+    finally { setSearchLoading(false); }
+  };
+
+  const handleSearch = (value: string) => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => { fetchEmpList(value); }, 300);
   };
 
   const handleEmpChange = (empId: number) => {
@@ -57,9 +66,9 @@ const RegularizationFormModal: React.FC<Props> = ({ open, editData, onCancel, on
 
   useEffect(() => {
     if (open) {
-      fetchEmpList();
       if (editData) {
         form.setFieldsValue({ ...editData });
+        setEmpList([{ label: `${editData.employeeName} (${editData.employeeNo || '-'})`, value: editData.employeeId }]);
         setSelectedEmp({
           employeeName: editData.employeeName,
           employeeNo: editData.employeeNo,
@@ -71,6 +80,7 @@ const RegularizationFormModal: React.FC<Props> = ({ open, editData, onCancel, on
         form.resetFields();
         setSelectedEmp(null);
         setProbationMonths(3);
+        fetchEmpList();
       }
     }
   }, [open, editData, form]);
@@ -115,23 +125,28 @@ const RegularizationFormModal: React.FC<Props> = ({ open, editData, onCancel, on
   const resultValue = Form.useWatch('result', form);
 
   return (
-    <Modal
+    <Drawer
       title={isEdit ? '编辑转正申请' : '新增转正申请'}
-      open={open} onCancel={onCancel} width={720} destroyOnClose draggable
-      footer={isEdit ? [
-        <Button key="cancel" onClick={onCancel}>取消</Button>,
-        <Button key="save" type="primary" loading={loading} onClick={() => handleSubmit(false)}>保存</Button>,
-      ] : [
-        <Button key="cancel" onClick={onCancel}>取消</Button>,
-        <Button key="draft" loading={loading} onClick={() => handleSubmit(false)}>保存草稿</Button>,
-        <Button key="submit" type="primary" loading={loading} onClick={() => handleSubmit(true)}>提交审批</Button>,
-      ]}
+      open={open} onClose={onCancel} width={640} destroyOnClose
+      footer={
+        <div style={{ textAlign: 'right' }}>
+          {isEdit ? [
+            <Button key="cancel" onClick={onCancel}>取消</Button>,
+            <Button key="save" type="primary" loading={loading} onClick={() => handleSubmit(false)} style={{ marginLeft: 8 }}>保存</Button>,
+          ] : [
+            <Button key="cancel" onClick={onCancel}>取消</Button>,
+            <Button key="draft" loading={loading} onClick={() => handleSubmit(false)} style={{ marginLeft: 8 }}>保存草稿</Button>,
+            <Button key="submit" type="primary" loading={loading} onClick={() => handleSubmit(true)} style={{ marginLeft: 8 }}>提交审批</Button>,
+          ]}
+        </div>
+      }
     >
       <Form form={form} layout="vertical" style={{ marginTop: 12 }}>
         <Form.Item name="employeeId" label="选择员工"
           rules={[{ required: true, message: '必选' }]}>
           <Select placeholder="搜索试用期员工" showSearch
-            optionFilterProp="label" options={empList}
+            filterOption={false} onSearch={handleSearch} loading={searchLoading}
+            options={empList}
             onChange={handleEmpChange} disabled={isEdit}
           />
         </Form.Item>
@@ -193,7 +208,7 @@ const RegularizationFormModal: React.FC<Props> = ({ open, editData, onCancel, on
           <Input.TextArea placeholder="单据备注" maxLength={512} rows={2} />
         </Form.Item>
       </Form>
-    </Modal>
+    </Drawer>
   );
 };
 

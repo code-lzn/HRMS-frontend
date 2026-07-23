@@ -138,5 +138,5 @@ export function resubmitResignation(id: number) {
  * @returns 统计数据
  */
 export function getResignationStats() {
-  return request.get<{ code: number; data: Record<string, number>; message: string }>(`${BASE}/stats`);
+  return request.get<{ code: number; data: { draft: number; approving: number; pending: number; resigned: number }; message: string }>(`${BASE}/stats`);
 }

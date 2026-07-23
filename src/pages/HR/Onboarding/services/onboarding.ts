@@ -145,5 +145,5 @@ export function resubmitOnboarding(id: number) {
  * @returns 统计数据
  */
 export function getOnboardingStats() {
-  return request.get<{ code: number; data: Record<string, number>; message: string }>(`${BASE}/stats`);
+  return request.get<{ code: number; data: { draft: number; approving: number; approved: number; onboarded: number }; message: string }>(`${BASE}/stats`);
 }
