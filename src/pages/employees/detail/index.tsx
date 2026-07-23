@@ -42,7 +42,7 @@ const EmployeeDetail: React.FC = () => {
     );
   }
 
-  const canViewSensitive = access.isAdmin || access.isHR;
+  const canViewSensitive = access.canViewSalary;
 
   const getSeniority = (hireDate?: string) => {
     if (!hireDate) return '-';

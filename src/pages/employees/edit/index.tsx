@@ -73,7 +73,7 @@ const EmployeeEdit: React.FC = () => {
 
   const editableFields = permissions?.editableFields ?? [];
   const flowRequiredFields = permissions?.flowRequiredFields ?? [];
-  const showSalarySection = access.isHR || access.isAdmin;
+  const showSalarySection = access.canViewSalary;
 
   if (isLoading) {
     return (
