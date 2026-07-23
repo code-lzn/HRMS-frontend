@@ -60,13 +60,6 @@ export const ROUTE_REGISTRY: RouteEntry[] = [
     keywords: ['考勤统计', '出勤统计', '考勤报表', '出勤率'],
     desc: '考勤数据统计与分析',
   },
-  // ---- 人事异动 ----
-  {
-    path: '/my-changes',
-    name: '我的人事异动',
-    keywords: ['异动', '人事异动', '我的异动', '变动记录'],
-    desc: '查看个人人事异动记录',
-  },
   // ---- HR中控台 ----
   {
     path: '/hr/onboarding',

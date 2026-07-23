@@ -6,7 +6,7 @@ import {
 } from '@/api/approvalController';
 import { getTransferableUsersUsingGet } from '@/api/onboardingController';
 import { ArrowLeftOutlined } from '@ant-design/icons';
-import { useNavigate, useParams, useSearchParams } from '@umijs/max';
+import { useNavigate, useParams, useSearchParams, useModel } from '@umijs/max';
 import {
   Button,
   Card,
@@ -44,6 +44,8 @@ const ApprovalDetail: React.FC = () => {
   const navigate = useNavigate();
   const { recordId } = useParams<{ recordId: string }>();
   const [searchParams] = useSearchParams();
+  const { initialState } = useModel('@@initialState');
+  const currentUserName = initialState?.currentUser?.userName ?? '';
   const detailIdFromQuery = searchParams.get('detailId');
   const [detail, setDetail] = useState<API.ApprovalDetailVO | null>(null);
   const [loading, setLoading] = useState(true);
@@ -79,8 +81,10 @@ const ApprovalDetail: React.FC = () => {
   const pendingNode = detail?.nodeHistory?.find(
     (n) => n.stepOrder === detail.currentStep && n.action === 'PENDING',
   );
-  // 审批中即显示操作按钮，权限由后端校验
-  const canOperate = detail?.status === 'APPROVING';
+  const canOperate = detail?.status === 'APPROVING'
+    && pendingNode
+    && (pendingNode.approverName === currentUserName
+      || pendingNode.isDelegated === 1);
 
   const handleUserSearch = async () => {
     setUserSearchLoading(true);

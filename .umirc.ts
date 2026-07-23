@@ -54,11 +54,6 @@ export default defineConfig({
       ],
     },
     {
-      name: '我的人事异动',
-      path: '/my-changes',
-      component: './MyChanges',
-    },
-    {
       name: 'HR中控台',
       path: '/hr',
       access: 'canSeeHRConsole',

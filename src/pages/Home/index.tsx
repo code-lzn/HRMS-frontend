@@ -2,7 +2,6 @@ import {
   AuditOutlined,
   ClockCircleOutlined,
   ClusterOutlined,
-  FileTextOutlined,
   IdcardOutlined,
   PieChartOutlined,
   RightOutlined,
@@ -20,7 +19,6 @@ import React, { useEffect, useState } from 'react';
 import { getCalendarUsingGet } from '@/api/attendanceController';
 import { getBalanceUsingGet } from '@/api/leaveController';
 import { getMySalarySlipsUsingGet } from '@/api/salaryController';
-import { getChangeLogsUsingGet1 } from '@/api/profileController';
 import usePermission from '@/hooks/usePermission';
 import styles from './index.less';
 
@@ -69,7 +67,6 @@ const HomePage: React.FC = () => {
   const [attendanceDays, setAttendanceDays] = useState<number | null>(null);
   const [annualLeave, setAnnualLeave] = useState<number | null>(null);
   const [lastSalary, setLastSalary] = useState<number | null>(null);
-  const [changeCount, setChangeCount] = useState<number | null>(null);
 
   useEffect(() => {
     // 本月出勤天数
@@ -91,10 +88,6 @@ const HomePage: React.FC = () => {
           if (latest.netSalary != null) setLastSalary(latest.netSalary);
         }
       })
-      .catch(() => {});
-    // 异动记录数
-    getChangeLogsUsingGet1({ pageNum: 1, pageSize: 1 })
-      .then((res) => { if (res?.data?.total != null) setChangeCount(res.data.total); })
       .catch(() => {});
   }, []);
 
@@ -182,8 +175,7 @@ const HomePage: React.FC = () => {
     statCards.push(
       { key: 'att', icon: <ClockCircleOutlined />, bg: '#e6f4ff', color: '#1677ff', label: '本月出勤', value: attendanceDays != null ? String(attendanceDays) : '—', desc: '正常天数', path: '/personal/attendance' },
       { key: 'leave', icon: <ScheduleOutlined />, bg: '#f6ffed', color: '#52c41a', label: '剩余年假', value: annualLeave != null ? `${annualLeave}天` : '—', desc: '可申请', path: '/personal/leave' },
-      { key: 'salary', icon: <PieChartOutlined />, bg: '#fff7e6', color: '#fa8c16', label: '上月薪资', value: lastSalary != null ? `¥${lastSalary.toLocaleString()}` : '—', desc: '已发放', path: '/personal/salary' },
-      { key: 'changes', icon: <FileTextOutlined />, bg: '#f9f0ff', color: '#722ed1', label: '异动记录', value: changeCount != null ? `${changeCount}条` : '—', desc: '最近', path: '/my-changes' },
+      { key: 'salary', icon: <PieChartOutlined />, bg: '#fff7e6', color: '#fa8c16', label: '上月薪资', value: lastSalary != null ? `¥${lastSalary.toLocaleString()}` : '—', desc: '已发放', path: '/personal/salary' }
     );
   }
 
